@@ -1,0 +1,43 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #f2f4f7;
+  color: #1f2937;
+}
+
+#root {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.exercise-card,
+.timer {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+}
+
+.error {
+  color: #b91c1c;
+}
