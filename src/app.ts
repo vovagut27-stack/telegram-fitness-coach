@@ -2,8 +2,10 @@ import express from "express";
 import cors from "cors";
 import { apiRouter } from "./routes/api.js";
 import { bot, setupWebhook, webhookPath } from "./bot/index.js";
-import { db } from "./database/index.js";
+import { db, pingDatabase } from "./database/index.js";
 import { runMigrations } from "./database/migrate.js";
+import { normalizeDatabaseUrl, shouldUseNeonDriver } from "./database/connection.js";
+import { env } from "./config/env.js";
 
 const app = express();
 app.use(
@@ -26,7 +28,7 @@ let webhookReady: Promise<void> | null = null;
 export function ensureDb(): Promise<void> {
   if (!dbReady) {
     dbReady = (async () => {
-      await db.query("SELECT 1");
+      await pingDatabase(3);
       await runMigrations();
     })();
   }
@@ -50,16 +52,27 @@ app.get("/api/health", async (_req, res) => {
     const names = cols.rows.map((r) => r.column_name as string);
     const required = ["gender", "age", "weight_kg", "height_cm", "profile_complete"];
     const missing = required.filter((c) => !names.includes(c));
+    const dbUrl = normalizeDatabaseUrl(env.DATABASE_URL);
     res.json({
       ok: true,
       database: "connected",
       profileColumnsOk: missing.length === 0,
       missingColumns: missing,
+      dbDriver: shouldUseNeonDriver(dbUrl) ? "neon-serverless" : "pg",
+      pooledHost: dbUrl.includes("-pooler"),
     });
   } catch (err) {
     console.error("/api/health db error:", err);
     const message = err instanceof Error ? err.message : "unknown";
-    res.status(500).json({ ok: false, database: "error", error: message });
+    const dbUrl = normalizeDatabaseUrl(env.DATABASE_URL);
+    res.status(500).json({
+      ok: false,
+      database: "error",
+      error: message,
+      hint:
+        "Use Neon «Pooled connection» string on Vercel. Host must contain -pooler. See docs/VERCEL_DEPLOY.md",
+      pooledHost: dbUrl.includes("-pooler"),
+    });
   }
 });
 

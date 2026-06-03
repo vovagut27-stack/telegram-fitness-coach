@@ -10,11 +10,52 @@
 | Output Directory | **(пусто — обязательно!)** |
 | Install Command | `npm install` |
 
-Не указывайте `dist` в Output Directory — backend работает через **`api/index.ts`**, а не как Node-приложение из `dist/`.
+Не указывайте `dist` в Output Directory — backend работает через **`api/index.ts`**.
 
-Файл `vercel.json` в корне уже настроен: rewrites → `/api`, serverless function `api/index.ts`.
+### Переменные окружения (backend)
 
-## 2. Mini App — `telegram-fitness-coach-euen` (или второй проект)
+| Переменная | Пример |
+|------------|--------|
+| `DATABASE_URL` | **Pooled connection** из Neon (см. ниже) |
+| `TELEGRAM_BOT_TOKEN` | от @BotFather |
+| `OPENAI_API_KEY` | ключ OpenAI |
+| `APP_BASE_URL` | `https://telegram-fitness-coach.vercel.app` |
+| `WEBAPP_URL` | URL Mini App на Vercel |
+| `TELEGRAM_WEBHOOK_SECRET` | любая длинная строка |
+
+### База данных Neon (важно!)
+
+На Vercel обычный `pg` к Postgres часто даёт **Connection timeout**.
+
+1. Откройте [Neon Console](https://console.neon.tech) → ваш проект → **Connect**
+2. Выберите **Connection string** → вкладка **Pooled connection** (не Direct!)
+3. Скопируйте URL — в хосте должно быть **`-pooler`**, например:  
+   `ep-xxxx-pooler.us-east-2.aws.neon.tech`
+4. Вставьте в Vercel → backend → **Environment Variables** → `DATABASE_URL`
+5. **Redeploy** backend
+
+Проверка после деплоя:
+
+`https://ВАШ-BACKEND.vercel.app/api/health`
+
+Ожидается:
+
+```json
+{
+  "ok": true,
+  "database": "connected",
+  "dbDriver": "neon-serverless",
+  "pooledHost": true
+}
+```
+
+Если `database: "error"` и timeout — `DATABASE_URL` не pooled или неверный пароль.
+
+Код сам подставляет `-pooler` в URL Neon, если вы случайно вставили Direct — но лучше взять строку из Neon сразу.
+
+---
+
+## 2. Mini App — второй проект Vercel
 
 | Настройка | Значение |
 |-----------|----------|
@@ -23,10 +64,27 @@
 | Build Command | `npm run build` |
 | Output Directory | `dist` |
 
+### Переменная Mini App (обязательно!)
+
+| Переменная | Значение |
+|------------|----------|
+| `VITE_API_BASE_URL` | `https://telegram-fitness-coach.vercel.app/api` |
+
+Замените домен на **ваш** backend URL. Должен заканчиваться на **`/api`**.
+
+Без этой переменной в Mini App будет: **«Нет связи с API»**.
+
+После изменения — **Redeploy** webapp (переменные Vite вшиваются при сборке).
+
+---
+
 ## Ошибки
 
 **«No entrypoint found in output directory dist»**  
-→ В настройках **backend**-проекта очистите Output Directory и сделайте Redeploy.
+→ В **backend**-проекте очистите Output Directory.
 
-**«No Output Directory named dist found»**  
-→ Это для **webapp**-проекта: Root Directory = `webapp`, Output = `dist`.
+**«Нет связи с API»** в Mini App  
+→ Задайте `VITE_API_BASE_URL` в проекте **webapp** и redeploy.
+
+**`/api/health` → Connection timeout**  
+→ `DATABASE_URL` = Neon **Pooled connection**, redeploy backend.

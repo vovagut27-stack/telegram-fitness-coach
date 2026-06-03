@@ -9,7 +9,7 @@ async function run(): Promise<void> {
   const sql = await fs.readFile(schemaPath, "utf8");
   await db.query(sql);
   console.log("Database schema initialized.");
-  await db.end();
+  await db.end?.();
 }
 
 void run();
