@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { WorkoutPlayer } from "./components/WorkoutPlayer";
 import { ProfileForm } from "./components/ProfileForm";
 import { GymProgramView } from "./components/GymProgramView";
 import { PremiumPanel } from "./components/PremiumPanel";
 import { ScheduleList } from "./components/ScheduleList";
 import {
-  getTelegramUserId,
   getWorkoutDateFromUrl,
   initTelegramWebApp,
   requireTelegramUserId,
+  waitForTelegramUserId,
 } from "./services/telegram";
 import {
   completeWorkout,
@@ -28,7 +28,7 @@ function todayGymIndex(): number {
 
 function App() {
   const { tr, locale } = useI18n();
-  const telegramId = useMemo(() => getTelegramUserId(), []);
+  const [telegramId, setTelegramId] = useState<number | null>(null);
   const [tab, setTab] = useState<TabId>("home");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [schedule, setSchedule] = useState<ScheduleDayItem[]>([]);
@@ -53,15 +53,31 @@ function App() {
 
   useEffect(() => {
     initTelegramWebApp();
-    if (!telegramId) {
-      setLoading(false);
-      setError(tr("open_in_telegram"));
-      return;
-    }
-    Promise.all([loadProfile(), loadSchedule()])
-      .catch(() => setError(tr("network_error")))
-      .finally(() => setLoading(false));
-  }, [loadProfile, loadSchedule, telegramId, tr]);
+    let cancelled = false;
+
+    void waitForTelegramUserId().then((id) => {
+      if (cancelled) {
+        return;
+      }
+      setTelegramId(id);
+      if (!id) {
+        setLoading(false);
+        setError(tr("open_in_telegram"));
+        return;
+      }
+      Promise.all([loadProfile(), loadSchedule()])
+        .catch(() => setError(tr("network_error")))
+        .finally(() => {
+          if (!cancelled) {
+            setLoading(false);
+          }
+        });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadProfile, loadSchedule, tr]);
 
   useEffect(() => {
     const preset = getWorkoutDateFromUrl();

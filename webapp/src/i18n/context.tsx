@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { getTelegramUserId } from "../services/telegram";
+import { getTelegramUserId, waitForTelegramUserId } from "../services/telegram";
 import { API_BASE } from "../config";
 import {
   loadStoredLocale,
@@ -22,22 +22,29 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(loadStoredLocale);
 
   useEffect(() => {
-    const telegramId = getTelegramUserId();
-    fetch(`${API_BASE}/user/settings?telegramId=${telegramId}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { language?: string } | null) => {
-        if (data?.language === "en" || data?.language === "ru") {
-          setLocaleState(data.language);
-          saveStoredLocale(data.language);
-        }
-      })
-      .catch(() => undefined);
+    void waitForTelegramUserId().then((telegramId) => {
+      if (!telegramId) {
+        return;
+      }
+      fetch(`${API_BASE}/user/settings?telegramId=${telegramId}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: { language?: string } | null) => {
+          if (data?.language === "en" || data?.language === "ru") {
+            setLocaleState(data.language);
+            saveStoredLocale(data.language);
+          }
+        })
+        .catch(() => undefined);
+    });
   }, []);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     saveStoredLocale(next);
     const telegramId = getTelegramUserId();
+    if (!telegramId) {
+      return;
+    }
     void fetch(`${API_BASE}/user/language`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

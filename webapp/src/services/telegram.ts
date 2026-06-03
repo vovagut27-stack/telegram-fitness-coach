@@ -2,7 +2,8 @@ declare global {
   interface Window {
     Telegram?: {
       WebApp?: {
-        initDataUnsafe?: { user?: { id?: number }; start_param?: string };
+        initData?: string;
+        initDataUnsafe?: { user?: { id?: number | string }; start_param?: string };
         openInvoice?: (url: string, callback?: (status: string) => void) => void;
         ready: () => void;
         expand: () => void;
@@ -12,13 +13,70 @@ declare global {
   }
 }
 
-/** Real Telegram user id, or null if the app is opened outside Telegram. */
-export function getTelegramUserId(): number | null {
-  const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-  if (typeof id === "number" && Number.isFinite(id) && id > 0) {
-    return id;
+function parseUserId(raw: unknown): number | null {
+  const n = typeof raw === "string" ? Number(raw) : raw;
+  if (typeof n === "number" && Number.isFinite(n) && n > 0) {
+    return Math.floor(n);
   }
   return null;
+}
+
+function readUserIdFromInitData(initData: string): number | null {
+  try {
+    const params = new URLSearchParams(initData);
+    const userJson = params.get("user");
+    if (!userJson) {
+      return null;
+    }
+    const user = JSON.parse(userJson) as { id?: number | string };
+    return parseUserId(user.id);
+  } catch {
+    return null;
+  }
+}
+
+/** Real Telegram user id, or null if the app is opened outside Telegram. */
+export function getTelegramUserId(): number | null {
+  const tg = window.Telegram?.WebApp;
+  if (!tg) {
+    return null;
+  }
+
+  const fromUnsafe = parseUserId(tg.initDataUnsafe?.user?.id);
+  if (fromUnsafe) {
+    return fromUnsafe;
+  }
+
+  if (tg.initData) {
+    return readUserIdFromInitData(tg.initData);
+  }
+
+  return null;
+}
+
+/** Wait until Telegram WebApp SDK exposes the user (opens inside Telegram). */
+export function waitForTelegramUserId(timeoutMs = 4000): Promise<number | null> {
+  const immediate = getTelegramUserId();
+  if (immediate) {
+    return Promise.resolve(immediate);
+  }
+
+  return new Promise((resolve) => {
+    const started = Date.now();
+    const tick = (): void => {
+      const id = getTelegramUserId();
+      if (id) {
+        resolve(id);
+        return;
+      }
+      if (Date.now() - started >= timeoutMs) {
+        resolve(null);
+        return;
+      }
+      window.setTimeout(tick, 50);
+    };
+    tick();
+  });
 }
 
 export function requireTelegramUserId(): number {
@@ -43,8 +101,9 @@ export function getWorkoutDateFromUrl(): string | null {
 }
 
 export function initTelegramWebApp(): void {
-  window.Telegram?.WebApp?.ready?.();
-  window.Telegram?.WebApp?.expand?.();
+  const tg = window.Telegram?.WebApp;
+  tg?.ready?.();
+  tg?.expand?.();
 }
 
 export function openStarsInvoice(url: string, onDone?: (paid: boolean) => void): void {
