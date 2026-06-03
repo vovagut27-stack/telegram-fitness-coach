@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { getTelegramUserId, waitForTelegramUserId } from "../services/telegram";
-import { API_BASE } from "../config";
+import { getApiBase } from "../config";
 import {
   loadStoredLocale,
   saveStoredLocale,
@@ -26,7 +26,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       if (!telegramId) {
         return;
       }
-      fetch(`${API_BASE}/user/settings?telegramId=${telegramId}`)
+      fetch(`${getApiBase()}/user/settings?telegramId=${telegramId}`)
         .then((res) => (res.ok ? res.json() : null))
         .then((data: { language?: string } | null) => {
           if (data?.language === "en" || data?.language === "ru") {
@@ -45,7 +45,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (!telegramId) {
       return;
     }
-    void fetch(`${API_BASE}/user/language`, {
+    void fetch(`${getApiBase()}/user/language`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ telegramId, language: next }),

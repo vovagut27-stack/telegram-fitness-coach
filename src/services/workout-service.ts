@@ -4,6 +4,7 @@ import { calcBmi } from "../types/profile.js";
 import { getUser, upsertUser, type UserProfile } from "../database/users-repo.js";
 import {
   countCompletedThisWeek,
+  deleteWorkoutByDate,
   getRecentWorkouts,
   getWorkoutByDate,
   saveWorkoutPlan,
@@ -43,29 +44,13 @@ export async function ensureDefaultUser(telegramId: number): Promise<void> {
   });
 }
 
-function adjustDifficulty(
-  currentLevel: FitnessLevel,
-  completedThisWeek: number,
-): FitnessLevel {
-  if (completedThisWeek < 2) {
-    return currentLevel;
-  }
-  if (currentLevel === "beginner" && completedThisWeek >= 4) {
-    return "intermediate";
-  }
-  if (currentLevel === "intermediate" && completedThisWeek >= 5) {
-    return "advanced";
-  }
-  return currentLevel;
-}
-
 function buildRequest(
   user: UserProfile,
   recent: WorkoutPlan[],
-  weeklyCount: number,
+  _weeklyCount: number,
   targetMuscles: string[],
 ): WorkoutRequest {
-  const difficulty = adjustDifficulty(user.fitnessLevel, weeklyCount);
+  const difficulty = user.fitnessLevel;
   const bmi =
     user.weightKg && user.heightCm ? calcBmi(user.weightKg, user.heightCm) : null;
 
@@ -114,15 +99,6 @@ export async function getOrCreateWorkoutForDate(
   const profileUser = await getUser(telegramId);
   const gender = profileUser?.gender ?? null;
 
-  const existing = await getWorkoutByDate(telegramId, workoutDate);
-  if (existing) {
-    return {
-      ...existing.plan,
-      exercises: enrichWorkoutExercises(existing.plan.exercises, gender),
-      programType: existing.plan.programType ?? "daily",
-    };
-  }
-
   const [user, recent, weeklyCount] = await Promise.all([
     getUser(telegramId),
     getRecentWorkouts(telegramId, 2),
@@ -131,6 +107,20 @@ export async function getOrCreateWorkoutForDate(
 
   if (!user) {
     throw new Error("User profile not found");
+  }
+
+  let existing = await getWorkoutByDate(telegramId, workoutDate);
+  if (existing && existing.plan.difficultyLevel !== user.fitnessLevel) {
+    await deleteWorkoutByDate(telegramId, workoutDate);
+    existing = null;
+  }
+  if (existing) {
+    return {
+      ...existing.plan,
+      exercises: enrichWorkoutExercises(existing.plan.exercises, gender),
+      programType: existing.plan.programType ?? "daily",
+      difficultyLevel: user.fitnessLevel,
+    };
   }
 
   const split = getSplitForDate(workoutDate, user.language);

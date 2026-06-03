@@ -1122,17 +1122,14 @@ function personalizeExercise(ex: WorkoutExercise, request: WorkoutRequest): Work
   const age = request.age ?? 30;
   const bmi = request.bmi ?? 22;
 
-  if (request.fitnessLevel === "beginner" || age >= 55) {
+  if (request.fitnessLevel === "beginner") {
     sets = Math.max(2, sets - 1);
+  } else if (request.fitnessLevel === "advanced") {
+    sets = Math.min(sets + 1, 6);
   }
-  if (bmi >= 30 && request.fitnessLevel !== "advanced") {
+
+  if (request.fitnessLevel === "beginner" && (age >= 55 || (bmi != null && bmi >= 30))) {
     sets = Math.max(2, sets - 1);
-  }
-  if (request.gender === "female" && request.fitnessLevel === "beginner") {
-    sets = Math.max(2, sets - 1);
-  }
-  if (request.fitnessLevel === "advanced" && age < 45) {
-    sets = Math.min(sets + 1, 5);
   }
 
   return { ...ex, sets };

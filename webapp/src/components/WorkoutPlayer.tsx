@@ -9,10 +9,18 @@ import { levelLabel } from "../i18n/levels";
 interface WorkoutPlayerProps {
   workout: WorkoutPlan;
   gender?: Gender | null;
+  gymMode?: boolean;
+  onBack?: () => void;
   onComplete: (logs: ExerciseLog[]) => Promise<void>;
 }
 
-export function WorkoutPlayer({ workout, gender, onComplete }: WorkoutPlayerProps): ReactElement {
+export function WorkoutPlayer({
+  workout,
+  gender,
+  gymMode = false,
+  onBack,
+  onComplete,
+}: WorkoutPlayerProps): ReactElement {
   const { locale, tr } = useI18n();
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [setDone, setSetDone] = useState(0);
@@ -28,11 +36,17 @@ export function WorkoutPlayer({ workout, gender, onComplete }: WorkoutPlayerProp
 
   if (completed) {
     return (
-      <section>
+      <section className="card">
         <h2>{tr("workout_complete")}</h2>
-        <button type="button" onClick={() => void onComplete(logs)}>
-          {tr("save_session")}
-        </button>
+        {gymMode ? (
+          <button type="button" className="btn-secondary" onClick={() => void onComplete(logs)}>
+            {tr("gym_finish")}
+          </button>
+        ) : (
+          <button type="button" className="btn-primary" onClick={() => void onComplete(logs)}>
+            {tr("save_session")}
+          </button>
+        )}
       </section>
     );
   }
@@ -50,7 +64,9 @@ export function WorkoutPlayer({ workout, gender, onComplete }: WorkoutPlayerProp
       {
         exerciseName: current.name,
         setsCompleted: current.sets,
-        repsCompleted: Array.from({ length: current.sets }, () => Number(current.reps.split("-")[0])),
+        repsCompleted: Array.from({ length: current.sets }, () =>
+          Number(current.reps.split("-")[0]),
+        ),
         durationSeconds: current.sets * 45,
       },
     ]);
@@ -65,17 +81,29 @@ export function WorkoutPlayer({ workout, gender, onComplete }: WorkoutPlayerProp
   };
 
   return (
-    <section>
+    <section className={gymMode ? "workout-player gym" : "workout-player"}>
       <header>
-        <h2>{workout.splitDay ?? tr("workout_player")}</h2>
+        {onBack ? (
+          <button type="button" className="link-back" onClick={onBack}>
+            ← {tr("back")}
+          </button>
+        ) : null}
+        <h2>{workout.splitDay ?? (gymMode ? tr("gym_title") : tr("workout_player"))}</h2>
         <p>
-          {tr("focus")}: {workout.targetMuscles.join(", ")} | {tr("time_min")}: {workout.totalMinutes}{" "}
-          {tr("min")} | {levelLabel(locale, workout.difficultyLevel)}
+          {tr("focus")}: {workout.targetMuscles.join(", ")} · {tr("time_min")}:{" "}
+          {workout.totalMinutes} {tr("min")} · {levelLabel(locale, workout.difficultyLevel)}
         </p>
         {workout.notes ? <p className="muted">{workout.notes}</p> : null}
       </header>
-      <ExerciseCard exercise={current} index={exerciseIndex} gender={gender} />
-      <p>{tr("set_progress", { current: setDone + 1, total: current.sets })}</p>
+      <ExerciseCard
+        exercise={current}
+        index={exerciseIndex}
+        gender={gender}
+        gymMode={gymMode}
+      />
+      <p className="set-progress">
+        {tr("set_progress", { current: setDone + 1, total: current.sets })}
+      </p>
       {isResting ? (
         <Timer
           seconds={current.restSeconds}
@@ -85,7 +113,7 @@ export function WorkoutPlayer({ workout, gender, onComplete }: WorkoutPlayerProp
           }}
         />
       ) : null}
-      <button type="button" onClick={markSetCompleted}>
+      <button type="button" className="btn-primary" onClick={markSetCompleted}>
         {tr("mark_set")}
       </button>
     </section>

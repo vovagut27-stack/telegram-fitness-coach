@@ -4,6 +4,7 @@ import { ProfileForm } from "./components/ProfileForm";
 import { GymProgramView } from "./components/GymProgramView";
 import { PremiumPanel } from "./components/PremiumPanel";
 import { ScheduleList } from "./components/ScheduleList";
+import { getApiBase, probeApiHealth } from "./config";
 import {
   getWorkoutDateFromUrl,
   initTelegramWebApp,
@@ -65,8 +66,19 @@ function App() {
         setError(tr("open_in_telegram"));
         return;
       }
+      void probeApiHealth().then((ok) => {
+        if (!ok && !cancelled) {
+          setError(`${tr("network_error")} (${getApiBase()})`);
+        }
+      });
       Promise.all([loadProfile(), loadSchedule()])
-        .catch(() => setError(tr("network_error")))
+        .catch((err) => {
+          if (err instanceof TypeError) {
+            setError(`${tr("network_error")} (${getApiBase()})`);
+          } else {
+            setError(err instanceof Error ? err.message : tr("load_error"));
+          }
+        })
         .finally(() => {
           if (!cancelled) {
             setLoading(false);
@@ -249,7 +261,11 @@ function App() {
         ) : null}
 
         {tab === "gym" && gym ? (
-          <GymProgramView program={gym} todayIndex={todayGymIndex()} />
+          <GymProgramView
+            program={gym}
+            todayIndex={todayGymIndex()}
+            gender={profile?.gender}
+          />
         ) : null}
 
         {tab === "profile" && profile ? (
