@@ -34,8 +34,7 @@ export class AIWorkoutService {
         input: [
           {
             role: "system",
-            content:
-              "You are a fitness coach. Return strict JSON only, no markdown. Keep plans safe and realistic.",
+            content: `You are a fitness coach. Respond in ${request.language === "en" ? "English" : "Russian"} (exercise names and instructions in that language). Return strict JSON only, no markdown. Keep plans safe and realistic.`,
           },
           {
             role: "user",

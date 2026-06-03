@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   available_equipment TEXT[] NOT NULL DEFAULT ARRAY['bodyweight'],
   goals TEXT[] NOT NULL DEFAULT ARRAY['strength'],
   time_per_session INTEGER NOT NULL DEFAULT 25,
+  language VARCHAR(5) NOT NULL DEFAULT 'ru',
   is_premium BOOLEAN NOT NULL DEFAULT FALSE,
   premium_until TIMESTAMP NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()

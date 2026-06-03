@@ -25,4 +25,5 @@ export interface WorkoutRequest {
   timeMinutes: number;
   lastWorkouts: WorkoutPlan[];
   targetMuscles?: string[];
+  language?: "ru" | "en";
 }

@@ -10,8 +10,10 @@ export async function runMigrations(): Promise<void> {
     return;
   }
   const dir = path.dirname(fileURLToPath(import.meta.url));
-  const sql = await fs.readFile(path.join(dir, "schema.sql"), "utf8");
-  await db.query(sql);
+  const schemaSql = await fs.readFile(path.join(dir, "schema.sql"), "utf8");
+  const fixesSql = await fs.readFile(path.join(dir, "fixes.sql"), "utf8");
+  await db.query(schemaSql);
+  await db.query(fixesSql);
   migrated = true;
   console.log("Database schema ready.");
 }

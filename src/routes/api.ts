@@ -4,6 +4,8 @@ import {
   markWorkoutCompleted,
   saveExerciseLog,
 } from "../database/workouts-repo.js";
+import { parseLocale } from "../types/locale.js";
+import { getUser, setUserLanguage } from "../database/users-repo.js";
 import {
   canGenerateWorkout,
   ensureDefaultUser,
@@ -14,6 +16,30 @@ export const apiRouter = Router();
 
 apiRouter.get("/health", (_req, res) => {
   res.json({ ok: true });
+});
+
+apiRouter.get("/user/settings", async (req, res) => {
+  const telegramId = Number(req.query.telegramId);
+  if (!telegramId) {
+    return res.status(400).json({ error: "telegramId is required" });
+  }
+  await ensureDefaultUser(telegramId);
+  const user = await getUser(telegramId);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+  return res.json({ language: user.language, fitnessLevel: user.fitnessLevel });
+});
+
+apiRouter.post("/user/language", async (req, res) => {
+  const { telegramId, language } = req.body as { telegramId: number; language: string };
+  if (!telegramId || !language) {
+    return res.status(400).json({ error: "telegramId and language are required" });
+  }
+  const locale = parseLocale(language);
+  await ensureDefaultUser(telegramId);
+  await setUserLanguage(telegramId, locale);
+  return res.json({ ok: true, language: locale });
 });
 
 apiRouter.get("/workout/today", async (req, res) => {

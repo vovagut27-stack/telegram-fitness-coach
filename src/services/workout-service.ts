@@ -1,4 +1,5 @@
 import { env } from "../config/env.js";
+import { DEFAULT_LOCALE } from "../types/locale.js";
 import { getUser, upsertUser } from "../database/users-repo.js";
 import {
   countCompletedThisWeek,
@@ -23,6 +24,7 @@ export async function ensureDefaultUser(telegramId: number): Promise<void> {
     goals: ["strength"],
     timePerSession: 25,
     isPremium: false,
+    language: DEFAULT_LOCALE,
   });
 }
 
@@ -58,6 +60,7 @@ export async function getOrCreateTodayWorkout(telegramId: number): Promise<Worko
     timeMinutes: user.timePerSession,
     lastWorkouts: recent,
     targetMuscles: muscleRotationFromHistory(recent),
+    language: user.language,
   });
 
   await saveWorkoutPlan(telegramId, today, plan);

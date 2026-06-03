@@ -1,4 +1,5 @@
 import { db } from "./index.js";
+import { parseLocale, type Locale } from "../types/locale.js";
 import { FitnessLevel } from "../types/workout.js";
 
 export interface UserProfile {
@@ -8,13 +9,14 @@ export interface UserProfile {
   goals: string[];
   timePerSession: number;
   isPremium: boolean;
+  language: Locale;
 }
 
 export async function upsertUser(user: UserProfile): Promise<void> {
   await db.query(
     `
-    INSERT INTO users (telegram_id, fitness_level, available_equipment, goals, time_per_session, is_premium)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    INSERT INTO users (telegram_id, fitness_level, available_equipment, goals, time_per_session, is_premium, language)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     ON CONFLICT (telegram_id)
     DO UPDATE SET
       fitness_level = EXCLUDED.fitness_level,
@@ -29,14 +31,24 @@ export async function upsertUser(user: UserProfile): Promise<void> {
       user.goals,
       user.timePerSession,
       user.isPremium,
+      user.language,
     ],
+  );
+}
+
+export async function setUserLanguage(telegramId: number, language: Locale): Promise<void> {
+  await db.query(
+    `
+      UPDATE users SET language = $2 WHERE telegram_id = $1
+    `,
+    [telegramId, language],
   );
 }
 
 export async function getUser(telegramId: number): Promise<UserProfile | null> {
   const result = await db.query(
     `
-      SELECT telegram_id, fitness_level, available_equipment, goals, time_per_session, is_premium
+      SELECT telegram_id, fitness_level, available_equipment, goals, time_per_session, is_premium, language
       FROM users
       WHERE telegram_id = $1
     `,
@@ -53,6 +65,7 @@ export async function getUser(telegramId: number): Promise<UserProfile | null> {
     goals: row.goals,
     timePerSession: row.time_per_session,
     isPremium: row.is_premium,
+    language: parseLocale(row.language),
   };
 }
 

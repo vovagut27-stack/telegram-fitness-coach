@@ -1,11 +1,24 @@
 import { Markup } from "telegraf";
 import { env } from "../../config/env.js";
+import { t, type MessageKey } from "../../i18n/index.js";
+import type { Locale } from "../../types/locale.js";
 
-export const startKeyboard = Markup.inlineKeyboard([
-  [Markup.button.callback("Beginner", "set_level_beginner")],
-  [Markup.button.callback("Intermediate", "set_level_intermediate")],
-  [Markup.button.callback("Advanced", "set_level_advanced")],
-]);
+export function buildLanguageKeyboard(locale: Locale) {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(t(locale, "lang_ru"), "set_lang_ru"),
+      Markup.button.callback(t(locale, "lang_en"), "set_lang_en"),
+    ],
+  ]);
+}
+
+export function buildLevelKeyboard(locale: Locale) {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(t(locale, "level_beginner"), "set_level_beginner")],
+    [Markup.button.callback(t(locale, "level_intermediate"), "set_level_intermediate")],
+    [Markup.button.callback(t(locale, "level_advanced"), "set_level_advanced")],
+  ]);
+}
 
 function isValidWebAppUrl(url: string): boolean {
   try {
@@ -16,13 +29,13 @@ function isValidWebAppUrl(url: string): boolean {
   }
 }
 
-export function buildTodayKeyboard() {
+export function buildTodayKeyboard(locale: Locale) {
   const rows = [];
 
   if (isValidWebAppUrl(env.WEBAPP_URL)) {
-    rows.push([Markup.button.webApp("Start Workout", env.WEBAPP_URL)]);
+    rows.push([Markup.button.webApp(t(locale, "btn_start_workout"), env.WEBAPP_URL)]);
   }
 
-  rows.push([Markup.button.callback("Regenerate", "today_regenerate")]);
+  rows.push([Markup.button.callback(t(locale, "btn_regenerate"), "today_regenerate")]);
   return Markup.inlineKeyboard(rows);
 }

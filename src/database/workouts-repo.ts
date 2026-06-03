@@ -6,12 +6,23 @@ export async function saveWorkoutPlan(
   workoutDate: string,
   plan: WorkoutPlan,
 ): Promise<number> {
+  const existing = await getWorkoutByDate(telegramId, workoutDate);
+  if (existing) {
+    await db.query(
+      `
+        UPDATE workouts
+        SET ai_generated_plan = $3
+        WHERE telegram_id = $1 AND workout_date = $2
+      `,
+      [telegramId, workoutDate, plan],
+    );
+    return existing.id;
+  }
+
   const result = await db.query(
     `
       INSERT INTO workouts (telegram_id, workout_date, ai_generated_plan)
       VALUES ($1, $2, $3)
-      ON CONFLICT (telegram_id, workout_date)
-      DO UPDATE SET ai_generated_plan = EXCLUDED.ai_generated_plan
       RETURNING id
     `,
     [telegramId, workoutDate, plan],

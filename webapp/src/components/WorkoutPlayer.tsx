@@ -3,6 +3,8 @@ import type { ReactElement } from "react";
 import type { ExerciseLog, WorkoutPlan } from "../types";
 import { ExerciseCard } from "./ExerciseCard";
 import { Timer } from "./Timer";
+import { useI18n } from "../i18n/context";
+import { levelLabel } from "../i18n/levels";
 
 interface WorkoutPlayerProps {
   workout: WorkoutPlan;
@@ -10,6 +12,7 @@ interface WorkoutPlayerProps {
 }
 
 export function WorkoutPlayer({ workout, onComplete }: WorkoutPlayerProps): ReactElement {
+  const { locale, tr } = useI18n();
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [setDone, setSetDone] = useState(0);
   const [logs, setLogs] = useState<ExerciseLog[]>([]);
@@ -25,9 +28,9 @@ export function WorkoutPlayer({ workout, onComplete }: WorkoutPlayerProps): Reac
   if (completed) {
     return (
       <section>
-        <h2>Workout Complete</h2>
+        <h2>{tr("workout_complete")}</h2>
         <button type="button" onClick={() => void onComplete(logs)}>
-          Save Session
+          {tr("save_session")}
         </button>
       </section>
     );
@@ -63,26 +66,25 @@ export function WorkoutPlayer({ workout, onComplete }: WorkoutPlayerProps): Reac
   return (
     <section>
       <header>
-        <h2>Workout Player</h2>
+        <h2>{tr("workout_player")}</h2>
         <p>
-          Focus: {workout.targetMuscles.join(", ")} | Time: {workout.totalMinutes} min
+          {tr("focus")}: {workout.targetMuscles.join(", ")} | {tr("time_min")}: {workout.totalMinutes}{" "}
+          {tr("min")} | {levelLabel(locale, workout.difficultyLevel)}
         </p>
       </header>
       <ExerciseCard exercise={current} index={exerciseIndex} />
-      <p>
-        Set {setDone + 1} / {current.sets}
-      </p>
+      <p>{tr("set_progress", { current: setDone + 1, total: current.sets })}</p>
       {isResting ? (
         <Timer
           seconds={current.restSeconds}
-          label="Rest"
+          label={tr("rest")}
           onDone={() => {
             setIsResting(false);
           }}
         />
       ) : null}
       <button type="button" onClick={markSetCompleted}>
-        Mark Set Complete
+        {tr("mark_set")}
       </button>
     </section>
   );
