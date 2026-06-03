@@ -20,6 +20,7 @@ export interface WorkoutPlan {
   notes?: string;
   programType?: "daily" | "gym";
   splitDay?: string;
+  scheduleDate?: string;
 }
 
 export interface GymProgramDay {

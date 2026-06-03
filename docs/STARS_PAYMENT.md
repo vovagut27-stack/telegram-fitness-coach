@@ -14,6 +14,12 @@
 3. Подключите **Telegram Stars** (цифровые товары)
 4. Для Stars **provider token не нужен** — в коде уже `provider_token: ""`
 
+## Тест Premium без оплаты
+
+1. Узнайте свой Telegram ID ([@userinfobot](https://t.me/userinfobot))
+2. На Vercel backend: `ADMIN_TELEGRAM_IDS=123456789` (ваш ID)
+3. В боте: `/devpremium` — включить/выключить Premium (переключатель)
+
 ## Шаг 2 — Переменные на Vercel (backend)
 
 | Переменная | Пример | Описание |

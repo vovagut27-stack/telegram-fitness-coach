@@ -20,6 +20,8 @@ const envSchema = z.object({
   /** Telegram Stars price for 30-day premium (XTR amount, e.g. 100 = 100 Stars). */
   PREMIUM_STARS_PRICE: z.coerce.number().default(150),
   PREMIUM_DAYS: z.coerce.number().default(30),
+  /** Comma-separated Telegram user IDs allowed to use /devpremium toggle */
+  ADMIN_TELEGRAM_IDS: z.string().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);

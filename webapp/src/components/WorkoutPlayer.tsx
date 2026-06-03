@@ -66,11 +66,12 @@ export function WorkoutPlayer({ workout, onComplete }: WorkoutPlayerProps): Reac
   return (
     <section>
       <header>
-        <h2>{tr("workout_player")}</h2>
+        <h2>{workout.splitDay ?? tr("workout_player")}</h2>
         <p>
           {tr("focus")}: {workout.targetMuscles.join(", ")} | {tr("time_min")}: {workout.totalMinutes}{" "}
           {tr("min")} | {levelLabel(locale, workout.difficultyLevel)}
         </p>
+        {workout.notes ? <p className="muted">{workout.notes}</p> : null}
       </header>
       <ExerciseCard exercise={current} index={exerciseIndex} />
       <p>{tr("set_progress", { current: setDone + 1, total: current.sets })}</p>

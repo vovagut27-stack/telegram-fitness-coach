@@ -10,17 +10,15 @@ import {
 } from "../database/workouts-repo.js";
 import { FitnessLevel, WorkoutPlan, WorkoutRequest } from "../types/workout.js";
 import { buildTemplateWorkout } from "./workout-templates.js";
-import { getTodayGymWorkout, buildGymProgram } from "./gym-program-service.js";
+import { getTodayGymWorkout } from "./gym-program-service.js";
 import { isPremiumActive } from "./premium-service.js";
-
-function muscleRotationFromHistory(history: WorkoutPlan[]): string[] {
-  const cycle = [
-    ["chest", "triceps", "shoulders"],
-    ["back", "biceps"],
-    ["legs", "glutes", "core"],
-  ];
-  return cycle[history.length % cycle.length] ?? cycle[0];
-}
+import {
+  attachScheduleMeta,
+  buildScheduleDays,
+  getSplitForDate,
+  isoDateOnly,
+  type ScheduleDayItem,
+} from "./schedule-service.js";
 
 export async function ensureDefaultUser(telegramId: number): Promise<void> {
   const existing = await getUser(telegramId);
@@ -65,6 +63,7 @@ function buildRequest(
   user: UserProfile,
   recent: WorkoutPlan[],
   weeklyCount: number,
+  targetMuscles: string[],
 ): WorkoutRequest {
   const difficulty = adjustDifficulty(user.fitnessLevel, weeklyCount);
   const bmi =
@@ -76,7 +75,7 @@ function buildRequest(
     availableEquipment: user.availableEquipment,
     timeMinutes: user.timePerSession,
     lastWorkouts: recent,
-    targetMuscles: muscleRotationFromHistory(recent),
+    targetMuscles,
     language: user.language,
     gender: user.gender,
     age: user.age,
@@ -88,14 +87,19 @@ function buildRequest(
   };
 }
 
-async function generatePlan(user: UserProfile, recent: WorkoutPlan[], weeklyCount: number): Promise<WorkoutPlan> {
+async function generatePlan(
+  user: UserProfile,
+  recent: WorkoutPlan[],
+  weeklyCount: number,
+  targetMuscles: string[],
+): Promise<WorkoutPlan> {
   const premium = isPremiumActive(user);
 
   if (premium && user.trainingMode === "gym") {
     return getTodayGymWorkout(user);
   }
 
-  const request = buildRequest(user, recent, weeklyCount);
+  const request = buildRequest(user, recent, weeklyCount, targetMuscles);
   const useAi =
     env.USE_AI_WORKOUTS || (premium && user.profileComplete) || user.profileComplete;
 
@@ -107,10 +111,11 @@ async function generatePlan(user: UserProfile, recent: WorkoutPlan[], weeklyCoun
   return new AIWorkoutService().generateWorkout(request);
 }
 
-export async function getOrCreateTodayWorkout(telegramId: number): Promise<WorkoutPlan> {
-  const today = new Date().toISOString().slice(0, 10);
-
-  const existing = await getWorkoutByDate(telegramId, today);
+export async function getOrCreateWorkoutForDate(
+  telegramId: number,
+  workoutDate: string,
+): Promise<WorkoutPlan> {
+  const existing = await getWorkoutByDate(telegramId, workoutDate);
   if (existing) {
     return existing.plan;
   }
@@ -127,9 +132,37 @@ export async function getOrCreateTodayWorkout(telegramId: number): Promise<Worko
     throw new Error("User profile not found");
   }
 
-  const plan = await generatePlan(user, recent, weeklyCount);
-  await saveWorkoutPlan(telegramId, today, plan);
+  const split = getSplitForDate(workoutDate, user.language);
+  let plan = await generatePlan(user, recent, weeklyCount, split.muscles);
+  plan = attachScheduleMeta(plan, workoutDate, user.language);
+  await saveWorkoutPlan(telegramId, workoutDate, plan);
   return plan;
+}
+
+export async function getOrCreateTodayWorkout(telegramId: number): Promise<WorkoutPlan> {
+  return getOrCreateWorkoutForDate(telegramId, isoDateOnly());
+}
+
+export async function getWorkoutSchedule(
+  telegramId: number,
+  days = 7,
+): Promise<ScheduleDayItem[]> {
+  await ensureDefaultUser(telegramId);
+  const user = await getUser(telegramId);
+  const locale = user?.language ?? DEFAULT_LOCALE;
+  const from = isoDateOnly();
+  const skeleton = buildScheduleDays(locale, from, days);
+
+  const items: ScheduleDayItem[] = [];
+  for (const day of skeleton) {
+    const row = await getWorkoutByDate(telegramId, day.date);
+    items.push({
+      ...day,
+      completed: row?.completed ?? false,
+      hasWorkout: Boolean(row),
+    });
+  }
+  return items;
 }
 
 export async function getGymProgramForUser(telegramId: number) {
@@ -140,6 +173,7 @@ export async function getGymProgramForUser(telegramId: number) {
   if (!isPremiumActive(user)) {
     throw new Error("PREMIUM_REQUIRED");
   }
+  const { buildGymProgram } = await import("./gym-program-service.js");
   return buildGymProgram(user);
 }
 

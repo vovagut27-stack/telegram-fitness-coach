@@ -281,3 +281,47 @@ button:disabled {
   border-color: var(--gold);
   text-align: center;
 }
+
+.schedule-list h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+
+.schedule-day {
+  width: 100%;
+  text-align: left;
+  background: var(--surface2);
+  border: 1px solid #374151;
+  border-radius: 12px;
+  padding: 0.85rem;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.schedule-day.today {
+  border-color: var(--accent2);
+}
+
+.schedule-day.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.schedule-day-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.schedule-date {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.schedule-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.35rem;
+}

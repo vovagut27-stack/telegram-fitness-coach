@@ -61,4 +61,10 @@ export const ru = {
   level_intermediate: "Средний",
   level_advanced: "Продвинутый",
   regenerate_hint: "Новый план каждый день",
+  schedule_title: "План на 7 дней",
+  schedule_hint: "Выбери день — можно тренироваться заранее",
+  day_done: "✅ Выполнено",
+  day_ready: "▶️ Готово",
+  day_new: "🆕 Создать",
+  open_workout: "Открыть тренировку",
 } as const;

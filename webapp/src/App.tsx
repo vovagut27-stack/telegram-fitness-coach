@@ -3,10 +3,17 @@ import { WorkoutPlayer } from "./components/WorkoutPlayer";
 import { ProfileForm } from "./components/ProfileForm";
 import { GymProgramView } from "./components/GymProgramView";
 import { PremiumPanel } from "./components/PremiumPanel";
-import { getTelegramUserId, initTelegramWebApp } from "./services/telegram";
-import { fetchGymProgram, fetchProfile, fetchTodayWorkout } from "./services/api";
+import { ScheduleList } from "./components/ScheduleList";
+import { getTelegramUserId, getWorkoutDateFromUrl, initTelegramWebApp } from "./services/telegram";
+import {
+  completeWorkout,
+  fetchGymProgram,
+  fetchProfile,
+  fetchSchedule,
+  fetchWorkoutByDate,
+  type ScheduleDayItem,
+} from "./services/api";
 import type { ExerciseLog, GymProgram, TabId, UserProfile, WorkoutPlan } from "./types";
-import { API_BASE } from "./config";
 import { useI18n } from "./i18n/context";
 import { levelLabel } from "./i18n/levels";
 
@@ -18,7 +25,9 @@ function App() {
   const { tr, locale } = useI18n();
   const [tab, setTab] = useState<TabId>("home");
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleDayItem[]>([]);
   const [workout, setWorkout] = useState<WorkoutPlan | null>(null);
+  const [workoutDate, setWorkoutDate] = useState<string | null>(null);
   const [gym, setGym] = useState<GymProgram | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,23 +38,39 @@ function App() {
     return p;
   }, []);
 
+  const loadSchedule = useCallback(async () => {
+    const days = await fetchSchedule(getTelegramUserId(), 7);
+    setSchedule(days);
+    return days;
+  }, []);
+
   useEffect(() => {
     initTelegramWebApp();
-    loadProfile()
+    Promise.all([loadProfile(), loadSchedule()])
       .catch(() => setError(tr("network_error")))
       .finally(() => setLoading(false));
-  }, [loadProfile, tr]);
+  }, [loadProfile, loadSchedule, tr]);
 
-  const loadWorkout = async (): Promise<void> => {
+  useEffect(() => {
+    const preset = getWorkoutDateFromUrl();
+    if (preset) {
+      void loadWorkoutForDate(preset);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadWorkoutForDate = async (date: string): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchTodayWorkout(getTelegramUserId());
+      const data = await fetchWorkoutByDate(getTelegramUserId(), date);
       setWorkout(data.plan);
+      setWorkoutDate(data.date);
       if (data.profile) {
         setProfile(data.profile);
       }
       setTab("workout");
+      await loadSchedule();
     } catch (err: unknown) {
       const e = err as Error & { code?: string };
       if (e.code === "FREE_LIMIT") {
@@ -54,7 +79,7 @@ function App() {
       } else if (err instanceof TypeError) {
         setError(tr("network_error"));
       } else {
-        setError(tr("load_error"));
+        setError(err instanceof Error ? err.message : tr("load_error"));
       }
     } finally {
       setLoading(false);
@@ -82,17 +107,17 @@ function App() {
   };
 
   const handleComplete = async (logs: ExerciseLog[]): Promise<void> => {
-    await fetch(`${API_BASE}/workout/complete`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        telegramId: getTelegramUserId(),
-        completionNotes: "Mini App",
-        exercises: logs,
-      }),
-    });
+    const date = workoutDate ?? new Date().toISOString().slice(0, 10);
+    await completeWorkout(
+      getTelegramUserId(),
+      date,
+      logs,
+      locale === "ru" ? "Завершено в Mini App" : "Completed in Mini App",
+    );
     setTab("home");
     setWorkout(null);
+    setWorkoutDate(null);
+    await loadSchedule();
   };
 
   const tabs: { id: TabId; label: string }[] = [
@@ -113,52 +138,54 @@ function App() {
         {profile?.isPremium ? <span className="pill gold">PRO</span> : null}
       </header>
 
-      {loading && tab === "home" ? <p className="muted center">{tr("loading")}</p> : null}
+      {loading ? <p className="muted center">{tr("loading")}</p> : null}
       {error ? <p className="error center">{error}</p> : null}
 
       <main className="main-pane">
         {tab === "home" && profile ? (
-          <section className="home-grid">
-            <article className="card hero-card">
-              <h2>
-                {profile.profileComplete
-                  ? `👋 ${profile.gender === "female" ? "💪" : "🔥"}`
-                  : "📋"}
-              </h2>
-              <p className="muted">
-                {profile.bmi
-                  ? `${tr("bmi_label")} ${profile.bmi} · ${levelLabel(locale, profile.fitnessLevel)}`
-                  : tr("complete_profile")}
-              </p>
-              <button type="button" className="btn-primary" onClick={() => void loadWorkout()}>
-                {tr("home_today")}
+          <>
+            <section className="home-grid">
+              <article className="card hero-card">
+                <h2>{profile.profileComplete ? "🔥" : "📋"}</h2>
+                <p className="muted">
+                  {profile.bmi
+                    ? `${tr("bmi_label")} ${profile.bmi} · ${levelLabel(locale, profile.fitnessLevel)}`
+                    : tr("complete_profile")}
+                </p>
+              </article>
+              {!profile.isPremium ? (
+                <button type="button" className="card link-card gold" onClick={() => setTab("premium")}>
+                  <span>⭐</span>
+                  <strong>{tr("home_premium")}</strong>
+                </button>
+              ) : null}
+              <button type="button" className="card link-card" onClick={() => void loadGym()}>
+                <span>🏋️</span>
+                <strong>{tr("home_gym")}</strong>
               </button>
-            </article>
-            <button type="button" className="card link-card" onClick={() => void loadGym()}>
-              <span>🏋️</span>
-              <strong>{tr("home_gym")}</strong>
-            </button>
-            {!profile.isPremium ? (
-              <button type="button" className="card link-card gold" onClick={() => setTab("premium")}>
-                <span>⭐</span>
-                <strong>{tr("home_premium")}</strong>
-              </button>
-            ) : null}
-          </section>
+            </section>
+            <ScheduleList
+              days={schedule}
+              selectedDate={workoutDate}
+              onSelect={(date) => void loadWorkoutForDate(date)}
+            />
+          </>
         ) : null}
 
         {tab === "workout" && workout ? (
           <WorkoutPlayer workout={workout} onComplete={handleComplete} />
-        ) : tab === "workout" ? (
-          <button type="button" className="btn-primary" onClick={() => void loadWorkout()}>
-            {tr("home_today")}
-          </button>
         ) : null}
 
         {tab === "gym" && gym ? <GymProgramView program={gym} todayIndex={todayGymIndex()} /> : null}
 
         {tab === "profile" && profile ? (
-          <ProfileForm profile={profile} onSaved={(p) => setProfile(p)} />
+          <ProfileForm
+            profile={profile}
+            onSaved={(p) => {
+              setProfile(p);
+              void loadSchedule();
+            }}
+          />
         ) : null}
 
         {tab === "premium" && profile ? (
@@ -180,6 +207,9 @@ function App() {
             onClick={() => {
               setError(null);
               setTab(t.id);
+              if (t.id === "home") {
+                void loadSchedule();
+              }
               if (t.id === "gym" && !gym && profile?.isPremium) {
                 void loadGym();
               }

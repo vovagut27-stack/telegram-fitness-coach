@@ -192,3 +192,21 @@ export async function upgradePremium(telegramId: number, days: number): Promise<
     [telegramId, days],
   );
 }
+
+export async function revokePremium(telegramId: number): Promise<void> {
+  await db.query(
+    `
+      UPDATE users
+      SET is_premium = FALSE, premium_until = NULL
+      WHERE telegram_id = $1
+    `,
+    [telegramId],
+  );
+}
+
+export function parseAdminIds(raw: string): number[] {
+  return raw
+    .split(",")
+    .map((s) => Number(s.trim()))
+    .filter((n) => Number.isFinite(n) && n > 0);
+}

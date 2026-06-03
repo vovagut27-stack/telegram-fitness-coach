@@ -1,20 +1,29 @@
-import { Context, Telegraf } from "telegraf";
+import { Telegraf } from "telegraf";
 import { env } from "../config/env.js";
 import { startCommand, getUserLocale } from "./commands/start.js";
-import { buildMainKeyboard } from "./keyboards/main.js";
-import { upgradePremium } from "../database/users-repo.js";
+import { buildMainKeyboard, buildPlanKeyboard, buildQuickPlanText } from "./keyboards/main.js";
 import {
-  isPremiumPayload,
-  parsePremiumPayload,
-  sendPremiumInvoice,
-} from "./payments.js";
+  getUser,
+  parseAdminIds,
+  revokePremium,
+  upgradePremium,
+} from "../database/users-repo.js";
+import { isPremiumPayload, parsePremiumPayload, sendPremiumInvoice } from "./payments.js";
 import { t } from "../i18n/index.js";
+import { ensureDefaultUser, getWorkoutSchedule } from "../services/workout-service.js";
+import { isPremiumActive } from "../services/premium-service.js";
 
 export const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
 
 void bot.telegram.getMe().then((me) => {
   bot.botInfo = me;
 });
+
+const adminIds = parseAdminIds(env.ADMIN_TELEGRAM_IDS);
+
+function isAdmin(telegramId: number | undefined): boolean {
+  return Boolean(telegramId && adminIds.includes(telegramId));
+}
 
 bot.catch(async (err, ctx) => {
   console.error("Bot error:", err);
@@ -32,6 +41,39 @@ bot.catch(async (err, ctx) => {
 bot.start(startCommand);
 
 bot.command("app", startCommand);
+
+bot.command("plan", async (ctx) => {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) {
+    return;
+  }
+  try {
+    await ensureDefaultUser(telegramId);
+    const locale = await getUserLocale(telegramId);
+    const schedule = await getWorkoutSchedule(telegramId, 7);
+    await ctx.reply(buildQuickPlanText(locale, schedule), buildPlanKeyboard(locale, schedule));
+  } catch (err) {
+    console.error("/plan failed:", err);
+    await ctx.reply(t(await getUserLocale(telegramId), "bot_error_generic"));
+  }
+});
+
+bot.action("show_plan", async (ctx) => {
+  await ctx.answerCbQuery();
+  const telegramId = ctx.from?.id;
+  if (!telegramId) {
+    return;
+  }
+  try {
+    await ensureDefaultUser(telegramId);
+    const locale = await getUserLocale(telegramId);
+    const schedule = await getWorkoutSchedule(telegramId, 7);
+    await ctx.reply(buildQuickPlanText(locale, schedule), buildPlanKeyboard(locale, schedule));
+  } catch (err) {
+    console.error("show_plan failed:", err);
+  }
+});
+
 bot.command("premium", async (ctx) => {
   try {
     await sendPremiumInvoice(ctx);
@@ -39,6 +81,34 @@ bot.command("premium", async (ctx) => {
     console.error("/premium failed:", err);
     const locale = await getUserLocale(ctx.from?.id ?? 0);
     await ctx.reply(t(locale, "bot_premium_error"));
+  }
+});
+
+bot.command("devpremium", async (ctx) => {
+  const telegramId = ctx.from?.id;
+  if (!telegramId || !isAdmin(telegramId)) {
+    await ctx.reply(t(await getUserLocale(telegramId ?? 0), "bot_dev_denied"));
+    return;
+  }
+  try {
+    await ensureDefaultUser(telegramId);
+    const user = await getUser(telegramId);
+    const locale = user?.language ?? "ru";
+    if (user && isPremiumActive(user)) {
+      await revokePremium(telegramId);
+      await ctx.reply(t(locale, "bot_premium_off"), buildMainKeyboard(locale));
+      return;
+    }
+    await upgradePremium(telegramId, 365);
+    const until = new Date();
+    until.setDate(until.getDate() + 365);
+    await ctx.reply(
+      t(locale, "bot_premium_on", { date: until.toLocaleDateString() }),
+      buildMainKeyboard(locale),
+    );
+  } catch (err) {
+    console.error("/devpremium failed:", err);
+    await ctx.reply(t(await getUserLocale(telegramId), "bot_error_generic"));
   }
 });
 

@@ -61,4 +61,10 @@ export const en = {
   level_intermediate: "Intermediate",
   level_advanced: "Advanced",
   regenerate_hint: "New plan each day",
+  schedule_title: "7-day plan",
+  schedule_hint: "Pick any day — train ahead of schedule",
+  day_done: "✅ Done",
+  day_ready: "▶️ Ready",
+  day_new: "🆕 Create",
+  open_workout: "Open workout",
 } as const;
