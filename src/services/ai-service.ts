@@ -1,6 +1,7 @@
 import { OpenAI } from "openai";
 import { env } from "../config/env.js";
 import { WorkoutPlan, WorkoutRequest } from "../types/workout.js";
+import { buildTemplateWorkout, normalizeWorkoutPlan } from "./workout-templates.js";
 
 const client = new OpenAI({
   apiKey: env.OPENAI_API_KEY,
@@ -8,25 +9,10 @@ const client = new OpenAI({
   maxRetries: 1,
 });
 
-const fallbackWorkout: WorkoutPlan = {
-  targetMuscles: ["chest", "triceps"],
-  exercises: [
-    {
-      name: "Push-ups",
-      sets: 3,
-      reps: "8-12",
-      restSeconds: 60,
-      instructions: "Keep core tight and use full range of motion.",
-      equipment: "none",
-    },
-  ],
-  totalMinutes: 25,
-  difficultyLevel: "beginner",
-  notes: "Focus on form over speed.",
-};
-
 export class AIWorkoutService {
   async generateWorkout(request: WorkoutRequest): Promise<WorkoutPlan> {
+    const templateFallback = buildTemplateWorkout(request);
+
     try {
       const aiCall = client.responses.create({
         model: "gpt-4o-mini",
@@ -34,7 +20,7 @@ export class AIWorkoutService {
         input: [
           {
             role: "system",
-            content: `You are a fitness coach. Respond in ${request.language === "en" ? "English" : "Russian"} (exercise names and instructions in that language). Return strict JSON only, no markdown. Keep plans safe and realistic.`,
+            content: `You are a fitness coach. Respond in ${request.language === "en" ? "English" : "Russian"} (exercise names and instructions in that language). Return strict JSON only, no markdown. Keep plans safe and realistic. Always include 4 to 6 different exercises — never fewer than 4.`,
           },
           {
             role: "user",
@@ -51,21 +37,28 @@ export class AIWorkoutService {
 
       const text = response.output_text?.trim();
       if (!text) {
-        return { ...fallbackWorkout, difficultyLevel: request.fitnessLevel };
+        return templateFallback;
       }
 
       const parsed = JSON.parse(text) as WorkoutPlan;
-      return parsed;
+      return normalizeWorkoutPlan(parsed, request);
     } catch (err) {
-      console.error("OpenAI generateWorkout failed, using fallback:", err);
-      return { ...fallbackWorkout, difficultyLevel: request.fitnessLevel };
+      console.error("OpenAI generateWorkout failed, using template:", err);
+      return templateFallback;
     }
   }
 
   private buildPrompt(request: WorkoutRequest): string {
+    const exerciseCount = request.timeMinutes <= 20 ? 4 : request.timeMinutes <= 35 ? 5 : 6;
+
     return JSON.stringify(
       {
         ...request,
+        requirements: {
+          exerciseCount: `${exerciseCount} different exercises (minimum 4, maximum 6)`,
+          variety: "Use different movement patterns (push, pull, squat, hinge, core) where appropriate for the target muscles",
+          noDuplicates: "Each exercise must have a unique name",
+        },
         personalizationLogic: [
           "Track completed workouts and adjust difficulty",
           "Rotate muscle groups with push/pull/legs cycle",
@@ -74,17 +67,16 @@ export class AIWorkoutService {
         ],
         outputSchema: {
           targetMuscles: ["string"],
-          exercises: [
-            {
-              name: "string",
-              sets: 3,
-              reps: "8-12",
-              restSeconds: 60,
-              instructions: "string",
-              equipment: "string",
-              demoUrl: "optional string",
-            },
-          ],
+          exercises: `array of ${exerciseCount} items, each:`,
+          exerciseItem: {
+            name: "string",
+            sets: 3,
+            reps: "8-12",
+            restSeconds: 60,
+            instructions: "string",
+            equipment: "string",
+            demoUrl: "optional string",
+          },
           totalMinutes: request.timeMinutes,
           difficultyLevel: request.fitnessLevel,
           notes: "string",
