@@ -18,4 +18,16 @@ export const en = {
     "Access denied.\nYour ID: {id}\n\n1) Vercel: ADMIN_TELEGRAM_IDS={id}\n2) Or DEV_PREMIUM_SECRET=word → /devpremium word\n/myid — show ID",
   bot_error_generic: "Error. Tap /start",
   bot_db_not_ready: "Database unavailable. Try later.",
+  reset_data_warning:
+    "⚠️ Are you sure you want to erase all personal data in the app?\n\nThis removes: profile (gender, age, weight, height), all workouts and results, weight history.\n\n⭐ Premium stays active if you have it.",
+  reset_data_btn_yes: "✅ Yes, erase everything",
+  reset_data_btn_no: "❌ Cancel",
+  reset_data_done: "✅ Data reset complete.",
+  reset_data_stats: "Workouts removed: {workouts}, weight entries: {weights}.",
+  reset_data_premium_kept: "Premium kept.",
+  reset_data_premium_none: "No active Premium.",
+  reset_data_fill_profile: "Fill in your profile again in the Mini App.",
+  reset_data_restart: "Tap Open app or /start.",
+  reset_data_cancelled: "Reset cancelled. Your data is unchanged.",
+  reset_data_cancelled_short: "Cancelled",
 } as const;

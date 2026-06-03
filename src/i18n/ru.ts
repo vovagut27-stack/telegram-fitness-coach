@@ -18,4 +18,16 @@ export const ru = {
     "Нет доступа.\nТвой ID: {id}\n\n1) Vercel: ADMIN_TELEGRAM_IDS={id}\n2) Или DEV_PREMIUM_SECRET=слово → /devpremium слово\n/myid — показать ID",
   bot_error_generic: "Ошибка. Нажми /start",
   bot_db_not_ready: "База недоступна. Попробуй позже.",
+  reset_data_warning:
+    "⚠️ Ты уверен, что хочешь стереть все персональные данные в приложении?\n\nБудут удалены: профиль (пол, возраст, вес, рост), все тренировки и результаты, история веса.\n\n⭐ Premium останется, если он у тебя активен.",
+  reset_data_btn_yes: "✅ Да, удалить всё",
+  reset_data_btn_no: "❌ Отмена",
+  reset_data_done: "✅ Данные сброшены.",
+  reset_data_stats: "Удалено тренировок: {workouts}, записей веса: {weights}.",
+  reset_data_premium_kept: "Premium сохранён.",
+  reset_data_premium_none: "Premium не был активен.",
+  reset_data_fill_profile: "Заполни профиль заново в Mini App.",
+  reset_data_restart: "Нажми «Открыть приложение» или /start.",
+  reset_data_cancelled: "Сброс отменён. Данные не изменены.",
+  reset_data_cancelled_short: "Отменено",
 } as const;

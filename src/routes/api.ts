@@ -1,9 +1,5 @@
 import { Router } from "express";
-import {
-  getWorkoutByDate,
-  markWorkoutCompleted,
-  saveExerciseLog,
-} from "../database/workouts-repo.js";
+import { getWorkoutByDate } from "../database/workouts-repo.js";
 import { parseLocale } from "../types/locale.js";
 import { parseGender } from "../types/profile.js";
 import { ensureUserRow, getUser, setUserLanguage, updateUserProfile } from "../database/users-repo.js";
@@ -277,10 +273,11 @@ apiRouter.get("/workout/today", async (req, res) => {
 
 apiRouter.post("/workout/complete", async (req, res) => {
   try {
-    const { telegramId: rawId, workoutDate, completionNotes, exercises } = req.body as {
+    const { telegramId: rawId, workoutDate, completionNotes, exercises, gymMode } = req.body as {
       telegramId: number;
       workoutDate?: string;
       completionNotes: string;
+      gymMode?: boolean;
       exercises: Array<{
         exerciseName: string;
         setsCompleted: number;
@@ -295,25 +292,18 @@ apiRouter.post("/workout/complete", async (req, res) => {
       return res.status(400).json({ error: "telegramId is required" });
     }
 
+    await ensureUserRow(telegramId);
     const date = workoutDate ?? isoDateOnly();
-    const workout = await getWorkoutByDate(telegramId, date);
-    if (!workout) {
-      return res.status(404).json({ error: "Workout not found for this date" });
-    }
+    const { completeWorkoutWithLogs } = await import("../services/workout-completion-service.js");
+    const result = await completeWorkoutWithLogs({
+      telegramId,
+      workoutDate: date,
+      completionNotes: completionNotes ?? "",
+      exercises: exercises ?? [],
+      gymMode: Boolean(gymMode),
+    });
 
-    await markWorkoutCompleted(workout.id, completionNotes ?? "");
-    for (const entry of exercises ?? []) {
-      await saveExerciseLog({
-        workoutId: workout.id,
-        exerciseName: entry.exerciseName,
-        setsCompleted: entry.setsCompleted,
-        repsCompleted: entry.repsCompleted,
-        weightUsed: entry.weightUsed,
-        durationSeconds: entry.durationSeconds,
-      });
-    }
-
-    return res.json({ ok: true, date });
+    return res.json({ ok: true, date: result.date, exerciseCount: result.exerciseCount });
   } catch (err) {
     console.error("POST /workout/complete failed:", err);
     return res.status(500).json({ error: "Failed to save workout" });

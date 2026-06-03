@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import type { ExerciseLog, Gender, WorkoutPlan } from "../types";
 import { ExerciseCard } from "./ExerciseCard";
@@ -15,6 +15,15 @@ interface WorkoutPlayerProps {
   onComplete: (logs: ExerciseLog[]) => Promise<void>;
 }
 
+function buildLogsFromPlan(workout: WorkoutPlan): ExerciseLog[] {
+  return workout.exercises.map((ex) => ({
+    exerciseName: ex.name,
+    setsCompleted: ex.sets,
+    repsCompleted: Array.from({ length: ex.sets }, () => Number(ex.reps.split("-")[0]) || 10),
+    durationSeconds: ex.sets * 45,
+  }));
+}
+
 export function WorkoutPlayer({
   workout,
   gender,
@@ -27,6 +36,8 @@ export function WorkoutPlayer({
   const [setDone, setSetDone] = useState(0);
   const [logs, setLogs] = useState<ExerciseLog[]>([]);
   const [isResting, setIsResting] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "done" | "error">("idle");
+  const autoSaveStarted = useRef(false);
 
   const current = workout.exercises[exerciseIndex];
   const restSeconds = effectiveRestSeconds(current, workout.difficultyLevel);
@@ -36,19 +47,49 @@ export function WorkoutPlayer({
     [exerciseIndex, workout.exercises.length],
   );
 
+  const finalLogs = logs.length > 0 ? logs : buildLogsFromPlan(workout);
+
+  useEffect(() => {
+    if (!completed || autoSaveStarted.current) {
+      return;
+    }
+    autoSaveStarted.current = true;
+    setSaveState("saving");
+    void onComplete(finalLogs)
+      .then(() => setSaveState("done"))
+      .catch(() => setSaveState("error"));
+  }, [completed, finalLogs, onComplete]);
+
+  const retrySave = (): void => {
+    setSaveState("saving");
+    void onComplete(finalLogs)
+      .then(() => setSaveState("done"))
+      .catch(() => setSaveState("error"));
+  };
+
   if (completed) {
     return (
       <section className="card">
         <h2>{tr("workout_complete")}</h2>
-        {gymMode ? (
-          <button type="button" className="btn-secondary" onClick={() => void onComplete(logs)}>
-            {tr("gym_finish")}
+        {saveState === "saving" ? (
+          <p className="muted">{tr("results_saving")}</p>
+        ) : null}
+        {saveState === "done" ? (
+          <p className="ok">{tr("results_saved_auto")}</p>
+        ) : null}
+        {saveState === "error" ? (
+          <>
+            <p className="error">{tr("save_workout_error")}</p>
+            <button type="button" className="btn-primary" onClick={retrySave}>
+              {tr("save_session")}
+            </button>
+          </>
+        ) : null}
+        {saveState === "done" && gymMode && onBack ? (
+          <button type="button" className="btn-secondary" onClick={onBack}>
+            {tr("back")}
           </button>
-        ) : (
-          <button type="button" className="btn-primary" onClick={() => void onComplete(logs)}>
-            {tr("save_session")}
-          </button>
-        )}
+        ) : null}
       </section>
     );
   }
@@ -67,7 +108,7 @@ export function WorkoutPlayer({
         exerciseName: current.name,
         setsCompleted: current.sets,
         repsCompleted: Array.from({ length: current.sets }, () =>
-          Number(current.reps.split("-")[0]),
+          Number(current.reps.split("-")[0]) || 10,
         ),
         durationSeconds: current.sets * 45,
       },

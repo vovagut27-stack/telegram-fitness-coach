@@ -11,6 +11,13 @@ import {
 import { isPremiumPayload, parsePremiumPayload, sendPremiumInvoice } from "./payments.js";
 import { t } from "../i18n/index.js";
 import { sendWeekPlan } from "./plan.js";
+import {
+  RESET_DATA_CANCEL,
+  RESET_DATA_CONFIRM,
+  resetDataCancelAction,
+  resetDataCommand,
+  resetDataConfirmAction,
+} from "./commands/resetdata.js";
 import { ensureDefaultUser } from "../services/workout-service.js";
 import { isPremiumActive } from "../services/premium-service.js";
 
@@ -94,6 +101,11 @@ bot.command("premium", async (ctx) => {
     await ctx.reply(t(locale, "bot_premium_error"));
   }
 });
+
+bot.command("resetdata", resetDataCommand);
+
+bot.action(RESET_DATA_CONFIRM, resetDataConfirmAction);
+bot.action(RESET_DATA_CANCEL, resetDataCancelAction);
 
 bot.command("myid", async (ctx) => {
   const telegramId = ctx.from?.id;

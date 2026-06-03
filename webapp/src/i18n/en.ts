@@ -16,6 +16,8 @@ export const en = {
   network_error: "Cannot reach API",
   load_error: "Could not load",
   workout_complete: "Workout complete! 🎉",
+  results_saving: "Saving to results…",
+  results_saved_auto: "✓ Saved to Results tab automatically",
   save_session: "Save session",
   workout_player: "Today's workout",
   focus: "Focus",

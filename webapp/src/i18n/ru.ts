@@ -16,6 +16,8 @@ export const ru = {
   network_error: "Нет связи с API",
   load_error: "Не удалось загрузить",
   workout_complete: "Тренировка завершена! 🎉",
+  results_saving: "Сохраняю в результаты…",
+  results_saved_auto: "✓ Результаты сохранены — смотри во вкладке «Результаты»",
   save_session: "Сохранить",
   workout_player: "Тренировка на сегодня",
   focus: "Фокус",

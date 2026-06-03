@@ -128,6 +128,7 @@ export async function completeWorkout(
   workoutDate: string,
   exercises: unknown[],
   notes: string,
+  gymMode = false,
 ): Promise<void> {
   const res = await apiFetch("/workout/complete", {
     method: "POST",
@@ -137,6 +138,7 @@ export async function completeWorkout(
       workoutDate,
       completionNotes: notes,
       exercises,
+      gymMode,
     }),
   });
   if (!res.ok) {

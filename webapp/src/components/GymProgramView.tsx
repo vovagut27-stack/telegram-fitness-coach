@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { ReactElement } from "react";
 import type { ExerciseLog, Gender, GymProgram, WorkoutPlan } from "../types";
 import type { ScheduleDayItem } from "../services/api";
-import { completeWorkout, fetchGymWorkoutByDate } from "../services/api";
+import { fetchGymWorkoutByDate } from "../services/api";
 import { requireTelegramUserId } from "../services/telegram";
 import { useI18n } from "../i18n/context";
 import { levelLabel } from "../i18n/levels";
@@ -14,6 +14,7 @@ interface GymProgramViewProps {
   schedule: ScheduleDayItem[];
   gender?: Gender | null;
   onScheduleRefresh: () => void;
+  onCompleteWorkout: (logs: ExerciseLog[], date: string) => Promise<void>;
 }
 
 export function GymProgramView({
@@ -21,6 +22,7 @@ export function GymProgramView({
   schedule,
   gender,
   onScheduleRefresh,
+  onCompleteWorkout,
 }: GymProgramViewProps): ReactElement {
   const { locale, tr } = useI18n();
   const [active, setActive] = useState<{
@@ -44,16 +46,6 @@ export function GymProgramView({
     }
   };
 
-  const handleComplete = async (date: string, logs: ExerciseLog[]): Promise<void> => {
-    await completeWorkout(
-      requireTelegramUserId(),
-      date,
-      logs,
-      locale === "ru" ? "Зал — Mini App" : "Gym — Mini App",
-    );
-    onScheduleRefresh();
-  };
-
   if (active) {
     if (active.completed) {
       return (
@@ -74,7 +66,8 @@ export function GymProgramView({
         gymMode
         onBack={() => setActive(null)}
         onComplete={async (logs) => {
-          await handleComplete(active.date, logs);
+          await onCompleteWorkout(logs, active.date);
+          onScheduleRefresh();
           setActive(null);
         }}
       />

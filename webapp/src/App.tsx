@@ -38,6 +38,7 @@ function App() {
   const [gymSchedule, setGymSchedule] = useState<ScheduleDayItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [resultsRefreshKey, setResultsRefreshKey] = useState(0);
 
   const loadProfile = useCallback(async () => {
     const p = await fetchProfile(requireTelegramUserId());
@@ -131,6 +132,12 @@ function App() {
     setGymSchedule(days);
   }, []);
 
+  const refreshAfterWorkout = useCallback((): void => {
+    void loadSchedule();
+    void loadGymSchedule();
+    setResultsRefreshKey((k) => k + 1);
+  }, [loadSchedule, loadGymSchedule]);
+
   const loadGym = async (): Promise<void> => {
     if (!profile?.isPremium) {
       setError(tr("premium_required"));
@@ -159,23 +166,44 @@ function App() {
     }
   };
 
-  const handleComplete = async (logs: ExerciseLog[]): Promise<void> => {
-    const date = workoutDate ?? new Date().toISOString().slice(0, 10);
-    try {
-      await completeWorkout(
-        requireTelegramUserId(),
-        date,
-        logs,
-        locale === "ru" ? "Завершено в Mini App" : "Completed in Mini App",
-      );
+  const handleComplete = async (
+    logs: ExerciseLog[],
+    dateOverride?: string,
+    gymMode = false,
+  ): Promise<void> => {
+    const date = dateOverride ?? workoutDate ?? new Date().toISOString().slice(0, 10);
+    await completeWorkout(
+      requireTelegramUserId(),
+      date,
+      logs,
+      gymMode
+        ? locale === "ru"
+          ? "Зал — Mini App"
+          : "Gym — Mini App"
+        : locale === "ru"
+          ? "Завершено в Mini App"
+          : "Completed in Mini App",
+      gymMode,
+    );
+    refreshAfterWorkout();
+    if (!gymMode) {
       setWorkoutCompleted(true);
       setTab("home");
       setWorkout(null);
       setWorkoutDate(null);
-      await loadSchedule();
-      await loadProfile();
+    }
+  };
+
+  const handleCompleteSafe = async (
+    logs: ExerciseLog[],
+    dateOverride?: string,
+    gymMode = false,
+  ): Promise<void> => {
+    try {
+      await handleComplete(logs, dateOverride, gymMode);
     } catch {
       setError(tr("save_workout_error"));
+      throw new Error("save failed");
     }
   };
 
@@ -263,7 +291,7 @@ function App() {
             <WorkoutPlayer
               workout={workout}
               gender={profile?.gender}
-              onComplete={handleComplete}
+              onComplete={(logs) => handleCompleteSafe(logs)}
             />
           )
         ) : null}
@@ -274,13 +302,15 @@ function App() {
             schedule={gymSchedule}
             gender={profile?.gender}
             onScheduleRefresh={() => void loadGymSchedule()}
+            onCompleteWorkout={(logs, date) => handleCompleteSafe(logs, date, true)}
           />
         ) : null}
 
         {tab === "results" ? (
           <ResultsView
+            key={resultsRefreshKey}
             onSaved={() => {
-              void loadSchedule();
+              refreshAfterWorkout();
               void loadProfile();
             }}
           />
