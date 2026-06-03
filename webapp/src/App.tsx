@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { WorkoutPlayer } from "./components/WorkoutPlayer";
 import { getTelegramUserId, initTelegramWebApp } from "./services/telegram";
 import type { ExerciseLog, WorkoutPlan } from "./types";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api";
+import { API_BASE } from "./config";
 
 function App() {
   const [workout, setWorkout] = useState<WorkoutPlan | null>(null);
@@ -13,15 +12,23 @@ function App() {
   useEffect(() => {
     initTelegramWebApp();
     const telegramId = getTelegramUserId();
-    fetch(`${API_BASE}/workout/today?telegramId=${telegramId}`)
+    const url = `${API_BASE}/workout/today?telegramId=${telegramId}`;
+    fetch(url)
       .then(async (res) => {
         if (!res.ok) {
-          throw new Error(await res.text());
+          const body = await res.text();
+          throw new Error(body || `HTTP ${res.status}`);
         }
         return res.json();
       })
       .then((data: WorkoutPlan) => setWorkout(data))
       .catch((err: unknown) => {
+        if (err instanceof TypeError) {
+          setError(
+            `Network error reaching API (${url}). Check VITE_API_BASE_URL on Vercel and redeploy mini app.`,
+          );
+          return;
+        }
         setError(err instanceof Error ? err.message : "Unable to load workout");
       })
       .finally(() => setLoading(false));
