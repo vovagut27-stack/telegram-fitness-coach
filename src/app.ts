@@ -43,10 +43,23 @@ export function ensureWebhook(): Promise<void> {
 app.get("/api/health", async (_req, res) => {
   try {
     await ensureDb();
-    res.json({ ok: true, database: "connected" });
+    const cols = await db.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'users'`,
+    );
+    const names = cols.rows.map((r) => r.column_name as string);
+    const required = ["gender", "age", "weight_kg", "height_cm", "profile_complete"];
+    const missing = required.filter((c) => !names.includes(c));
+    res.json({
+      ok: true,
+      database: "connected",
+      profileColumnsOk: missing.length === 0,
+      missingColumns: missing,
+    });
   } catch (err) {
     console.error("/api/health db error:", err);
-    res.status(500).json({ ok: false, database: "error" });
+    const message = err instanceof Error ? err.message : "unknown";
+    res.status(500).json({ ok: false, database: "error", error: message });
   }
 });
 

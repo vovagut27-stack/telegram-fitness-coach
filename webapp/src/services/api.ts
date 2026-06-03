@@ -37,16 +37,19 @@ export async function fetchProfile(telegramId: number): Promise<UserProfile> {
 export async function saveProfile(
   profile: Partial<UserProfile> & { telegramId: number },
 ): Promise<UserProfile> {
+  const body = JSON.stringify(profile);
+  const headers = { "Content-Type": "application/json" };
+
   let res = await fetch(`${API_BASE}/user/profile`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(profile),
+    method: "POST",
+    headers,
+    body,
   });
-  if (!res.ok && res.status === 405) {
+  if (!res.ok && (res.status === 405 || res.status === 404)) {
     res = await fetch(`${API_BASE}/user/profile`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(profile),
+      method: "PUT",
+      headers,
+      body,
     });
   }
   if (!res.ok) {

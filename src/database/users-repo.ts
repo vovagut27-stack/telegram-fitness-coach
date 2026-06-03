@@ -36,9 +36,9 @@ const USER_COLUMNS = `
 function mapRow(row: Record<string, unknown>): UserProfile {
   return {
     telegramId: Number(row.telegram_id),
-    fitnessLevel: row.fitness_level as FitnessLevel,
-    availableEquipment: row.available_equipment as string[],
-    goals: row.goals as string[],
+    fitnessLevel: (row.fitness_level as FitnessLevel) ?? "beginner",
+    availableEquipment: (row.available_equipment as string[]) ?? ["bodyweight", "home"],
+    goals: (row.goals as string[]) ?? ["strength"],
     timePerSession: Number(row.time_per_session),
     isPremium: Boolean(row.is_premium),
     premiumUntil: row.premium_until ? String(row.premium_until) : null,
@@ -110,8 +110,14 @@ export async function getUser(telegramId: number): Promise<UserProfile | null> {
 export async function ensureUserRow(telegramId: number): Promise<void> {
   await db.query(
     `
-      INSERT INTO users (telegram_id)
-      VALUES ($1::bigint)
+      INSERT INTO users (
+        telegram_id, fitness_level, available_equipment, goals, time_per_session,
+        language, training_mode, profile_complete, is_premium
+      )
+      VALUES (
+        $1::bigint, 'beginner', ARRAY['bodyweight', 'home']::text[], ARRAY['strength']::text[],
+        45, 'ru', 'home', FALSE, FALSE
+      )
       ON CONFLICT (telegram_id) DO NOTHING
     `,
     [String(telegramId)],
@@ -128,8 +134,6 @@ export async function updateUserProfile(
     availableEquipment?: string[];
   },
 ): Promise<UserProfile> {
-  await ensureUserRow(telegramId);
-
   const current = await getUser(telegramId);
   const base: UserProfile = current ?? {
     telegramId,
@@ -160,10 +164,10 @@ export async function updateUserProfile(
   const age = patch.age !== undefined ? patch.age : base.age;
   const weightKg = patch.weightKg !== undefined ? patch.weightKg : base.weightKg;
   const heightCm = patch.heightCm !== undefined ? patch.heightCm : base.heightCm;
-  const fitnessLevel = patch.fitnessLevel ?? base.fitnessLevel;
-  const language = patch.language ?? base.language;
-  const goals = patch.goals ?? base.goals;
-  const timePerSession = patch.timePerSession ?? base.timePerSession;
+  const fitnessLevel = patch.fitnessLevel ?? base.fitnessLevel ?? "beginner";
+  const language = patch.language ?? base.language ?? DEFAULT_LOCALE;
+  const goals = patch.goals ?? base.goals ?? ["strength"];
+  const timePerSession = patch.timePerSession ?? base.timePerSession ?? 45;
 
   const profileComplete = isProfileComplete({
     gender,
@@ -176,19 +180,27 @@ export async function updateUserProfile(
 
   const result = await db.query(
     `
-      UPDATE users SET
-        gender = $2,
-        age = $3,
-        weight_kg = $4,
-        height_cm = $5,
-        fitness_level = $6,
-        language = $7,
-        goals = $8,
-        time_per_session = $9,
+      INSERT INTO users (
+        telegram_id, fitness_level, available_equipment, goals, time_per_session,
+        language, gender, age, weight_kg, height_cm, training_mode, profile_complete,
+        is_premium, premium_until
+      )
+      VALUES (
+        $1::bigint, $6, ARRAY['bodyweight', 'home']::text[], $7, $8, $5,
+        $2, $3, $4, $9, 'home', $10, FALSE, NULL
+      )
+      ON CONFLICT (telegram_id) DO UPDATE SET
+        gender = EXCLUDED.gender,
+        age = EXCLUDED.age,
+        weight_kg = EXCLUDED.weight_kg,
+        height_cm = EXCLUDED.height_cm,
+        fitness_level = EXCLUDED.fitness_level,
+        language = EXCLUDED.language,
+        goals = EXCLUDED.goals,
+        time_per_session = EXCLUDED.time_per_session,
         training_mode = 'home',
         available_equipment = ARRAY['bodyweight', 'home']::text[],
-        profile_complete = $10
-      WHERE telegram_id = $1::bigint
+        profile_complete = EXCLUDED.profile_complete
       RETURNING ${USER_COLUMNS}
     `,
     [
@@ -196,23 +208,27 @@ export async function updateUserProfile(
       gender,
       age,
       weightKg,
-      heightCm,
-      fitnessLevel,
       language,
+      fitnessLevel,
       goals,
       timePerSession,
+      heightCm,
       profileComplete,
     ],
   );
 
   if (!result.rows[0]) {
-    throw new Error("Profile update failed — user row missing");
+    throw new Error("Profile save failed");
   }
 
   if (bodyChanged) {
-    const { deleteIncompleteWorkoutsFrom } = await import("./workouts-repo.js");
-    const { isoDateOnly } = await import("../services/schedule-service.js");
-    await deleteIncompleteWorkoutsFrom(telegramId, isoDateOnly());
+    try {
+      const { deleteIncompleteWorkoutsFrom } = await import("./workouts-repo.js");
+      const { isoDateOnly } = await import("../services/schedule-service.js");
+      await deleteIncompleteWorkoutsFrom(telegramId, isoDateOnly());
+    } catch (err) {
+      console.warn("clear workouts after profile save:", err);
+    }
   }
 
   return mapRow(result.rows[0]);

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type { FitnessLevel, Gender, UserProfile } from "../types";
 import { useI18n } from "../i18n/context";
-import { fetchProfile, saveProfile } from "../services/api";
+import { saveProfile } from "../services/api";
 import { requireTelegramUserId } from "../services/telegram";
 
 interface ProfileFormProps {
@@ -25,7 +25,6 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
     setSaving(true);
     setMsg(null);
     setIsError(false);
-    const telegramId = requireTelegramUserId();
 
     if (!form.gender) {
       setIsError(true);
@@ -35,8 +34,8 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
     }
 
     try {
-      await saveProfile({
-        telegramId,
+      const saved = await saveProfile({
+        telegramId: requireTelegramUserId(),
         gender: form.gender,
         age: form.age ?? undefined,
         weightKg: form.weightKg ?? undefined,
@@ -45,14 +44,17 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
         language: locale,
         timePerSession: form.timePerSession ?? 45,
       });
-      const saved = await fetchProfile(telegramId);
       setForm(saved);
       onSaved(saved);
       setMsg(tr("saved"));
     } catch (err) {
       setIsError(true);
-      const detail = err instanceof Error ? err.message : "";
-      setMsg(detail ? `${tr("load_error")}: ${detail}` : tr("load_error"));
+      if (err instanceof TypeError) {
+        setMsg(tr("network_error"));
+      } else {
+        const detail = err instanceof Error ? err.message : "";
+        setMsg(detail || tr("load_error"));
+      }
     } finally {
       setSaving(false);
     }
