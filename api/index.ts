@@ -27,7 +27,6 @@ export default async function handler(req: any, res: any): Promise<void> {
 
     if (req.method === "POST" && path.startsWith("/telegram/webhook/")) {
       await ensureDb();
-      await ensureWebhook();
       return app(req, res);
     }
 

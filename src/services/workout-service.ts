@@ -1,5 +1,4 @@
 import { env } from "../config/env.js";
-import { db } from "../database/index.js";
 import { DEFAULT_LOCALE } from "../types/locale.js";
 import { getUser, upsertUser } from "../database/users-repo.js";
 import {
@@ -13,15 +12,7 @@ import { AIWorkoutService } from "./ai-service.js";
 
 const aiService = new AIWorkoutService();
 
-async function ensureLanguageColumn(): Promise<void> {
-  await db.query(`
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(5);
-    UPDATE users SET language = 'ru' WHERE language IS NULL;
-  `);
-}
-
 export async function ensureDefaultUser(telegramId: number): Promise<void> {
-  await ensureLanguageColumn();
   const existing = await getUser(telegramId);
   if (existing) {
     return;

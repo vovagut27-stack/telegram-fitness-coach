@@ -22,7 +22,8 @@ export async function upsertUser(user: UserProfile): Promise<void> {
       fitness_level = EXCLUDED.fitness_level,
       available_equipment = EXCLUDED.available_equipment,
       goals = EXCLUDED.goals,
-      time_per_session = EXCLUDED.time_per_session
+      time_per_session = EXCLUDED.time_per_session,
+      language = EXCLUDED.language
   `,
     [
       user.telegramId,
@@ -37,12 +38,22 @@ export async function upsertUser(user: UserProfile): Promise<void> {
 }
 
 export async function setUserLanguage(telegramId: number, language: Locale): Promise<void> {
-  await db.query(
-    `
-      UPDATE users SET language = $2 WHERE telegram_id = $1
-    `,
+  const updated = await db.query(
+    `UPDATE users SET language = $2 WHERE telegram_id = $1`,
     [telegramId, language],
   );
+  if ((updated.rowCount ?? 0) > 0) {
+    return;
+  }
+  await upsertUser({
+    telegramId,
+    fitnessLevel: "beginner",
+    availableEquipment: ["bodyweight"],
+    goals: ["strength"],
+    timePerSession: 25,
+    isPremium: false,
+    language,
+  });
 }
 
 export async function getUser(telegramId: number): Promise<UserProfile | null> {

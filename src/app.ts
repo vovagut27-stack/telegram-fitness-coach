@@ -59,6 +59,7 @@ app.post(hookPath, async (req, res) => {
     await bot.handleUpdate(req.body, res);
   } catch (err) {
     console.error("Webhook handler error:", err);
+  } finally {
     if (!res.headersSent) {
       res.status(200).end();
     }

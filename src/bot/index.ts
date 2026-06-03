@@ -1,7 +1,11 @@
 import { Context, Telegraf } from "telegraf";
 import { env } from "../config/env.js";
 import { startCommand, languageCommand, getUserLocale } from "./commands/start.js";
-import { buildLanguageKeyboard, buildTodayKeyboard } from "./keyboards/main.js";
+import {
+  buildLanguageKeyboard,
+  buildLevelKeyboard,
+  buildTodayKeyboard,
+} from "./keyboards/main.js";
 import { deleteWorkoutByDate } from "../database/workouts-repo.js";
 import { ensureDefaultUser, getOrCreateTodayWorkout } from "../services/workout-service.js";
 import { getUser, setUserLanguage, upgradePremium, upsertUser } from "../database/users-repo.js";
@@ -11,11 +15,17 @@ import type { FitnessLevel } from "../types/workout.js";
 
 export const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
 
-bot.catch((err, ctx) => {
+bot.catch(async (err, ctx) => {
   console.error("Bot error:", err);
-  void getUserLocale(ctx.from?.id ?? 0).then((locale) => {
-    void ctx.reply(t(locale, "bot_error_generic"));
-  });
+  try {
+    if (ctx.callbackQuery) {
+      await ctx.answerCbQuery().catch(() => undefined);
+    }
+    const locale = await getUserLocale(ctx.from?.id ?? 0);
+    await ctx.reply(t(locale, "bot_error_generic"));
+  } catch (replyErr) {
+    console.error("Bot catch reply failed:", replyErr);
+  }
 });
 
 bot.start(startCommand);
@@ -24,18 +34,23 @@ bot.command("lang", languageCommand);
 
 for (const lang of ["ru", "en"] as const) {
   bot.action(`set_lang_${lang}`, async (ctx) => {
-    await ctx.answerCbQuery();
     const telegramId = ctx.from?.id;
     if (!telegramId) {
+      await ctx.answerCbQuery().catch(() => undefined);
       return;
     }
     try {
+      await ctx.answerCbQuery();
       await ensureDefaultUser(telegramId);
       await setUserLanguage(telegramId, lang);
-      await ctx.reply(t(lang, "bot_lang_saved"));
+      await ctx.reply(
+        `${t(lang, "bot_lang_saved")}\n\n${t(lang, "bot_choose_level")}`,
+        buildLevelKeyboard(lang),
+      );
     } catch (err) {
       console.error(`set_lang_${lang} failed:`, err);
-      await ctx.reply(t(lang, "bot_error_generic"));
+      await ctx.answerCbQuery().catch(() => undefined);
+      await ctx.reply(t(lang, "bot_error_generic"), buildLanguageKeyboard(lang));
     }
   });
 }

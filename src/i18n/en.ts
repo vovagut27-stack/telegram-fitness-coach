@@ -3,7 +3,7 @@ export const en = {
   bot_choose_level: "Choose your fitness level:",
   bot_level_saved: "Level saved: {level}. Send /today to get your workout.",
   bot_level_error: "Could not save level. Try /start again.",
-  bot_lang_saved: "Language: English.",
+  bot_lang_saved: "Language set to English.",
   bot_error_generic: "Something went wrong. Try /start again.",
   bot_db_not_ready: "Bot is online, but the database is not ready. Try again in a minute.",
   bot_workout_focus: "Today's focus: {muscles}",
