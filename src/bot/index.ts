@@ -2,8 +2,9 @@ import { Telegraf } from "telegraf";
 import { env } from "../config/env.js";
 import { startCommand } from "./commands/start.js";
 import { todayKeyboard } from "./keyboards/main.js";
-import { getOrCreateTodayWorkout } from "../services/workout-service.js";
-import { upgradePremium } from "../database/users-repo.js";
+import { ensureDefaultUser, getOrCreateTodayWorkout } from "../services/workout-service.js";
+import { getUser, upgradePremium, upsertUser } from "../database/users-repo.js";
+import type { FitnessLevel } from "../types/workout.js";
 
 export const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
 
@@ -13,6 +14,38 @@ bot.catch((err, ctx) => {
 });
 
 bot.start(startCommand);
+
+const levelActions: Record<string, FitnessLevel> = {
+  set_level_beginner: "beginner",
+  set_level_intermediate: "intermediate",
+  set_level_advanced: "advanced",
+};
+
+for (const [action, level] of Object.entries(levelActions)) {
+  bot.action(action, async (ctx) => {
+    await ctx.answerCbQuery();
+    const telegramId = ctx.from?.id;
+    if (!telegramId) {
+      return;
+    }
+    try {
+      await ensureDefaultUser(telegramId);
+      const user = await getUser(telegramId);
+      await upsertUser({
+        telegramId,
+        fitnessLevel: level,
+        availableEquipment: user?.availableEquipment ?? ["bodyweight"],
+        goals: user?.goals ?? ["strength"],
+        timePerSession: user?.timePerSession ?? 25,
+        isPremium: user?.isPremium ?? false,
+      });
+      await ctx.reply(`Level saved: ${level}. Send /today to get your workout.`);
+    } catch (err) {
+      console.error(`Level action ${action} failed:`, err);
+      await ctx.reply("Could not save level. Check database on Vercel and try /start again.");
+    }
+  });
+}
 
 bot.command("today", async (ctx) => {
   const telegramId = ctx.from?.id;
