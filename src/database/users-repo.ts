@@ -1,5 +1,5 @@
 import { db } from "./index.js";
-import { parseLocale, type Locale } from "../types/locale.js";
+import { DEFAULT_LOCALE, parseLocale, type Locale } from "../types/locale.js";
 import { FitnessLevel } from "../types/workout.js";
 
 export interface UserProfile {
@@ -35,6 +35,45 @@ export async function upsertUser(user: UserProfile): Promise<void> {
       user.language,
     ],
   );
+}
+
+export async function setUserFitnessLevel(
+  telegramId: number,
+  level: FitnessLevel,
+): Promise<UserProfile> {
+  const updated = await db.query(
+    `
+      UPDATE users SET fitness_level = $2 WHERE telegram_id = $1
+      RETURNING telegram_id, fitness_level, available_equipment, goals, time_per_session, is_premium, language
+    `,
+    [telegramId, level],
+  );
+  if (updated.rows[0]) {
+    const row = updated.rows[0];
+    return {
+      telegramId: Number(row.telegram_id),
+      fitnessLevel: row.fitness_level,
+      availableEquipment: row.available_equipment,
+      goals: row.goals,
+      timePerSession: row.time_per_session,
+      isPremium: row.is_premium,
+      language: parseLocale(row.language),
+    };
+  }
+  await upsertUser({
+    telegramId,
+    fitnessLevel: level,
+    availableEquipment: ["bodyweight"],
+    goals: ["strength"],
+    timePerSession: 25,
+    isPremium: false,
+    language: DEFAULT_LOCALE,
+  });
+  const user = await getUser(telegramId);
+  if (!user) {
+    throw new Error("Failed to save fitness level");
+  }
+  return user;
 }
 
 export async function setUserLanguage(telegramId: number, language: Locale): Promise<void> {

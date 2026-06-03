@@ -7,13 +7,21 @@ import {
   buildTodayKeyboard,
 } from "./keyboards/main.js";
 import { deleteWorkoutByDate } from "../database/workouts-repo.js";
-import { ensureDefaultUser, getOrCreateTodayWorkout } from "../services/workout-service.js";
-import { getUser, setUserLanguage, upgradePremium, upsertUser } from "../database/users-repo.js";
+import { getOrCreateTodayWorkout } from "../services/workout-service.js";
+import {
+  setUserFitnessLevel,
+  setUserLanguage,
+  upgradePremium,
+} from "../database/users-repo.js";
 import { levelLabel, t } from "../i18n/index.js";
 import type { Locale } from "../types/locale.js";
 import type { FitnessLevel } from "../types/workout.js";
 
 export const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
+
+void bot.telegram.getMe().then((me) => {
+  bot.botInfo = me;
+});
 
 bot.catch(async (err, ctx) => {
   console.error("Bot error:", err);
@@ -41,7 +49,6 @@ for (const lang of ["ru", "en"] as const) {
     }
     try {
       await ctx.answerCbQuery();
-      await ensureDefaultUser(telegramId);
       await setUserLanguage(telegramId, lang);
       await ctx.reply(
         `${t(lang, "bot_lang_saved")}\n\n${t(lang, "bot_choose_level")}`,
@@ -68,24 +75,14 @@ for (const [action, level] of Object.entries(levelActions)) {
     if (!telegramId) {
       return;
     }
-    const locale = await getUserLocale(telegramId);
     try {
-      await ensureDefaultUser(telegramId);
-      const user = await getUser(telegramId);
-      await upsertUser({
-        telegramId,
-        fitnessLevel: level,
-        availableEquipment: user?.availableEquipment ?? ["bodyweight"],
-        goals: user?.goals ?? ["strength"],
-        timePerSession: user?.timePerSession ?? 25,
-        isPremium: user?.isPremium ?? false,
-        language: user?.language ?? locale,
-      });
+      const user = await setUserFitnessLevel(telegramId, level);
       await ctx.reply(
-        t(locale, "bot_level_saved", { level: levelLabel(locale, level) }),
+        t(user.language, "bot_level_saved", { level: levelLabel(user.language, level) }),
       );
     } catch (err) {
       console.error(`Level action ${action} failed:`, err);
+      const locale = await getUserLocale(telegramId);
       await ctx.reply(t(locale, "bot_level_error"));
     }
   });
@@ -113,6 +110,7 @@ async function sendTodayWorkout(ctx: Context): Promise<void> {
   if (!telegramId) {
     return;
   }
+  void ctx.sendChatAction("typing");
   const locale = await getUserLocale(telegramId);
   const plan = await getOrCreateTodayWorkout(telegramId);
   const text = formatWorkoutMessage(locale, plan);

@@ -12,6 +12,11 @@ const envSchema = z.object({
   TELEGRAM_WEBHOOK_SECRET: z.string().default("local-secret"),
   WEBAPP_URL: z.string().default(""),
   FREE_WORKOUTS_PER_WEEK: z.coerce.number().default(3),
+  /** Set to "true" to wait for OpenAI on new workouts (slower). Default: instant template plans. */
+  USE_AI_WORKOUTS: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 const parsed = envSchema.safeParse(process.env);

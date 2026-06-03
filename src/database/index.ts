@@ -7,4 +7,7 @@ const useSsl =
 export const db = new Pool({
   connectionString: env.DATABASE_URL,
   ssl: useSsl ? { rejectUnauthorized: false } : undefined,
+  max: 3,
+  idleTimeoutMillis: 20_000,
+  connectionTimeoutMillis: 8_000,
 });

@@ -55,7 +55,6 @@ app.use("/api", apiRouter);
 const hookPath = webhookPath();
 app.post(hookPath, async (req, res) => {
   try {
-    await ensureDb();
     await bot.handleUpdate(req.body, res);
   } catch (err) {
     console.error("Webhook handler error:", err);

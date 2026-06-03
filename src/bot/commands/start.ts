@@ -11,6 +11,7 @@ export async function startCommand(ctx: Context): Promise<void> {
     return;
   }
   try {
+    void ctx.sendChatAction("typing");
     await ensureDefaultUser(telegramId);
     const user = await getUser(telegramId);
     const locale = user?.language ?? DEFAULT_LOCALE;
