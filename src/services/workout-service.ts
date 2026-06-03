@@ -10,7 +10,7 @@ import {
   saveWorkoutPlan,
 } from "../database/workouts-repo.js";
 import { FitnessLevel, WorkoutPlan, WorkoutRequest } from "../types/workout.js";
-import { buildTemplateWorkout } from "./workout-templates.js";
+import { buildTemplateWorkout, planMatchesDaySplit } from "./workout-templates.js";
 import { isPremiumActive } from "./premium-service.js";
 import { enrichWorkoutExercises } from "./exercise-images.js";
 import {
@@ -57,7 +57,7 @@ function buildRequest(
   return {
     userId: String(user.telegramId),
     fitnessLevel: difficulty,
-    availableEquipment: user.availableEquipment,
+    availableEquipment: ["bodyweight", "home", "none", "chair"],
     timeMinutes: user.timePerSession,
     lastWorkouts: recent,
     targetMuscles,
@@ -78,17 +78,9 @@ async function generatePlan(
   weeklyCount: number,
   targetMuscles: string[],
 ): Promise<WorkoutPlan> {
-  const premium = isPremiumActive(user);
   const request = buildRequest(user, recent, weeklyCount, targetMuscles);
-  const useAi =
-    env.USE_AI_WORKOUTS || (premium && user.profileComplete) || user.profileComplete;
-
-  if (!useAi) {
-    return buildTemplateWorkout(request);
-  }
-
-  const { AIWorkoutService } = await import("./ai-service.js");
-  return new AIWorkoutService().generateWorkout(request);
+  // Главная: домашние тренировки без инвентаря — шаблоны по сплиту (ноги/спина/грудь)
+  return buildTemplateWorkout(request);
 }
 
 export async function getOrCreateWorkoutForDate(
@@ -110,21 +102,31 @@ export async function getOrCreateWorkoutForDate(
   }
 
   let existing = await getWorkoutByDate(telegramId, workoutDate);
-  if (existing && existing.plan.difficultyLevel !== user.fitnessLevel) {
+  const stale =
+    existing &&
+    (existing.plan.programType === "gym" ||
+      existing.plan.difficultyLevel !== user.fitnessLevel ||
+      !planMatchesDaySplit(existing.plan, workoutDate, user.language));
+  if (stale) {
     await deleteWorkoutByDate(telegramId, workoutDate);
     existing = null;
   }
   if (existing) {
-    return {
-      ...existing.plan,
-      exercises: enrichWorkoutExercises(
-        existing.plan.exercises,
-        gender,
-        user.fitnessLevel,
-      ),
-      programType: existing.plan.programType ?? "daily",
-      difficultyLevel: user.fitnessLevel,
-    };
+    const plan = attachScheduleMeta(
+      {
+        ...existing.plan,
+        exercises: enrichWorkoutExercises(
+          existing.plan.exercises,
+          gender,
+          user.fitnessLevel,
+        ),
+        programType: "daily",
+        difficultyLevel: user.fitnessLevel,
+      },
+      workoutDate,
+      user.language,
+    );
+    return plan;
   }
 
   const split = getSplitForDate(workoutDate, user.language);

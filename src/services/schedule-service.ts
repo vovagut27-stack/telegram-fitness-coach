@@ -113,10 +113,14 @@ export function buildScheduleDays(
   for (let i = 0; i < count; i++) {
     const date = addDaysIso(fromDate, i);
     const split = getSplitForDate(date, locale);
+    const dayNum = i + 1;
     items.push({
       date,
       dayLabel: formatDayLabel(date, locale),
-      focusTitle: split.title,
+      focusTitle:
+        locale === "en"
+          ? `Day ${dayNum} · ${split.titleEn}`
+          : `День ${dayNum} · ${split.titleRu}`,
       muscles: split.muscles,
       isToday: date === today,
     });

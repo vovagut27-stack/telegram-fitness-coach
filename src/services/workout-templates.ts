@@ -1,6 +1,7 @@
 import type { Locale } from "../types/locale.js";
 import type { Gender } from "../types/profile.js";
 import type { FitnessLevel, WorkoutExercise, WorkoutPlan, WorkoutRequest } from "../types/workout.js";
+import { getSplitForDate } from "./schedule-service.js";
 import { enrichExerciseImage, enrichWorkoutExercises } from "./exercise-images.js";
 
 type MuscleFocus = "push" | "pull" | "legs";
@@ -1024,15 +1025,36 @@ const FOCUS_LABELS: Record<MuscleFocus, Record<Locale, string[]>> = {
   },
 };
 
-function muscleFocus(targetMuscles?: string[]): MuscleFocus {
+export function muscleFocusFromTargets(targetMuscles?: string[]): MuscleFocus {
   const joined = (targetMuscles ?? []).join(" ").toLowerCase();
-  if (/back|biceps|спин|бицеп/.test(joined)) {
-    return "pull";
+  if (/leg|glute|ног|ягод/.test(joined) && !/chest|груд|triceps|трицеп/.test(joined)) {
+    return "legs";
   }
   if (/leg|glute|core|ног|ягод|пресс/.test(joined)) {
     return "legs";
   }
+  if (/back|biceps|спин|бицеп/.test(joined)) {
+    return "pull";
+  }
+  if (/chest|triceps|груд|трицеп/.test(joined)) {
+    return "push";
+  }
   return "push";
+}
+
+/** План в БД соответствует дню расписания (ноги / спина / грудь)? */
+export function planMatchesDaySplit(
+  plan: WorkoutPlan,
+  isoDate: string,
+  locale: Locale,
+): boolean {
+  if (plan.programType === "gym") {
+    return false;
+  }
+  const split = getSplitForDate(isoDate, locale);
+  const expected = muscleFocusFromTargets(split.muscles);
+  const actual = muscleFocusFromTargets(plan.targetMuscles);
+  return expected === actual;
 }
 
 function exerciseCountForTime(timeMinutes: number): number {
@@ -1077,7 +1099,7 @@ function filterByEquipment(
 
 export function buildTemplateWorkout(request: WorkoutRequest): WorkoutPlan {
   const locale = request.language === "en" ? "en" : "ru";
-  const focus = muscleFocus(request.targetMuscles);
+  const focus = muscleFocusFromTargets(request.targetMuscles);
   const level = request.fitnessLevel;
   const pool = POOLS[focus][level] ?? POOLS[focus].beginner;
   const count = exerciseCountForTime(request.timeMinutes);
