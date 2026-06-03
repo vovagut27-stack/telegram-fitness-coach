@@ -1,6 +1,6 @@
 import { Context, Telegraf } from "telegraf";
 import { env } from "../config/env.js";
-import { startCommand, getUserLocale } from "./commands/start.js";
+import { startCommand, languageCommand, getUserLocale } from "./commands/start.js";
 import { buildLanguageKeyboard, buildTodayKeyboard } from "./keyboards/main.js";
 import { deleteWorkoutByDate } from "../database/workouts-repo.js";
 import { ensureDefaultUser, getOrCreateTodayWorkout } from "../services/workout-service.js";
@@ -19,6 +19,8 @@ bot.catch((err, ctx) => {
 });
 
 bot.start(startCommand);
+bot.command("language", languageCommand);
+bot.command("lang", languageCommand);
 
 for (const lang of ["ru", "en"] as const) {
   bot.action(`set_lang_${lang}`, async (ctx) => {

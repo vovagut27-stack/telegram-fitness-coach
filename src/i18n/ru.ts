@@ -14,7 +14,7 @@ export const ru = {
   bot_workout_webapp_tip:
     "Подсказка: укажите WEBAPP_URL на Vercel (HTTPS URL mini app), чтобы появилась кнопка «Начать тренировку».",
   bot_progress: "Прогресс в MVP: завершайте тренировки в Mini App.",
-  bot_settings: "Настройки: /start — уровень и язык. /today — тренировка на сегодня.",
+  bot_settings: "Настройки:\n/language — сменить язык\n/start — язык и уровень\n/today — тренировка",
   bot_regenerating: "Генерируем...",
   bot_regenerate_error: "Не удалось обновить тренировку. Попробуйте /today снова.",
   bot_premium: "Premium активирован на 30 дней. Безлимитные AI-тренировки.",

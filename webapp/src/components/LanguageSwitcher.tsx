@@ -6,8 +6,8 @@ export function LanguageSwitcher(): ReactElement {
   const { locale, setLocale, tr } = useI18n();
 
   return (
-    <div className="lang-switcher">
-      <span>{tr("lang_label")}:</span>
+    <div className="lang-switcher" role="group" aria-label={tr("lang_label")}>
+      <strong>{tr("lang_label")}:</strong>
       {(["ru", "en"] as Locale[]).map((code) => (
         <button
           key={code}

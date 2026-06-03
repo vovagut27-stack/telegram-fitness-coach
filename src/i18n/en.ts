@@ -14,7 +14,7 @@ export const en = {
   bot_workout_webapp_tip:
     "Tip: set WEBAPP_URL on Vercel to your HTTPS mini app URL to enable the Start Workout button.",
   bot_progress: "Progress tracking is in MVP mode. Complete workouts in the Mini App.",
-  bot_settings: "Settings: /start — level and language. /today — today's workout.",
+  bot_settings: "Settings:\n/language — change language\n/start — language and level\n/today — workout",
   bot_regenerating: "Generating...",
   bot_regenerate_error: "Could not regenerate workout. Try /today again.",
   bot_premium: "Premium activated for 30 days. Enjoy unlimited AI workouts.",

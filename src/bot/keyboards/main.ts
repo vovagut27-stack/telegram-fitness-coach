@@ -1,13 +1,26 @@
 import { Markup } from "telegraf";
 import { env } from "../../config/env.js";
-import { t, type MessageKey } from "../../i18n/index.js";
+import { t } from "../../i18n/index.js";
 import type { Locale } from "../../types/locale.js";
+
+/** Language + fitness level in one keyboard (visible in a single /start message). */
+export function buildStartKeyboard(locale: Locale) {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(`🇷🇺 ${t(locale, "lang_ru")}`, "set_lang_ru"),
+      Markup.button.callback(`🇬🇧 ${t(locale, "lang_en")}`, "set_lang_en"),
+    ],
+    [Markup.button.callback(t(locale, "level_beginner"), "set_level_beginner")],
+    [Markup.button.callback(t(locale, "level_intermediate"), "set_level_intermediate")],
+    [Markup.button.callback(t(locale, "level_advanced"), "set_level_advanced")],
+  ]);
+}
 
 export function buildLanguageKeyboard(locale: Locale) {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback(t(locale, "lang_ru"), "set_lang_ru"),
-      Markup.button.callback(t(locale, "lang_en"), "set_lang_en"),
+      Markup.button.callback(`🇷🇺 ${t(locale, "lang_ru")}`, "set_lang_ru"),
+      Markup.button.callback(`🇬🇧 ${t(locale, "lang_en")}`, "set_lang_en"),
     ],
   ]);
 }
