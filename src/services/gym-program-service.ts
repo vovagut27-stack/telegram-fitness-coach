@@ -459,6 +459,7 @@ function dayPlan(
 ): WorkoutPlan {
   const exercises = enrichWorkoutExercises(
     split.exercises.map((e) => (locale === "en" ? e.en : e.ru)),
+    user.gender,
   );
   const minutes = Math.round(user.timePerSession || 50);
   const bmi =

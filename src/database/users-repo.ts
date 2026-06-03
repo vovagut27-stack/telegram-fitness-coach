@@ -98,13 +98,24 @@ export async function upsertUser(user: UserProfile): Promise<void> {
 
 export async function getUser(telegramId: number): Promise<UserProfile | null> {
   const result = await db.query(
-    `SELECT ${USER_COLUMNS} FROM users WHERE telegram_id = $1`,
-    [telegramId],
+    `SELECT ${USER_COLUMNS} FROM users WHERE telegram_id = $1::bigint`,
+    [String(telegramId)],
   );
   if (!result.rows[0]) {
     return null;
   }
   return mapRow(result.rows[0]);
+}
+
+export async function ensureUserRow(telegramId: number): Promise<void> {
+  await db.query(
+    `
+      INSERT INTO users (telegram_id)
+      VALUES ($1::bigint)
+      ON CONFLICT (telegram_id) DO NOTHING
+    `,
+    [String(telegramId)],
+  );
 }
 
 export async function updateUserProfile(
@@ -117,11 +128,13 @@ export async function updateUserProfile(
     availableEquipment?: string[];
   },
 ): Promise<UserProfile> {
+  await ensureUserRow(telegramId);
+
   const current = await getUser(telegramId);
   const base: UserProfile = current ?? {
     telegramId,
     fitnessLevel: "beginner",
-    availableEquipment: ["bodyweight"],
+    availableEquipment: ["bodyweight", "home"],
     goals: ["strength"],
     timePerSession: 45,
     isPremium: false,
@@ -143,30 +156,58 @@ export async function updateUserProfile(
     patch.fitnessLevel !== undefined ||
     patch.timePerSession !== undefined;
 
-  const merged: UserProfile = {
-    ...base,
-    fitnessLevel: patch.fitnessLevel ?? base.fitnessLevel,
-    language: patch.language ?? base.language,
-    goals: patch.goals ?? base.goals,
-    timePerSession: patch.timePerSession ?? base.timePerSession,
-    gender: patch.gender !== undefined ? patch.gender : base.gender,
-    age: patch.age !== undefined ? patch.age : base.age,
-    weightKg: patch.weightKg !== undefined ? patch.weightKg : base.weightKg,
-    heightCm: patch.heightCm !== undefined ? patch.heightCm : base.heightCm,
-    trainingMode: "home",
-    availableEquipment: ["bodyweight", "home"],
-  };
+  const gender = patch.gender !== undefined ? patch.gender : base.gender;
+  const age = patch.age !== undefined ? patch.age : base.age;
+  const weightKg = patch.weightKg !== undefined ? patch.weightKg : base.weightKg;
+  const heightCm = patch.heightCm !== undefined ? patch.heightCm : base.heightCm;
+  const fitnessLevel = patch.fitnessLevel ?? base.fitnessLevel;
+  const language = patch.language ?? base.language;
+  const goals = patch.goals ?? base.goals;
+  const timePerSession = patch.timePerSession ?? base.timePerSession;
 
-  merged.profileComplete = isProfileComplete({
-    gender: merged.gender,
-    age: merged.age,
-    weightKg: merged.weightKg,
-    heightCm: merged.heightCm,
-    trainingMode: merged.trainingMode,
+  const profileComplete = isProfileComplete({
+    gender,
+    age,
+    weightKg,
+    heightCm,
+    trainingMode: "home",
     profileComplete: false,
   });
 
-  await upsertUser(merged);
+  const result = await db.query(
+    `
+      UPDATE users SET
+        gender = $2,
+        age = $3,
+        weight_kg = $4,
+        height_cm = $5,
+        fitness_level = $6,
+        language = $7,
+        goals = $8,
+        time_per_session = $9,
+        training_mode = 'home',
+        available_equipment = ARRAY['bodyweight', 'home']::text[],
+        profile_complete = $10
+      WHERE telegram_id = $1::bigint
+      RETURNING ${USER_COLUMNS}
+    `,
+    [
+      String(telegramId),
+      gender,
+      age,
+      weightKg,
+      heightCm,
+      fitnessLevel,
+      language,
+      goals,
+      timePerSession,
+      profileComplete,
+    ],
+  );
+
+  if (!result.rows[0]) {
+    throw new Error("Profile update failed — user row missing");
+  }
 
   if (bodyChanged) {
     const { deleteIncompleteWorkoutsFrom } = await import("./workouts-repo.js");
@@ -174,11 +215,7 @@ export async function updateUserProfile(
     await deleteIncompleteWorkoutsFrom(telegramId, isoDateOnly());
   }
 
-  const saved = await getUser(telegramId);
-  if (!saved) {
-    throw new Error("Failed to save profile");
-  }
-  return saved;
+  return mapRow(result.rows[0]);
 }
 
 export async function setUserFitnessLevel(

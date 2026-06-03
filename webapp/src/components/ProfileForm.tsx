@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type { FitnessLevel, Gender, UserProfile } from "../types";
 import { useI18n } from "../i18n/context";
-import { saveProfile } from "../services/api";
+import { fetchProfile, saveProfile } from "../services/api";
 import { requireTelegramUserId } from "../services/telegram";
 
 interface ProfileFormProps {
@@ -15,6 +15,7 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
   const [form, setForm] = useState(profile);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     setForm(profile);
@@ -23,21 +24,35 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
   const submit = async (): Promise<void> => {
     setSaving(true);
     setMsg(null);
+    setIsError(false);
+    const telegramId = requireTelegramUserId();
+
+    if (!form.gender) {
+      setIsError(true);
+      setMsg(tr("profile_need_gender"));
+      setSaving(false);
+      return;
+    }
+
     try {
-      const saved = await saveProfile({
-        telegramId: requireTelegramUserId(),
-        gender: form.gender ?? undefined,
+      await saveProfile({
+        telegramId,
+        gender: form.gender,
         age: form.age ?? undefined,
         weightKg: form.weightKg ?? undefined,
         heightCm: form.heightCm ?? undefined,
         fitnessLevel: form.fitnessLevel,
         language: locale,
-        timePerSession: form.timePerSession,
+        timePerSession: form.timePerSession ?? 45,
       });
+      const saved = await fetchProfile(telegramId);
+      setForm(saved);
       onSaved(saved);
       setMsg(tr("saved"));
-    } catch {
-      setMsg(tr("load_error"));
+    } catch (err) {
+      setIsError(true);
+      const detail = err instanceof Error ? err.message : "";
+      setMsg(detail ? `${tr("load_error")}: ${detail}` : tr("load_error"));
     } finally {
       setSaving(false);
     }
@@ -61,7 +76,7 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
       </label>
 
       <label className="field">
-        {tr("gender")}
+        {tr("gender")} *
         <select
           value={form.gender ?? ""}
           onChange={(e) =>
@@ -137,12 +152,14 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
 
       {!form.profileComplete ? (
         <p className="warn">{tr("complete_profile")}</p>
-      ) : null}
+      ) : (
+        <p className="ok">✓ {tr("profile_complete_ok")}</p>
+      )}
 
       <button type="button" className="btn-primary" disabled={saving} onClick={() => void submit()}>
         {saving ? tr("loading") : tr("save")}
       </button>
-      {msg ? <p className="ok">{msg}</p> : null}
+      {msg ? <p className={isError ? "error" : "ok"}>{msg}</p> : null}
     </section>
   );
 }

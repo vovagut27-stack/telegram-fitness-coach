@@ -240,7 +240,11 @@ function App() {
               </button>
             </section>
           ) : (
-            <WorkoutPlayer workout={workout} onComplete={handleComplete} />
+            <WorkoutPlayer
+              workout={workout}
+              gender={profile?.gender}
+              onComplete={handleComplete}
+            />
           )
         ) : null}
 

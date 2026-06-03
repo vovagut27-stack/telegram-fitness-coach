@@ -110,16 +110,18 @@ export async function getOrCreateWorkoutForDate(
   telegramId: number,
   workoutDate: string,
 ): Promise<WorkoutPlan> {
+  await ensureDefaultUser(telegramId);
+  const profileUser = await getUser(telegramId);
+  const gender = profileUser?.gender ?? null;
+
   const existing = await getWorkoutByDate(telegramId, workoutDate);
   if (existing) {
     return {
       ...existing.plan,
-      exercises: enrichWorkoutExercises(existing.plan.exercises),
+      exercises: enrichWorkoutExercises(existing.plan.exercises, gender),
       programType: existing.plan.programType ?? "daily",
     };
   }
-
-  await ensureDefaultUser(telegramId);
 
   const [user, recent, weeklyCount] = await Promise.all([
     getUser(telegramId),
@@ -134,7 +136,7 @@ export async function getOrCreateWorkoutForDate(
   const split = getSplitForDate(workoutDate, user.language);
   let plan = await generatePlan(user, recent, weeklyCount, split.muscles);
   plan = attachScheduleMeta(plan, workoutDate, user.language);
-  plan = { ...plan, exercises: enrichWorkoutExercises(plan.exercises) };
+  plan = { ...plan, exercises: enrichWorkoutExercises(plan.exercises, user.gender) };
   await saveWorkoutPlan(telegramId, workoutDate, plan);
   return plan;
 }

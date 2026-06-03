@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import type { WorkoutExercise } from "../types";
+import type { Gender, WorkoutExercise } from "../types";
 import { useI18n } from "../i18n/context";
 
 const FALLBACK_IMG =
@@ -9,15 +9,16 @@ const FALLBACK_IMG =
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
   index: number;
+  gender?: Gender | null;
 }
 
-export function ExerciseCard({ exercise, index }: ExerciseCardProps): ReactElement {
+export function ExerciseCard({ exercise, index, gender }: ExerciseCardProps): ReactElement {
   const { tr } = useI18n();
   const [imgSrc, setImgSrc] = useState(exercise.demoUrl ?? FALLBACK_IMG);
 
   useEffect(() => {
     setImgSrc(exercise.demoUrl ?? FALLBACK_IMG);
-  }, [exercise.name, exercise.demoUrl]);
+  }, [exercise.name, exercise.demoUrl, gender]);
 
   const equipment =
     exercise.equipment === "none" ? tr("equipment_none") : exercise.equipment;

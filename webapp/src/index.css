@@ -205,6 +205,8 @@ button:disabled {
 }
 
 .exercise-img {
+  object-fit: contain;
+  background: #f5f5f7;
   width: 100%;
   max-height: 200px;
   object-fit: cover;

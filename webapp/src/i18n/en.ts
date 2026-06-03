@@ -69,6 +69,8 @@ export const en = {
   open_workout: "Open workout",
   open_in_telegram: "Open the app from the Telegram bot (Open App button).",
   profile_home_only: "Home workouts here. Gym program is under the Gym tab (Premium).",
+  profile_need_gender: "Select gender — exercise illustrations depend on it.",
+  profile_complete_ok: "Profile complete",
   week_done: "This week: {done} of {total} days done",
   save_workout_error: "Could not save workout. Please try again.",
   premium_gym_hint: "Gym tab — barbell and machine exercises.",

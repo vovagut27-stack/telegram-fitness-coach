@@ -6,7 +6,8 @@ import {
 } from "../database/workouts-repo.js";
 import { parseLocale } from "../types/locale.js";
 import { parseGender } from "../types/profile.js";
-import { getUser, setUserLanguage, updateUserProfile } from "../database/users-repo.js";
+import { ensureUserRow, getUser, setUserLanguage, updateUserProfile } from "../database/users-repo.js";
+import { parseTelegramId } from "../utils/telegram-id.js";
 import {
   canGenerateWorkout,
   ensureDefaultUser,
@@ -37,13 +38,14 @@ async function saveProfileHandler(
   },
   res: import("express").Response,
 ): Promise<void> {
-  if (!body.telegramId) {
+  const telegramId = parseTelegramId(body.telegramId);
+  if (!telegramId) {
     res.status(400).json({ error: "telegramId is required" });
     return;
   }
   try {
-    await ensureDefaultUser(body.telegramId);
-    const user = await updateUserProfile(body.telegramId, {
+    await ensureUserRow(telegramId);
+    const user = await updateUserProfile(telegramId, {
       gender: body.gender !== undefined ? parseGender(body.gender) : undefined,
       age: body.age,
       weightKg: body.weightKg,
@@ -66,12 +68,12 @@ apiRouter.get("/health", (_req, res) => {
 });
 
 apiRouter.get("/user/profile", async (req, res) => {
-  const telegramId = Number(req.query.telegramId);
+  const telegramId = parseTelegramId(req.query.telegramId);
   if (!telegramId) {
     return res.status(400).json({ error: "telegramId is required" });
   }
   try {
-    await ensureDefaultUser(telegramId);
+    await ensureUserRow(telegramId);
     const user = await getUser(telegramId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -87,11 +89,11 @@ apiRouter.put("/user/profile", (req, res) => void saveProfileHandler(req.body, r
 apiRouter.post("/user/profile", (req, res) => void saveProfileHandler(req.body, res));
 
 apiRouter.get("/user/settings", async (req, res) => {
-  const telegramId = Number(req.query.telegramId);
+  const telegramId = parseTelegramId(req.query.telegramId);
   if (!telegramId) {
     return res.status(400).json({ error: "telegramId is required" });
   }
-  await ensureDefaultUser(telegramId);
+  await ensureUserRow(telegramId);
   const user = await getUser(telegramId);
   if (!user) {
     return res.status(404).json({ error: "User not found" });
@@ -100,18 +102,19 @@ apiRouter.get("/user/settings", async (req, res) => {
 });
 
 apiRouter.post("/user/language", async (req, res) => {
-  const { telegramId, language } = req.body as { telegramId: number; language: string };
+  const { telegramId: rawId, language } = req.body as { telegramId: number; language: string };
+  const telegramId = parseTelegramId(rawId);
   if (!telegramId || !language) {
     return res.status(400).json({ error: "telegramId and language are required" });
   }
   const locale = parseLocale(language);
-  await ensureDefaultUser(telegramId);
+  await ensureUserRow(telegramId);
   await setUserLanguage(telegramId, locale);
   return res.json({ ok: true, language: locale });
 });
 
 apiRouter.get("/premium/invoice-link", async (req, res) => {
-  const telegramId = Number(req.query.telegramId);
+  const telegramId = parseTelegramId(req.query.telegramId);
   const language = parseLocale(req.query.language);
   if (!telegramId) {
     return res.status(400).json({ error: "telegramId is required" });
@@ -127,7 +130,7 @@ apiRouter.get("/premium/invoice-link", async (req, res) => {
 
 apiRouter.get("/workout/schedule", async (req, res) => {
   try {
-    const telegramId = Number(req.query.telegramId);
+    const telegramId = parseTelegramId(req.query.telegramId);
     const days = Math.min(14, Math.max(1, Number(req.query.days) || 7));
     if (!telegramId) {
       return res.status(400).json({ error: "telegramId is required" });
@@ -142,7 +145,7 @@ apiRouter.get("/workout/schedule", async (req, res) => {
 
 apiRouter.get("/workout/by-date", async (req, res) => {
   try {
-    const telegramId = Number(req.query.telegramId);
+    const telegramId = parseTelegramId(req.query.telegramId);
     const date = String(req.query.date ?? isoDateOnly());
     if (!telegramId) {
       return res.status(400).json({ error: "telegramId is required" });
@@ -150,7 +153,7 @@ apiRouter.get("/workout/by-date", async (req, res) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return res.status(400).json({ error: "Invalid date format (YYYY-MM-DD)" });
     }
-    await ensureDefaultUser(telegramId);
+    await ensureUserRow(telegramId);
     const existing = await getWorkoutByDate(telegramId, date);
     if (!existing) {
       const allowed = await canGenerateWorkout(telegramId);
@@ -179,11 +182,11 @@ apiRouter.get("/workout/by-date", async (req, res) => {
 
 apiRouter.get("/workout/gym-program", async (req, res) => {
   try {
-    const telegramId = Number(req.query.telegramId);
+    const telegramId = parseTelegramId(req.query.telegramId);
     if (!telegramId) {
       return res.status(400).json({ error: "telegramId is required" });
     }
-    await ensureDefaultUser(telegramId);
+    await ensureUserRow(telegramId);
     const program = await getGymProgramForUser(telegramId);
     return res.json(program);
   } catch (err) {
@@ -197,12 +200,12 @@ apiRouter.get("/workout/gym-program", async (req, res) => {
 
 apiRouter.get("/workout/today", async (req, res) => {
   try {
-    const telegramId = Number(req.query.telegramId);
+    const telegramId = parseTelegramId(req.query.telegramId);
     if (!telegramId) {
       return res.status(400).json({ error: "telegramId is required" });
     }
     const today = isoDateOnly();
-    await ensureDefaultUser(telegramId);
+    await ensureUserRow(telegramId);
     const existing = await getWorkoutByDate(telegramId, today);
     if (!existing) {
       const allowed = await canGenerateWorkout(telegramId);
@@ -229,7 +232,7 @@ apiRouter.get("/workout/today", async (req, res) => {
 
 apiRouter.post("/workout/complete", async (req, res) => {
   try {
-    const { telegramId, workoutDate, completionNotes, exercises } = req.body as {
+    const { telegramId: rawId, workoutDate, completionNotes, exercises } = req.body as {
       telegramId: number;
       workoutDate?: string;
       completionNotes: string;
@@ -242,6 +245,7 @@ apiRouter.post("/workout/complete", async (req, res) => {
       }>;
     };
 
+    const telegramId = parseTelegramId(rawId);
     if (!telegramId) {
       return res.status(400).json({ error: "telegramId is required" });
     }

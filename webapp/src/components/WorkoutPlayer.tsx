@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import type { ExerciseLog, WorkoutPlan } from "../types";
+import type { ExerciseLog, Gender, WorkoutPlan } from "../types";
 import { ExerciseCard } from "./ExerciseCard";
 import { Timer } from "./Timer";
 import { useI18n } from "../i18n/context";
@@ -8,10 +8,11 @@ import { levelLabel } from "../i18n/levels";
 
 interface WorkoutPlayerProps {
   workout: WorkoutPlan;
+  gender?: Gender | null;
   onComplete: (logs: ExerciseLog[]) => Promise<void>;
 }
 
-export function WorkoutPlayer({ workout, onComplete }: WorkoutPlayerProps): ReactElement {
+export function WorkoutPlayer({ workout, gender, onComplete }: WorkoutPlayerProps): ReactElement {
   const { locale, tr } = useI18n();
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [setDone, setSetDone] = useState(0);
@@ -73,7 +74,7 @@ export function WorkoutPlayer({ workout, onComplete }: WorkoutPlayerProps): Reac
         </p>
         {workout.notes ? <p className="muted">{workout.notes}</p> : null}
       </header>
-      <ExerciseCard exercise={current} index={exerciseIndex} />
+      <ExerciseCard exercise={current} index={exerciseIndex} gender={gender} />
       <p>{tr("set_progress", { current: setDone + 1, total: current.sets })}</p>
       {isResting ? (
         <Timer
