@@ -51,12 +51,27 @@ bot.on("successful_payment", async (ctx) => {
   }
 });
 
-export async function setupWebhook(): Promise<void> {
-  const webhookPath = `/telegram/webhook/${env.TELEGRAM_WEBHOOK_SECRET}`;
-  const webhookUrl = `${env.APP_BASE_URL}${webhookPath}`;
-  await bot.telegram.setWebhook(webhookUrl);
+export async function buildWebhookUrl(): string {
+  const base = env.APP_BASE_URL.replace(/\/+$/, "");
+  return `${base}/telegram/webhook/${env.TELEGRAM_WEBHOOK_SECRET}`;
 }
 
-export function webhookPath(): string {
-  return `/telegram/webhook/${env.TELEGRAM_WEBHOOK_SECRET}`;
+export async function setupWebhook(): Promise<void> {
+  const webhookUrl = buildWebhookUrl();
+
+  if (!webhookUrl.startsWith("https://")) {
+    console.warn(`Skip webhook setup: need https URL, got ${webhookUrl}`);
+    return;
+  }
+
+  try {
+    const info = await bot.telegram.getWebhookInfo();
+    if (info.url === webhookUrl) {
+      return; // уже настроен — не дергаем Telegram снова
+    }
+    await bot.telegram.setWebhook(webhookUrl);
+    console.log(`Telegram webhook set: ${webhookUrl}`);
+  } catch (err) {
+    console.error("Webhook setup failed (non-fatal):", err);
+  }
 }
