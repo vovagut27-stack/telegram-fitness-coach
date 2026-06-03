@@ -121,4 +121,18 @@ export const en = {
   weight_trend_up: "↑ {kg} kg over period",
   weight_trend_stable: "weight stable",
   weight_range: "{from} → {to} kg",
+  player_reps: "Reps (per set)",
+  player_weight_kg: "Weight, kg",
+  player_weight_optional: "Weight, kg (optional)",
+  player_log_hint: "Enter actual reps before the last set — saved to Results.",
+  player_finish_exercise: "Exercise done ✓",
+  results_filter_all: "All",
+  results_filter_home: "Home",
+  results_filter_gym: "Gym",
+  results_badge_gym: "gym",
+  onboarding_title: "Profile first",
+  onboarding_sub:
+    "Set gender, age, and stats for a personalized plan and exercise images. Home workouts use bodyweight only.",
+  onboarding_cta: "Fill profile",
+  onboarding_need_profile: "Complete your profile to open a workout.",
 } as const;

@@ -270,10 +270,26 @@ function App() {
                 </button>
               )}
             </section>
+            {!profile.profileComplete ? (
+              <section className="card onboarding-card">
+                <h2>{tr("onboarding_title")}</h2>
+                <p className="muted">{tr("onboarding_sub")}</p>
+                <button type="button" className="btn-primary" onClick={() => setTab("profile")}>
+                  {tr("onboarding_cta")}
+                </button>
+              </section>
+            ) : null}
             <ScheduleList
               days={schedule}
               selectedDate={workoutDate}
-              onSelect={(date) => void loadWorkoutForDate(date)}
+              onSelect={(date) => {
+                if (!profile.profileComplete) {
+                  setTab("profile");
+                  setError(tr("onboarding_need_profile"));
+                  return;
+                }
+                void loadWorkoutForDate(date);
+              }}
             />
           </>
         ) : null}
@@ -309,6 +325,7 @@ function App() {
         {tab === "results" ? (
           <ResultsView
             key={resultsRefreshKey}
+            showGymFilter={Boolean(profile?.isPremium)}
             onSaved={() => {
               refreshAfterWorkout();
               void loadProfile();

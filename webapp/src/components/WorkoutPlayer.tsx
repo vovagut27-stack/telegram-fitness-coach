@@ -15,11 +15,15 @@ interface WorkoutPlayerProps {
   onComplete: (logs: ExerciseLog[]) => Promise<void>;
 }
 
+function defaultReps(reps: string): number {
+  return Number(reps.split("-")[0]) || 10;
+}
+
 function buildLogsFromPlan(workout: WorkoutPlan): ExerciseLog[] {
   return workout.exercises.map((ex) => ({
     exerciseName: ex.name,
     setsCompleted: ex.sets,
-    repsCompleted: Array.from({ length: ex.sets }, () => Number(ex.reps.split("-")[0]) || 10),
+    repsCompleted: Array.from({ length: ex.sets }, () => defaultReps(ex.reps)),
     durationSeconds: ex.sets * 45,
   }));
 }
@@ -37,6 +41,8 @@ export function WorkoutPlayer({
   const [logs, setLogs] = useState<ExerciseLog[]>([]);
   const [isResting, setIsResting] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "done" | "error">("idle");
+  const [repsInput, setRepsInput] = useState("");
+  const [weightInput, setWeightInput] = useState("");
   const autoSaveStarted = useRef(false);
 
   const current = workout.exercises[exerciseIndex];
@@ -46,6 +52,12 @@ export function WorkoutPlayer({
     () => exerciseIndex >= workout.exercises.length,
     [exerciseIndex, workout.exercises.length],
   );
+
+  useEffect(() => {
+    setRepsInput(String(defaultReps(current.reps)));
+    setWeightInput("");
+    setSetDone(0);
+  }, [exerciseIndex, current.reps]);
 
   const finalLogs = logs.length > 0 ? logs : buildLogsFromPlan(workout);
 
@@ -65,6 +77,38 @@ export function WorkoutPlayer({
     void onComplete(finalLogs)
       .then(() => setSaveState("done"))
       .catch(() => setSaveState("error"));
+  };
+
+  const finishExercise = (): void => {
+    const reps = Math.max(1, Number(repsInput) || defaultReps(current.reps));
+    const weight = weightInput.trim() ? Number(weightInput) : undefined;
+    const entry: ExerciseLog = {
+      exerciseName: current.name,
+      setsCompleted: current.sets,
+      repsCompleted: Array.from({ length: current.sets }, () => reps),
+      durationSeconds: current.sets * 45,
+      weightUsed: weight,
+    };
+
+    setLogs((prev) => [...prev, entry]);
+
+    if (isLastExercise) {
+      setExerciseIndex(workout.exercises.length);
+      return;
+    }
+
+    setExerciseIndex((idx) => idx + 1);
+    setSetDone(0);
+  };
+
+  const markSetCompleted = (): void => {
+    const nextSet = setDone + 1;
+    if (nextSet < current.sets) {
+      setSetDone(nextSet);
+      setIsResting(true);
+      return;
+    }
+    finishExercise();
   };
 
   if (completed) {
@@ -94,35 +138,6 @@ export function WorkoutPlayer({
     );
   }
 
-  const markSetCompleted = (): void => {
-    const nextSet = setDone + 1;
-    if (nextSet < current.sets) {
-      setSetDone(nextSet);
-      setIsResting(true);
-      return;
-    }
-
-    setLogs((prev) => [
-      ...prev,
-      {
-        exerciseName: current.name,
-        setsCompleted: current.sets,
-        repsCompleted: Array.from({ length: current.sets }, () =>
-          Number(current.reps.split("-")[0]) || 10,
-        ),
-        durationSeconds: current.sets * 45,
-      },
-    ]);
-
-    if (isLastExercise) {
-      setExerciseIndex(workout.exercises.length);
-      return;
-    }
-
-    setExerciseIndex((idx) => idx + 1);
-    setSetDone(0);
-  };
-
   return (
     <section className={gymMode ? "workout-player gym" : "workout-player"}>
       <header>
@@ -147,6 +162,31 @@ export function WorkoutPlayer({
       <p className="set-progress">
         {tr("set_progress", { current: setDone + 1, total: current.sets })}
       </p>
+      <div className="row-2 log-inputs">
+        <label className="field compact">
+          {tr("player_reps")}
+          <input
+            type="number"
+            min={1}
+            max={100}
+            value={repsInput}
+            onChange={(e) => setRepsInput(e.target.value)}
+          />
+        </label>
+        <label className="field compact">
+          {gymMode ? tr("player_weight_kg") : tr("player_weight_optional")}
+          <input
+            type="number"
+            min={0}
+            max={500}
+            step={0.5}
+            placeholder="—"
+            value={weightInput}
+            onChange={(e) => setWeightInput(e.target.value)}
+          />
+        </label>
+      </div>
+      <p className="muted small">{tr("player_log_hint")}</p>
       {isResting ? (
         <Timer
           seconds={restSeconds}
@@ -157,7 +197,7 @@ export function WorkoutPlayer({
         />
       ) : null}
       <button type="button" className="btn-primary" onClick={markSetCompleted}>
-        {tr("mark_set")}
+        {setDone + 1 >= current.sets ? tr("player_finish_exercise") : tr("mark_set")}
       </button>
     </section>
   );

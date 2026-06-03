@@ -132,6 +132,7 @@ export interface WorkoutResultDay {
   completed: boolean;
   completionNotes: string | null;
   focusTitle: string | null;
+  programType: "daily" | "gym" | null;
   exercises: ExerciseLogRow[];
 }
 
@@ -190,6 +191,7 @@ export async function getWorkoutResultsHistory(
       completed: Boolean(row.completed),
       completionNotes: row.completion_notes ? String(row.completion_notes) : null,
       focusTitle: plan?.splitDay ?? plan?.targetMuscles?.join(", ") ?? null,
+      programType: plan?.programType === "gym" ? "gym" : "daily",
       exercises: logs,
     });
   }

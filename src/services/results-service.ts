@@ -104,6 +104,7 @@ export async function saveManualWorkoutResults(
       completed: true,
       completionNotes: completionNotes ?? null,
       focusTitle: row.plan.splitDay ?? null,
+      programType: row.plan.programType === "gym" ? "gym" : "daily",
       exercises,
     }
   );

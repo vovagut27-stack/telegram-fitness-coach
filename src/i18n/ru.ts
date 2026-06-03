@@ -30,4 +30,7 @@ export const ru = {
   reset_data_restart: "Нажми «Открыть приложение» или /start.",
   reset_data_cancelled: "Сброс отменён. Данные не изменены.",
   reset_data_cancelled_short: "Отменено",
+  bot_today_header: "🏋️ Сегодня · {date}",
+  bot_today_footer: "Нажми кнопку — откроется тренировка в приложении.",
+  btn_open_today: "▶️ Начать сегодня",
 } as const;

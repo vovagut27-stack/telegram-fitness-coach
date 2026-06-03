@@ -53,13 +53,17 @@ function mergeWithExisting(plan: WorkoutPlan, day: WorkoutResultDay | undefined)
   });
 }
 
+type ResultsFilter = "all" | "home" | "gym";
+
 interface ResultsViewProps {
   onSaved?: () => void;
+  showGymFilter?: boolean;
 }
 
-export function ResultsView({ onSaved }: ResultsViewProps): ReactElement {
+export function ResultsView({ onSaved, showGymFilter = false }: ResultsViewProps): ReactElement {
   const { tr, locale } = useI18n();
   const [results, setResults] = useState<WorkoutResultDay[]>([]);
+  const [sourceFilter, setSourceFilter] = useState<ResultsFilter>("all");
   const [comparison, setComparison] = useState<ResultsComparison | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +139,16 @@ export function ResultsView({ onSaved }: ResultsViewProps): ReactElement {
       setSaving(false);
     }
   };
+
+  const filteredResults = results.filter((day) => {
+    if (sourceFilter === "all") {
+      return true;
+    }
+    if (sourceFilter === "gym") {
+      return day.programType === "gym";
+    }
+    return day.programType !== "gym";
+  });
 
   const weightTrendLabel = (): string => {
     if (!comparison?.weightTrend) {
@@ -285,12 +299,30 @@ export function ResultsView({ onSaved }: ResultsViewProps): ReactElement {
 
       <section className="card">
         <h3>{tr("results_history")}</h3>
+        {showGymFilter ? (
+          <div className="filter-tabs">
+            {(["all", "home", "gym"] as const).map((key) => (
+              <button
+                key={key}
+                type="button"
+                className={sourceFilter === key ? "active" : ""}
+                onClick={() => setSourceFilter(key)}
+              >
+                {key === "all"
+                  ? tr("results_filter_all")
+                  : key === "home"
+                    ? tr("results_filter_home")
+                    : tr("results_filter_gym")}
+              </button>
+            ))}
+          </div>
+        ) : null}
         {loading ? <p className="muted">{tr("loading")}</p> : null}
-        {!loading && results.length === 0 ? (
+        {!loading && filteredResults.length === 0 ? (
           <p className="muted">{tr("results_empty")}</p>
         ) : null}
         <ul className="results-list">
-          {results.map((day) => {
+          {filteredResults.map((day) => {
             const open = expandedDate === day.workoutDate;
             const totalVol = day.exercises.reduce(
               (s: number, e: WorkoutResultExercise) =>
@@ -309,6 +341,7 @@ export function ResultsView({ onSaved }: ResultsViewProps): ReactElement {
                 >
                   <span>
                     {day.workoutDate}
+                    {day.programType === "gym" ? ` · ${tr("results_badge_gym")}` : ""}
                     {day.focusTitle ? ` · ${day.focusTitle}` : ""}
                   </span>
                   <span className="muted">

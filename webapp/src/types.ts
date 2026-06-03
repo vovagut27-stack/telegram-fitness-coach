@@ -77,6 +77,7 @@ export interface WorkoutResultDay {
   completed: boolean;
   completionNotes: string | null;
   focusTitle: string | null;
+  programType?: "daily" | "gym" | null;
   exercises: WorkoutResultExercise[];
 }
 

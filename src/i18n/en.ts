@@ -30,4 +30,7 @@ export const en = {
   reset_data_restart: "Tap Open app or /start.",
   reset_data_cancelled: "Reset cancelled. Your data is unchanged.",
   reset_data_cancelled_short: "Cancelled",
+  bot_today_header: "🏋️ Today · {date}",
+  bot_today_footer: "Tap the button to open today's workout in the app.",
+  btn_open_today: "▶️ Start today",
 } as const;

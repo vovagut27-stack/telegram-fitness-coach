@@ -121,4 +121,18 @@ export const ru = {
   weight_trend_up: "↑ {kg} кг за период",
   weight_trend_stable: "вес стабилен",
   weight_range: "от {from} до {to} кг",
+  player_reps: "Повторы (за подход)",
+  player_weight_kg: "Вес, кг",
+  player_weight_optional: "Вес, кг (необяз.)",
+  player_log_hint: "Укажите факт перед последним подходом — попадёт в «Результаты».",
+  player_finish_exercise: "Упражнение готово ✓",
+  results_filter_all: "Все",
+  results_filter_home: "Дом",
+  results_filter_gym: "Зал",
+  results_badge_gym: "зал",
+  onboarding_title: "Сначала профиль",
+  onboarding_sub:
+    "Укажите пол, возраст и параметры — тогда план и картинки упражнений будут под вас. Тренировки дома без инвентаря.",
+  onboarding_cta: "Заполнить профиль",
+  onboarding_need_profile: "Заполните профиль, чтобы открыть тренировку.",
 } as const;

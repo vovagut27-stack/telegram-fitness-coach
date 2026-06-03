@@ -161,6 +161,34 @@ export async function prepareWeekWorkouts(telegramId: number, days = 7): Promise
   }
 }
 
+/** Удаляет домашние планы на неделе, не совпадающие со сплитом (или зал в календаре дома). */
+export async function cleanupStaleHomeWorkouts(
+  telegramId: number,
+  days = 7,
+): Promise<number> {
+  const user = await getUser(telegramId);
+  if (!user) {
+    return 0;
+  }
+  const from = isoDateOnly();
+  const skeleton = buildScheduleDays(user.language, from, days);
+  let removed = 0;
+  for (const day of skeleton) {
+    const row = await getWorkoutByDate(telegramId, day.date);
+    if (!row) {
+      continue;
+    }
+    if (
+      row.plan.programType === "gym" ||
+      !planMatchesDaySplit(row.plan, day.date, user.language)
+    ) {
+      await deleteWorkoutByDate(telegramId, day.date);
+      removed += 1;
+    }
+  }
+  return removed;
+}
+
 export async function getWorkoutSchedule(
   telegramId: number,
   days = 7,
@@ -168,6 +196,7 @@ export async function getWorkoutSchedule(
   await ensureDefaultUser(telegramId);
   const user = await getUser(telegramId);
   const locale = user?.language ?? DEFAULT_LOCALE;
+  await cleanupStaleHomeWorkouts(telegramId, days);
   const from = isoDateOnly();
   const skeleton = buildScheduleDays(locale, from, days);
 
