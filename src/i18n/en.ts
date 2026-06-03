@@ -33,4 +33,11 @@ export const en = {
   bot_today_header: "🏋️ Today · {date}",
   bot_today_footer: "Tap the button to open today's workout in the app.",
   btn_open_today: "▶️ Start today",
+  bot_stats_header: "📊 Stats",
+  bot_stats_streak: "🔥 Streak: {n} days",
+  bot_stats_week: "This week: {done} workouts (last: {last})",
+  bot_stats_sets: "Sets: {sets} (last week: {last})",
+  bot_stats_weight: "Weight: {kg} kg · {trend}",
+  bot_stats_weight_none: "Weight: log entries in profile",
+  bot_stats_footer: "More in the Results tab in the app.",
 } as const;

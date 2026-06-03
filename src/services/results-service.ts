@@ -10,6 +10,7 @@ import {
   type WorkoutResultDay,
 } from "../database/workouts-repo.js";
 import { getOrCreateWorkoutForDate } from "./workout-service.js";
+import { getWorkoutStreak } from "./streak-service.js";
 import { isoDateOnly } from "./schedule-service.js";
 import type { WorkoutPlan } from "../types/workout.js";
 
@@ -22,6 +23,10 @@ export interface ResultsComparison {
   weightTrend: "down" | "up" | "stable" | null;
   firstWeight: number | null;
   latestWeight: number | null;
+}
+
+export interface UserStats extends ResultsComparison {
+  currentStreak: number;
 }
 
 export async function logUserWeight(
@@ -119,6 +124,14 @@ function weekBounds(offsetWeeks: number): { start: string; end: string } {
   d.setDate(d.getDate() + 6);
   const end = isoDateOnly(d);
   return { start, end };
+}
+
+export async function getUserStats(telegramId: number): Promise<UserStats> {
+  const [comparison, currentStreak] = await Promise.all([
+    getResultsComparison(telegramId),
+    getWorkoutStreak(telegramId),
+  ]);
+  return { ...comparison, currentStreak };
 }
 
 export async function getResultsComparison(telegramId: number): Promise<ResultsComparison> {

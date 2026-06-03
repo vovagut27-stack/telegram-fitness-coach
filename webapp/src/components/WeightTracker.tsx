@@ -7,6 +7,7 @@ import {
   type WeightHistoryResponse,
 } from "../services/api";
 import { requireTelegramUserId } from "../services/telegram";
+import { WeightLineChart } from "./WeightLineChart";
 
 export function WeightTracker(): ReactElement {
   const { tr } = useI18n();
@@ -64,12 +65,7 @@ export function WeightTracker(): ReactElement {
   const entries = [...(data?.entries ?? [])].sort((a, b) =>
     b.logDate.localeCompare(a.logDate),
   );
-  const minW = entries.length
-    ? Math.min(...entries.map((e) => e.weightKg))
-    : null;
-  const maxW = entries.length
-    ? Math.max(...entries.map((e) => e.weightKg))
-    : null;
+  const chartEntries = [...(data?.entries ?? [])];
 
   return (
     <section className="weight-tracker card inset">
@@ -111,23 +107,19 @@ export function WeightTracker(): ReactElement {
       </button>
       {msg ? <p className="ok">{msg}</p> : null}
 
+      {chartEntries.length >= 2 ? (
+        <WeightLineChart entries={chartEntries} />
+      ) : null}
       {entries.length > 0 ? (
-        <ul className="weight-chart">
-          {entries.slice(0, 14).map((e) => {
-            const span = maxW != null && minW != null && maxW > minW ? maxW - minW : 1;
-            const pct = minW != null && maxW != null ? ((e.weightKg - minW) / span) * 100 : 50;
-            return (
-              <li key={e.id} className="weight-bar-row">
-                <span className="weight-date">{e.logDate.slice(5)}</span>
-                <div className="weight-bar-track">
-                  <div className="weight-bar-fill" style={{ width: `${Math.max(8, pct)}%` }} />
-                </div>
-                <span className="weight-val">
-                  {e.weightKg} {tr("kg_unit")}
-                </span>
-              </li>
-            );
-          })}
+        <ul className="weight-history-list">
+          {entries.slice(0, 8).map((e) => (
+            <li key={e.id} className="weight-history-row">
+              <span className="weight-date">{e.logDate}</span>
+              <span className="weight-val">
+                {e.weightKg} {tr("kg_unit")}
+              </span>
+            </li>
+          ))}
         </ul>
       ) : (
         <p className="muted">{tr("weight_empty")}</p>

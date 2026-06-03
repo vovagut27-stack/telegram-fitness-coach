@@ -118,6 +118,24 @@ export async function countCompletedThisWeek(telegramId: number): Promise<number
   return result.rows[0]?.workout_count ?? 0;
 }
 
+export async function getCompletedWorkoutDates(
+  telegramId: number,
+  limitDays = 120,
+): Promise<string[]> {
+  const result = await db.query(
+    `
+      SELECT workout_date::text AS workout_date
+      FROM workouts
+      WHERE telegram_id = $1::bigint
+        AND completed = TRUE
+      ORDER BY workout_date DESC
+      LIMIT $2
+    `,
+    [String(telegramId), limitDays],
+  );
+  return result.rows.map((row) => String(row.workout_date).slice(0, 10));
+}
+
 /** Remove cached home plans so the next open regenerates with updated profile. */
 export interface ExerciseLogRow {
   exerciseName: string;

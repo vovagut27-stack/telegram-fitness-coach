@@ -33,4 +33,11 @@ export const ru = {
   bot_today_header: "🏋️ Сегодня · {date}",
   bot_today_footer: "Нажми кнопку — откроется тренировка в приложении.",
   btn_open_today: "▶️ Начать сегодня",
+  bot_stats_header: "📊 Статистика",
+  bot_stats_streak: "🔥 Серия: {n} дн. подряд",
+  bot_stats_week: "Неделя: {done} тренировок (прошлая: {last})",
+  bot_stats_sets: "Подходов: {sets} (прошлая нед.: {last})",
+  bot_stats_weight: "Вес: {kg} кг · {trend}",
+  bot_stats_weight_none: "Вес: добавьте замеры в профиле",
+  bot_stats_footer: "Подробнее — вкладка «Результаты» в приложении.",
 } as const;

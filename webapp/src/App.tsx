@@ -18,8 +18,10 @@ import {
   fetchGymSchedule,
   fetchProfile,
   fetchSchedule,
+  fetchUserStats,
   fetchWorkoutByDate,
   type ScheduleDayItem,
+  type UserStats,
 } from "./services/api";
 import type { ExerciseLog, GymProgram, TabId, UserProfile, WorkoutPlan } from "./types";
 import { useI18n } from "./i18n/context";
@@ -39,6 +41,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [resultsRefreshKey, setResultsRefreshKey] = useState(0);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
 
   const loadProfile = useCallback(async () => {
     const p = await fetchProfile(requireTelegramUserId());
@@ -50,6 +53,12 @@ function App() {
     const days = await fetchSchedule(requireTelegramUserId(), 7);
     setSchedule(days);
     return days;
+  }, []);
+
+  const loadUserStats = useCallback(async () => {
+    const stats = await fetchUserStats(requireTelegramUserId());
+    setUserStats(stats);
+    return stats;
   }, []);
 
   useEffect(() => {
@@ -71,7 +80,7 @@ function App() {
           setError(`${tr("network_error")} (${getApiBase()})`);
         }
       });
-      Promise.all([loadProfile(), loadSchedule()])
+      Promise.all([loadProfile(), loadSchedule(), loadUserStats()])
         .catch((err) => {
           if (err instanceof TypeError) {
             setError(`${tr("network_error")} (${getApiBase()})`);
@@ -89,7 +98,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [loadProfile, loadSchedule, tr]);
+  }, [loadProfile, loadSchedule, loadUserStats, tr]);
 
   useEffect(() => {
     const preset = getWorkoutDateFromUrl();
@@ -111,7 +120,7 @@ function App() {
         setProfile(data.profile);
       }
       setTab("workout");
-      await loadSchedule();
+      await Promise.all([loadSchedule(), loadUserStats()]);
     } catch (err: unknown) {
       const e = err as Error & { code?: string };
       if (e.code === "FREE_LIMIT") {
@@ -135,8 +144,9 @@ function App() {
   const refreshAfterWorkout = useCallback((): void => {
     void loadSchedule();
     void loadGymSchedule();
+    void loadUserStats();
     setResultsRefreshKey((k) => k + 1);
-  }, [loadSchedule, loadGymSchedule]);
+  }, [loadSchedule, loadGymSchedule, loadUserStats]);
 
   const loadGym = async (): Promise<void> => {
     if (!profile?.isPremium) {
@@ -245,17 +255,28 @@ function App() {
           <>
             <section className="home-grid">
               <article className="card hero-card">
-                <h2>{profile.profileComplete ? "🔥" : "📋"}</h2>
+                <h2 className="hero-streak">
+                  🔥{" "}
+                  {userStats && userStats.currentStreak > 0
+                    ? tr("home_streak", { n: String(userStats.currentStreak) })
+                    : tr("home_streak_zero")}
+                </h2>
                 <p className="muted">
                   {profile.bmi
                     ? `${tr("bmi_label")} ${profile.bmi} · ${levelLabel(locale, profile.fitnessLevel)}`
                     : tr("complete_profile")}
                 </p>
+                {userStats && userStats.currentStreak === 0 ? (
+                  <p className="muted small">{tr("home_streak_none")}</p>
+                ) : null}
                 <p className="muted">
                   {tr("week_done", {
                     done: String(schedule.filter((d) => d.completed).length),
                     total: String(schedule.length),
                   })}
+                  {userStats
+                    ? ` · ${tr("home_week_sets", { n: String(userStats.totalSetsThisWeek) })}`
+                    : null}
                 </p>
               </article>
               {!profile.isPremium ? (

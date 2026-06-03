@@ -310,6 +310,22 @@ apiRouter.post("/workout/complete", async (req, res) => {
   }
 });
 
+apiRouter.get("/user/stats", async (req, res) => {
+  const telegramId = parseTelegramId(req.query.telegramId);
+  if (!telegramId) {
+    return res.status(400).json({ error: "telegramId is required" });
+  }
+  try {
+    await ensureUserRow(telegramId);
+    const { getUserStats } = await import("../services/results-service.js");
+    const stats = await getUserStats(telegramId);
+    return res.json(stats);
+  } catch (err) {
+    console.error("GET /user/stats failed:", err);
+    return res.status(500).json({ error: "Failed to load stats" });
+  }
+});
+
 apiRouter.get("/user/weight-history", async (req, res) => {
   const telegramId = parseTelegramId(req.query.telegramId);
   if (!telegramId) {

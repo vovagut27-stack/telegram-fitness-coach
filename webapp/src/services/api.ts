@@ -185,6 +185,18 @@ export interface ResultsComparison {
   latestWeight: number | null;
 }
 
+export interface UserStats extends ResultsComparison {
+  currentStreak: number;
+}
+
+export async function fetchUserStats(telegramId: number): Promise<UserStats> {
+  const res = await apiFetch(`/user/stats?telegramId=${telegramId}`);
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return res.json() as Promise<UserStats>;
+}
+
 export interface WeightHistoryResponse {
   entries: WeightLogEntry[];
   comparison: Pick<
