@@ -7,6 +7,11 @@ import { upgradePremium } from "../database/users-repo.js";
 
 export const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
 
+bot.catch((err, ctx) => {
+  console.error("Bot error:", err);
+  void ctx.reply("Something went wrong. Try /start again in a moment.");
+});
+
 bot.start(startCommand);
 
 bot.command("today", async (ctx) => {
@@ -14,21 +19,26 @@ bot.command("today", async (ctx) => {
   if (!telegramId) {
     return;
   }
-  const plan = await getOrCreateTodayWorkout(telegramId);
-  await ctx.reply(
-    [
-      `Today's focus: ${plan.targetMuscles.join(", ")}`,
-      `Duration: ${plan.totalMinutes} min`,
-      `Difficulty: ${plan.difficultyLevel}`,
-      "",
-      ...plan.exercises.map((e, i) => `${i + 1}. ${e.name} - ${e.sets} x ${e.reps}`),
-      "",
-      plan.notes ? `Note: ${plan.notes}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n"),
-    todayKeyboard,
-  );
+  try {
+    const plan = await getOrCreateTodayWorkout(telegramId);
+    await ctx.reply(
+      [
+        `Today's focus: ${plan.targetMuscles.join(", ")}`,
+        `Duration: ${plan.totalMinutes} min`,
+        `Difficulty: ${plan.difficultyLevel}`,
+        "",
+        ...plan.exercises.map((e, i) => `${i + 1}. ${e.name} - ${e.sets} x ${e.reps}`),
+        "",
+        plan.notes ? `Note: ${plan.notes}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      todayKeyboard,
+    );
+  } catch (err) {
+    console.error("/today failed:", err);
+    await ctx.reply("Could not load workout. Check database connection and try again.");
+  }
 });
 
 bot.command("progress", async (ctx) => {
@@ -41,7 +51,9 @@ bot.command("settings", async (ctx) => {
 
 bot.action("today", async (ctx) => {
   await ctx.answerCbQuery();
-  await ctx.telegram.sendMessage(ctx.from.id, "Use /today to fetch your workout.");
+  if (ctx.from?.id) {
+    await ctx.telegram.sendMessage(ctx.from.id, "Use /today to fetch your workout.");
+  }
 });
 
 bot.on("successful_payment", async (ctx) => {
@@ -51,9 +63,13 @@ bot.on("successful_payment", async (ctx) => {
   }
 });
 
-export async function buildWebhookUrl(): string {
+function buildWebhookUrl(): string {
   const base = env.APP_BASE_URL.replace(/\/+$/, "");
   return `${base}/telegram/webhook/${env.TELEGRAM_WEBHOOK_SECRET}`;
+}
+
+export function webhookPath(): string {
+  return `/telegram/webhook/${env.TELEGRAM_WEBHOOK_SECRET}`;
 }
 
 export async function setupWebhook(): Promise<void> {
@@ -67,7 +83,7 @@ export async function setupWebhook(): Promise<void> {
   try {
     const info = await bot.telegram.getWebhookInfo();
     if (info.url === webhookUrl) {
-      return; // уже настроен — не дергаем Telegram снова
+      return;
     }
     await bot.telegram.setWebhook(webhookUrl);
     console.log(`Telegram webhook set: ${webhookUrl}`);

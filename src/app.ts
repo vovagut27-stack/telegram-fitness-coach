@@ -12,19 +12,36 @@ app.get("/", (_req, res) => {
   res.json({ ok: true, service: "fitbot-backend" });
 });
 
-app.use("/api", apiRouter);
-app.use(webhookPath(), bot.webhookCallback(webhookPath()));
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true });
+});
 
-let initPromise: Promise<void> | null = null;
+app.use("/api", apiRouter);
+
+const hookPath = webhookPath();
+app.post(hookPath, (req, res) => {
+  void bot.handleUpdate(req.body, res);
+});
+
+let dbReady: Promise<void> | null = null;
+let webhookReady: Promise<void> | null = null;
+
+export function ensureDb(): Promise<void> {
+  if (!dbReady) {
+    dbReady = db.query("SELECT 1").then(() => undefined);
+  }
+  return dbReady;
+}
+
+export function ensureWebhook(): Promise<void> {
+  if (!webhookReady) {
+    webhookReady = setupWebhook();
+  }
+  return webhookReady;
+}
 
 export function ensureInitialized(): Promise<void> {
-  if (!initPromise) {
-    initPromise = (async () => {
-      await db.query("SELECT 1");
-      await setupWebhook();
-    })();
-  }
-  return initPromise;
+  return Promise.all([ensureDb(), ensureWebhook()]).then(() => undefined);
 }
 
 export default app;
