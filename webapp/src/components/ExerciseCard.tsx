@@ -3,13 +3,10 @@ import type { ReactElement } from "react";
 import type { Gender, WorkoutExercise } from "../types";
 import { useI18n } from "../i18n/context";
 import { equipmentIcon, equipmentMessageKey } from "../utils/equipment";
-
-const FALLBACK_IMGS = [
-  "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=640&q=80",
-  "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=640&q=80",
-  "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "https://images.unsplash.com/photo-1571019614242-c5c993715daa?w=640&q=80",
-];
+import {
+  resolveExerciseImageFallback,
+  resolveExerciseImageSrc,
+} from "../utils/exerciseImage";
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
@@ -25,14 +22,15 @@ export function ExerciseCard({
   gymMode = false,
 }: ExerciseCardProps): ReactElement {
   const { tr } = useI18n();
-  const fallbackForIndex = FALLBACK_IMGS[index % FALLBACK_IMGS.length];
-  const [imgSrc, setImgSrc] = useState(exercise.demoUrl ?? fallbackForIndex);
-  const [fallbackStep, setFallbackStep] = useState(0);
+  const primarySrc = resolveExerciseImageSrc(exercise, gender);
+  const movementFallback = resolveExerciseImageFallback(exercise, gender);
+  const [imgSrc, setImgSrc] = useState(primarySrc);
+  const [usedMovementFallback, setUsedMovementFallback] = useState(false);
 
   useEffect(() => {
-    setImgSrc(exercise.demoUrl ?? fallbackForIndex);
-    setFallbackStep(0);
-  }, [exercise.name, exercise.demoUrl, gender, fallbackForIndex]);
+    setImgSrc(resolveExerciseImageSrc(exercise, gender));
+    setUsedMovementFallback(false);
+  }, [exercise.name, exercise.demoUrl, exercise.equipment, gender]);
 
   const eqKey = equipmentMessageKey(exercise.equipment);
   const eqLabel = tr(eqKey);
@@ -46,9 +44,12 @@ export function ExerciseCard({
         alt={exercise.name}
         loading="lazy"
         onError={() => {
-          const next = fallbackStep + 1;
-          setFallbackStep(next);
-          setImgSrc(FALLBACK_IMGS[next % FALLBACK_IMGS.length]);
+          if (!usedMovementFallback) {
+            setUsedMovementFallback(true);
+            setImgSrc(movementFallback);
+            return;
+          }
+          setImgSrc(movementFallback);
         }}
       />
       {gymMode ? (

@@ -2,18 +2,21 @@ import type { Gender } from "../types/profile.js";
 import type { FitnessLevel, WorkoutExercise } from "../types/workout.js";
 import { applyExerciseRest } from "./exercise-rest.js";
 import { lookupExercisePhoto } from "./exercise-image-catalog.js";
-import { resolveExerciseVisualUrl } from "./exercise-visual-catalog.js";
+import {
+  resolveExerciseVisualUrl,
+  resolveMovementFallbackUrl,
+} from "./exercise-visual-catalog.js";
 
 export function resolveExerciseImageUrl(
   name: string,
   gender?: Gender | null,
-  _equipment?: string,
+  equipment?: string,
 ): string {
-  const photo = lookupExercisePhoto(name);
-  if (photo) {
-    return photo;
+  const visual = resolveExerciseVisualUrl(name, gender, equipment);
+  if (visual) {
+    return visual;
   }
-  return resolveExerciseVisualUrl(name, gender);
+  return lookupExercisePhoto(name) ?? resolveMovementFallbackUrl(name, gender);
 }
 
 export function enrichExerciseImage(
@@ -22,7 +25,7 @@ export function enrichExerciseImage(
 ): WorkoutExercise {
   return {
     ...exercise,
-    demoUrl: resolveExerciseImageUrl(exercise.name, gender, exercise.equipment),
+    demoUrl: resolveExerciseImageUrl(exercise.name, gender, exercise.equipment ?? ""),
   };
 }
 
