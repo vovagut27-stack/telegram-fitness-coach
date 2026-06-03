@@ -19,7 +19,7 @@ export function ScheduleList({ days, selectedDate, onSelect }: ScheduleListProps
         <button
           key={day.date}
           type="button"
-          className={`schedule-day ${selectedDate === day.date ? "selected" : ""} ${day.isToday ? "today" : ""}`}
+          className={`schedule-day ${selectedDate === day.date ? "selected" : ""} ${day.isToday ? "today" : ""} ${day.completed ? "done" : ""}`}
           onClick={() => onSelect(day.date)}
         >
           <div className="schedule-day-top">

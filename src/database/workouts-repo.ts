@@ -117,3 +117,19 @@ export async function countCompletedThisWeek(telegramId: number): Promise<number
   );
   return result.rows[0]?.workout_count ?? 0;
 }
+
+/** Remove cached home plans so the next open regenerates with updated profile. */
+export async function deleteIncompleteWorkoutsFrom(
+  telegramId: number,
+  fromDate: string,
+): Promise<void> {
+  await db.query(
+    `
+      DELETE FROM workouts
+      WHERE telegram_id = $1
+        AND workout_date >= $2::date
+        AND completed = FALSE
+    `,
+    [telegramId, fromDate],
+  );
+}

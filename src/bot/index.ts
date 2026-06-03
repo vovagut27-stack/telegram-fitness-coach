@@ -166,6 +166,7 @@ bot.on("successful_payment", async (ctx) => {
   if (!parsed || !telegramId || parsed.telegramId !== telegramId) {
     return;
   }
+  await ensureDefaultUser(telegramId);
   await upgradePremium(telegramId, parsed.days || env.PREMIUM_DAYS);
   await ctx.reply(t(locale, "bot_premium_ok"), buildMainKeyboard(locale));
 });

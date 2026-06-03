@@ -67,12 +67,22 @@ export async function fetchSchedule(telegramId: number, days = 7): Promise<Sched
 export async function fetchWorkoutByDate(
   telegramId: number,
   date: string,
-): Promise<{ date: string; plan: WorkoutPlan; profile: UserProfile | null }> {
+): Promise<{
+  date: string;
+  plan: WorkoutPlan;
+  completed: boolean;
+  profile: UserProfile | null;
+}> {
   const res = await fetch(`${API_BASE}/workout/by-date?telegramId=${telegramId}&date=${date}`);
   if (!res.ok) {
     throw await parseError(res);
   }
-  return res.json() as Promise<{ date: string; plan: WorkoutPlan; profile: UserProfile | null }>;
+  return res.json() as Promise<{
+    date: string;
+    plan: WorkoutPlan;
+    completed: boolean;
+    profile: UserProfile | null;
+  }>;
 }
 
 export async function fetchTodayWorkout(telegramId: number): Promise<{

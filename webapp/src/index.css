@@ -312,6 +312,11 @@ button:disabled {
   border-color: var(--accent2);
 }
 
+.schedule-day.done {
+  border-color: #3ecf8e55;
+  background: linear-gradient(135deg, #1a2e24 0%, #12141a 100%);
+}
+
 .schedule-day.selected {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);

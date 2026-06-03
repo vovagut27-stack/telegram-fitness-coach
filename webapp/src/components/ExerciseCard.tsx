@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type { WorkoutExercise } from "../types";
 import { useI18n } from "../i18n/context";
@@ -14,6 +14,11 @@ interface ExerciseCardProps {
 export function ExerciseCard({ exercise, index }: ExerciseCardProps): ReactElement {
   const { tr } = useI18n();
   const [imgSrc, setImgSrc] = useState(exercise.demoUrl ?? FALLBACK_IMG);
+
+  useEffect(() => {
+    setImgSrc(exercise.demoUrl ?? FALLBACK_IMG);
+  }, [exercise.name, exercise.demoUrl]);
+
   const equipment =
     exercise.equipment === "none" ? tr("equipment_none") : exercise.equipment;
 

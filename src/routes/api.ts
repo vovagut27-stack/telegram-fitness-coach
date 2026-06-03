@@ -5,7 +5,7 @@ import {
   saveExerciseLog,
 } from "../database/workouts-repo.js";
 import { parseLocale } from "../types/locale.js";
-import { parseGender, parseTrainingMode } from "../types/profile.js";
+import { parseGender } from "../types/profile.js";
 import { getUser, setUserLanguage, updateUserProfile } from "../database/users-repo.js";
 import {
   canGenerateWorkout,
@@ -49,8 +49,6 @@ async function saveProfileHandler(
       weightKg: body.weightKg,
       heightCm: body.heightCm,
       fitnessLevel: body.fitnessLevel,
-      trainingMode:
-        body.trainingMode !== undefined ? parseTrainingMode(body.trainingMode) : undefined,
       language: body.language ? parseLocale(body.language) : undefined,
       timePerSession: body.timePerSession,
       goals: body.goals,
@@ -165,9 +163,11 @@ apiRouter.get("/workout/by-date", async (req, res) => {
     }
     const plan = await getOrCreateWorkoutForDate(telegramId, date);
     const user = await getUser(telegramId);
+    const row = await getWorkoutByDate(telegramId, date);
     return res.json({
       date,
-      plan,
+      plan: { ...plan, programType: plan.programType ?? "daily" },
+      completed: row?.completed ?? false,
       profile: user ? userToApiProfile(user) : null,
     });
   } catch (err) {

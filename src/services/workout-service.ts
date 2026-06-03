@@ -10,7 +10,6 @@ import {
 } from "../database/workouts-repo.js";
 import { FitnessLevel, WorkoutPlan, WorkoutRequest } from "../types/workout.js";
 import { buildTemplateWorkout } from "./workout-templates.js";
-import { getTodayGymWorkout } from "./gym-program-service.js";
 import { isPremiumActive } from "./premium-service.js";
 import { enrichWorkoutExercises } from "./exercise-images.js";
 import {
@@ -83,7 +82,7 @@ function buildRequest(
     weightKg: user.weightKg,
     heightCm: user.heightCm,
     bmi,
-    trainingMode: user.trainingMode,
+    trainingMode: "home",
     goals: user.goals,
   };
 }
@@ -95,11 +94,6 @@ async function generatePlan(
   targetMuscles: string[],
 ): Promise<WorkoutPlan> {
   const premium = isPremiumActive(user);
-
-  if (premium && user.trainingMode === "gym") {
-    return getTodayGymWorkout(user);
-  }
-
   const request = buildRequest(user, recent, weeklyCount, targetMuscles);
   const useAi =
     env.USE_AI_WORKOUTS || (premium && user.profileComplete) || user.profileComplete;
@@ -121,6 +115,7 @@ export async function getOrCreateWorkoutForDate(
     return {
       ...existing.plan,
       exercises: enrichWorkoutExercises(existing.plan.exercises),
+      programType: existing.plan.programType ?? "daily",
     };
   }
 

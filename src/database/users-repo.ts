@@ -135,24 +135,27 @@ export async function updateUserProfile(
     profileComplete: false,
   };
 
+  const bodyChanged =
+    patch.gender !== undefined ||
+    patch.age !== undefined ||
+    patch.weightKg !== undefined ||
+    patch.heightCm !== undefined ||
+    patch.fitnessLevel !== undefined ||
+    patch.timePerSession !== undefined;
+
   const merged: UserProfile = {
     ...base,
     fitnessLevel: patch.fitnessLevel ?? base.fitnessLevel,
     language: patch.language ?? base.language,
     goals: patch.goals ?? base.goals,
     timePerSession: patch.timePerSession ?? base.timePerSession,
-    availableEquipment: patch.availableEquipment ?? base.availableEquipment,
     gender: patch.gender !== undefined ? patch.gender : base.gender,
     age: patch.age !== undefined ? patch.age : base.age,
     weightKg: patch.weightKg !== undefined ? patch.weightKg : base.weightKg,
     heightCm: patch.heightCm !== undefined ? patch.heightCm : base.heightCm,
-    trainingMode: patch.trainingMode ?? base.trainingMode,
+    trainingMode: "home",
+    availableEquipment: ["bodyweight", "home"],
   };
-
-  merged.availableEquipment =
-    merged.trainingMode === "gym"
-      ? ["gym", "barbell", "dumbbell", "cable", "machine"]
-      : ["bodyweight", "home"];
 
   merged.profileComplete = isProfileComplete({
     gender: merged.gender,
@@ -164,6 +167,13 @@ export async function updateUserProfile(
   });
 
   await upsertUser(merged);
+
+  if (bodyChanged) {
+    const { deleteIncompleteWorkoutsFrom } = await import("./workouts-repo.js");
+    const { isoDateOnly } = await import("../services/schedule-service.js");
+    await deleteIncompleteWorkoutsFrom(telegramId, isoDateOnly());
+  }
+
   const saved = await getUser(telegramId);
   if (!saved) {
     throw new Error("Failed to save profile");
@@ -183,7 +193,7 @@ export async function setUserLanguage(telegramId: number, language: Locale): Pro
 }
 
 export async function upgradePremium(telegramId: number, days: number): Promise<void> {
-  await db.query(
+  const updated = await db.query(
     `
       UPDATE users
       SET is_premium = TRUE, premium_until = NOW() + ($2 || ' days')::interval
@@ -191,6 +201,32 @@ export async function upgradePremium(telegramId: number, days: number): Promise<
     `,
     [telegramId, days],
   );
+  if ((updated.rowCount ?? 0) === 0) {
+    await upsertUser({
+      telegramId,
+      fitnessLevel: "beginner",
+      availableEquipment: ["bodyweight", "home"],
+      goals: ["strength"],
+      timePerSession: 45,
+      isPremium: true,
+      premiumUntil: null,
+      language: DEFAULT_LOCALE,
+      gender: null,
+      age: null,
+      weightKg: null,
+      heightCm: null,
+      trainingMode: "home",
+      profileComplete: false,
+    });
+    await db.query(
+      `
+        UPDATE users
+        SET is_premium = TRUE, premium_until = NOW() + ($2 || ' days')::interval
+        WHERE telegram_id = $1
+      `,
+      [telegramId, days],
+    );
+  }
 }
 
 export async function revokePremium(telegramId: number): Promise<void> {

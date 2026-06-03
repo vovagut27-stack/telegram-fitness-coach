@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import type { FitnessLevel, Gender, TrainingMode, UserProfile } from "../types";
+import type { FitnessLevel, Gender, UserProfile } from "../types";
 import { useI18n } from "../i18n/context";
 import { saveProfile } from "../services/api";
-import { getTelegramUserId } from "../services/telegram";
+import { requireTelegramUserId } from "../services/telegram";
 
 interface ProfileFormProps {
   profile: UserProfile;
@@ -16,18 +16,21 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    setForm(profile);
+  }, [profile]);
+
   const submit = async (): Promise<void> => {
     setSaving(true);
     setMsg(null);
     try {
       const saved = await saveProfile({
-        telegramId: getTelegramUserId(),
+        telegramId: requireTelegramUserId(),
         gender: form.gender ?? undefined,
         age: form.age ?? undefined,
         weightKg: form.weightKg ?? undefined,
         heightCm: form.heightCm ?? undefined,
         fitnessLevel: form.fitnessLevel,
-        trainingMode: form.trainingMode,
         language: locale,
         timePerSession: form.timePerSession,
       });
@@ -44,6 +47,7 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
     <section className="card profile-card">
       <h2>{tr("profile_title")}</h2>
       <p className="muted">{tr("profile_sub")}</p>
+      <p className="muted">{tr("profile_home_only")}</p>
 
       <label className="field">
         {tr("lang_label")}
@@ -128,19 +132,6 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
           <option value="beginner">{tr("level_beginner")}</option>
           <option value="intermediate">{tr("level_intermediate")}</option>
           <option value="advanced">{tr("level_advanced")}</option>
-        </select>
-      </label>
-
-      <label className="field">
-        {tr("mode")}
-        <select
-          value={form.trainingMode}
-          onChange={(e) =>
-            setForm({ ...form, trainingMode: e.target.value as TrainingMode })
-          }
-        >
-          <option value="home">{tr("mode_home")}</option>
-          <option value="gym">{tr("mode_gym")}</option>
         </select>
       </label>
 

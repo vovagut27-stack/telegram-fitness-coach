@@ -67,4 +67,10 @@ export const ru = {
   day_ready: "▶️ Готово",
   day_new: "🆕 Создать",
   open_workout: "Открыть тренировку",
+  open_in_telegram: "Откройте приложение из Telegram-бота (кнопка «Открыть приложение»).",
+  profile_home_only: "Домашние тренировки. Программа зала — во вкладке «Зал» (Premium).",
+  week_done: "На этой неделе: {done} из {total} дней",
+  save_workout_error: "Не удалось сохранить тренировку. Попробуйте ещё раз.",
+  premium_gym_hint: "Вкладка «Зал» — упражнения со штангой и тренажёрами.",
+  premium_dev_hint: "Тест: в боте /devpremium или оплата Stars. После оплаты обновите вкладку Premium.",
 } as const;

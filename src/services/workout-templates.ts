@@ -1095,19 +1095,75 @@ export function buildTemplateWorkout(request: WorkoutRequest): WorkoutPlan {
     candidates = pool.map((item) => localize(item, locale));
   }
 
-  const exercises = candidates.slice(0, count);
+  const exercises = candidates.slice(0, count).map((ex) => personalizeExercise(ex, request));
   const perExerciseMinutes = Math.max(4, Math.round(request.timeMinutes / exercises.length));
+
+  const profileNote =
+    locale === "ru"
+      ? profileNoteRu(request)
+      : profileNoteEn(request);
 
   return {
     targetMuscles: FOCUS_LABELS[focus][locale],
     exercises,
     totalMinutes: perExerciseMinutes * exercises.length,
     difficultyLevel: level,
-    notes:
-      locale === "ru"
+    notes: profileNote
+      ? `${profileNote} · ${locale === "ru" ? "Разминка 3–5 мин." : "Warm up 3–5 min."}`
+      : locale === "ru"
         ? "Разминка 3–5 мин, между подходами отдых по плану."
         : "Warm up 3–5 min, rest between sets as listed.",
+    programType: "daily",
   };
+}
+
+function personalizeExercise(ex: WorkoutExercise, request: WorkoutRequest): WorkoutExercise {
+  let sets = ex.sets;
+  const age = request.age ?? 30;
+  const bmi = request.bmi ?? 22;
+
+  if (request.fitnessLevel === "beginner" || age >= 55) {
+    sets = Math.max(2, sets - 1);
+  }
+  if (bmi >= 30 && request.fitnessLevel !== "advanced") {
+    sets = Math.max(2, sets - 1);
+  }
+  if (request.gender === "female" && request.fitnessLevel === "beginner") {
+    sets = Math.max(2, sets - 1);
+  }
+  if (request.fitnessLevel === "advanced" && age < 45) {
+    sets = Math.min(sets + 1, 5);
+  }
+
+  return { ...ex, sets };
+}
+
+function profileNoteRu(request: WorkoutRequest): string {
+  const parts: string[] = [];
+  if (request.gender === "female") {
+    parts.push("учтён женский профиль");
+  }
+  if (request.age && request.age >= 50) {
+    parts.push("щадящая нагрузка по возрасту");
+  }
+  if (request.bmi && request.bmi >= 28) {
+    parts.push("снижен объём из‑за BMI");
+  }
+  return parts.length ? `План: ${parts.join(", ")}` : "";
+}
+
+function profileNoteEn(request: WorkoutRequest): string {
+  const parts: string[] = [];
+  if (request.gender === "female") {
+    parts.push("female profile");
+  }
+  if (request.age && request.age >= 50) {
+    parts.push("age-adjusted volume");
+  }
+  if (request.bmi && request.bmi >= 28) {
+    parts.push("BMI-adjusted volume");
+  }
+  return parts.length ? `Plan: ${parts.join(", ")}` : "";
 }
 
 const MIN_EXERCISES = 4;

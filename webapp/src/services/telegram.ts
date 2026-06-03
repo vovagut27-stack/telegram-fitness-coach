@@ -12,8 +12,21 @@ declare global {
   }
 }
 
-export function getTelegramUserId(): number {
-  return window.Telegram?.WebApp?.initDataUnsafe?.user?.id ?? 1;
+/** Real Telegram user id, or null if the app is opened outside Telegram. */
+export function getTelegramUserId(): number | null {
+  const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+  if (typeof id === "number" && Number.isFinite(id) && id > 0) {
+    return id;
+  }
+  return null;
+}
+
+export function requireTelegramUserId(): number {
+  const id = getTelegramUserId();
+  if (!id) {
+    throw new Error("TELEGRAM_USER_REQUIRED");
+  }
+  return id;
 }
 
 export function getWorkoutDateFromUrl(): string | null {
