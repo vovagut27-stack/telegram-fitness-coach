@@ -1,4 +1,5 @@
 import type { Locale } from "../types/locale.js";
+import type { Gender } from "../types/profile.js";
 import type { FitnessLevel, WorkoutExercise, WorkoutPlan, WorkoutRequest } from "../types/workout.js";
 import { enrichExerciseImage, enrichWorkoutExercises } from "./exercise-images.js";
 
@@ -1168,7 +1169,14 @@ const MIN_EXERCISES = 4;
 export function normalizeWorkoutPlan(plan: WorkoutPlan, request: WorkoutRequest): WorkoutPlan {
   const exercises = [...(plan.exercises ?? [])].filter((ex) => ex?.name?.trim());
   if (exercises.length >= MIN_EXERCISES) {
-    return { ...plan, exercises: enrichWorkoutExercises(exercises.slice(0, 6)) };
+    return {
+      ...plan,
+      exercises: enrichWorkoutExercises(
+        exercises.slice(0, 6),
+        request.gender as Gender | null | undefined,
+        request.fitnessLevel,
+      ),
+    };
   }
 
   const template = buildTemplateWorkout(request);
@@ -1185,7 +1193,11 @@ export function normalizeWorkoutPlan(plan: WorkoutPlan, request: WorkoutRequest)
 
   return {
     ...plan,
-    exercises: enrichWorkoutExercises(exercises),
+    exercises: enrichWorkoutExercises(
+      exercises,
+      request.gender as Gender | null | undefined,
+      request.fitnessLevel,
+    ),
     targetMuscles: plan.targetMuscles?.length ? plan.targetMuscles : template.targetMuscles,
     totalMinutes: plan.totalMinutes || template.totalMinutes,
     difficultyLevel: plan.difficultyLevel ?? request.fitnessLevel,

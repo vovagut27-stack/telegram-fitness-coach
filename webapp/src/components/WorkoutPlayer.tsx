@@ -5,6 +5,7 @@ import { ExerciseCard } from "./ExerciseCard";
 import { Timer } from "./Timer";
 import { useI18n } from "../i18n/context";
 import { levelLabel } from "../i18n/levels";
+import { effectiveRestSeconds } from "../utils/exerciseRest";
 
 interface WorkoutPlayerProps {
   workout: WorkoutPlan;
@@ -28,6 +29,7 @@ export function WorkoutPlayer({
   const [isResting, setIsResting] = useState(false);
 
   const current = workout.exercises[exerciseIndex];
+  const restSeconds = effectiveRestSeconds(current, workout.difficultyLevel);
   const isLastExercise = exerciseIndex === workout.exercises.length - 1;
   const completed = useMemo(
     () => exerciseIndex >= workout.exercises.length,
@@ -96,7 +98,7 @@ export function WorkoutPlayer({
         {workout.notes ? <p className="muted">{workout.notes}</p> : null}
       </header>
       <ExerciseCard
-        exercise={current}
+        exercise={{ ...current, restSeconds }}
         index={exerciseIndex}
         gender={gender}
         gymMode={gymMode}
@@ -106,7 +108,7 @@ export function WorkoutPlayer({
       </p>
       {isResting ? (
         <Timer
-          seconds={current.restSeconds}
+          seconds={restSeconds}
           label={tr("rest")}
           onDone={() => {
             setIsResting(false);

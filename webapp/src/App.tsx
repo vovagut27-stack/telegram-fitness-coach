@@ -4,6 +4,7 @@ import { ProfileForm } from "./components/ProfileForm";
 import { GymProgramView } from "./components/GymProgramView";
 import { PremiumPanel } from "./components/PremiumPanel";
 import { ScheduleList } from "./components/ScheduleList";
+import { ResultsView } from "./components/ResultsView";
 import { getApiBase, probeApiHealth } from "./config";
 import {
   getWorkoutDateFromUrl,
@@ -14,6 +15,7 @@ import {
 import {
   completeWorkout,
   fetchGymProgram,
+  fetchGymSchedule,
   fetchProfile,
   fetchSchedule,
   fetchWorkoutByDate,
@@ -22,10 +24,6 @@ import {
 import type { ExerciseLog, GymProgram, TabId, UserProfile, WorkoutPlan } from "./types";
 import { useI18n } from "./i18n/context";
 import { levelLabel } from "./i18n/levels";
-
-function todayGymIndex(): number {
-  return new Date().getDay() % 4;
-}
 
 function App() {
   const { tr, locale } = useI18n();
@@ -37,6 +35,7 @@ function App() {
   const [workoutDate, setWorkoutDate] = useState<string | null>(null);
   const [workoutCompleted, setWorkoutCompleted] = useState(false);
   const [gym, setGym] = useState<GymProgram | null>(null);
+  const [gymSchedule, setGymSchedule] = useState<ScheduleDayItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -127,6 +126,11 @@ function App() {
     }
   };
 
+  const loadGymSchedule = useCallback(async (): Promise<void> => {
+    const days = await fetchGymSchedule(requireTelegramUserId(), 7);
+    setGymSchedule(days);
+  }, []);
+
   const loadGym = async (): Promise<void> => {
     if (!profile?.isPremium) {
       setError(tr("premium_required"));
@@ -136,7 +140,10 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const program = await fetchGymProgram(requireTelegramUserId());
+      const [program] = await Promise.all([
+        fetchGymProgram(requireTelegramUserId()),
+        loadGymSchedule(),
+      ]);
       setGym(program);
       setTab("gym");
     } catch (err: unknown) {
@@ -175,6 +182,7 @@ function App() {
   const tabs: { id: TabId; label: string }[] = [
     { id: "home", label: tr("tab_home") },
     { id: "workout", label: tr("tab_workout") },
+    { id: "results", label: tr("tab_results") },
     ...(profile?.isPremium ? [{ id: "gym" as TabId, label: tr("tab_gym") }] : []),
     { id: "profile", label: tr("tab_profile") },
     { id: "premium", label: tr("tab_premium") },
@@ -263,8 +271,18 @@ function App() {
         {tab === "gym" && gym ? (
           <GymProgramView
             program={gym}
-            todayIndex={todayGymIndex()}
+            schedule={gymSchedule}
             gender={profile?.gender}
+            onScheduleRefresh={() => void loadGymSchedule()}
+          />
+        ) : null}
+
+        {tab === "results" ? (
+          <ResultsView
+            onSaved={() => {
+              void loadSchedule();
+              void loadProfile();
+            }}
           />
         ) : null}
 

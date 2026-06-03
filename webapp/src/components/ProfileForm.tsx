@@ -5,6 +5,7 @@ import { useI18n } from "../i18n/context";
 import { getApiBase } from "../config";
 import { saveProfile } from "../services/api";
 import { requireTelegramUserId } from "../services/telegram";
+import { WeightTracker } from "./WeightTracker";
 
 interface ProfileFormProps {
   profile: UserProfile;
@@ -158,6 +159,8 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
       ) : (
         <p className="ok">✓ {tr("profile_complete_ok")}</p>
       )}
+
+      <WeightTracker />
 
       <button type="button" className="btn-primary" disabled={saving} onClick={() => void submit()}>
         {saving ? tr("loading") : tr("save")}

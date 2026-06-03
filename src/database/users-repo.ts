@@ -221,6 +221,17 @@ export async function updateUserProfile(
     throw new Error("Profile save failed");
   }
 
+  const prevWeight = base.weightKg;
+  if (
+    patch.weightKg !== undefined &&
+    patch.weightKg != null &&
+    (prevWeight == null || Math.abs(patch.weightKg - prevWeight) > 0.05)
+  ) {
+    const { addWeightLog } = await import("./weight-repo.js");
+    const { isoDateOnly } = await import("../services/schedule-service.js");
+    await addWeightLog(telegramId, patch.weightKg, isoDateOnly());
+  }
+
   if (bodyChanged) {
     try {
       const { deleteIncompleteWorkoutsFrom } = await import("./workouts-repo.js");
@@ -232,6 +243,13 @@ export async function updateUserProfile(
   }
 
   return mapRow(result.rows[0]);
+}
+
+export async function setUserWeightKg(telegramId: number, weightKg: number): Promise<void> {
+  await db.query(
+    `UPDATE users SET weight_kg = $2 WHERE telegram_id = $1::bigint`,
+    [String(telegramId), weightKg],
+  );
 }
 
 export async function setUserFitnessLevel(

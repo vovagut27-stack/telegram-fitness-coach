@@ -119,6 +119,83 @@ export async function countCompletedThisWeek(telegramId: number): Promise<number
 }
 
 /** Remove cached home plans so the next open regenerates with updated profile. */
+export interface ExerciseLogRow {
+  exerciseName: string;
+  setsCompleted: number;
+  repsCompleted: number[];
+  weightUsed: number | null;
+  durationSeconds: number | null;
+}
+
+export interface WorkoutResultDay {
+  workoutDate: string;
+  completed: boolean;
+  completionNotes: string | null;
+  focusTitle: string | null;
+  exercises: ExerciseLogRow[];
+}
+
+export async function getExerciseLogsForWorkout(workoutId: number): Promise<ExerciseLogRow[]> {
+  const result = await db.query(
+    `
+      SELECT exercise_name, sets_completed, reps_completed, weight_used, duration_seconds
+      FROM exercise_logs
+      WHERE workout_id = $1
+      ORDER BY id
+    `,
+    [workoutId],
+  );
+  return result.rows.map((row) => ({
+    exerciseName: String(row.exercise_name),
+    setsCompleted: Number(row.sets_completed),
+    repsCompleted: (row.reps_completed as number[]) ?? [],
+    weightUsed: row.weight_used != null ? Number(row.weight_used) : null,
+    durationSeconds: row.duration_seconds != null ? Number(row.duration_seconds) : null,
+  }));
+}
+
+export async function clearExerciseLogs(workoutId: number): Promise<void> {
+  await db.query(`DELETE FROM exercise_logs WHERE workout_id = $1`, [workoutId]);
+}
+
+export async function getWorkoutResultsHistory(
+  telegramId: number,
+  limitDays = 60,
+): Promise<WorkoutResultDay[]> {
+  const result = await db.query(
+    `
+      SELECT
+        w.id,
+        w.workout_date,
+        w.completed,
+        w.completion_notes,
+        w.ai_generated_plan
+      FROM workouts w
+      WHERE w.telegram_id = $1::bigint
+        AND (w.completed = TRUE OR EXISTS (
+          SELECT 1 FROM exercise_logs el WHERE el.workout_id = w.id
+        ))
+      ORDER BY w.workout_date DESC
+      LIMIT $2
+    `,
+    [String(telegramId), limitDays],
+  );
+
+  const days: WorkoutResultDay[] = [];
+  for (const row of result.rows) {
+    const plan = row.ai_generated_plan as WorkoutPlan;
+    const logs = await getExerciseLogsForWorkout(Number(row.id));
+    days.push({
+      workoutDate: String(row.workout_date).slice(0, 10),
+      completed: Boolean(row.completed),
+      completionNotes: row.completion_notes ? String(row.completion_notes) : null,
+      focusTitle: plan?.splitDay ?? plan?.targetMuscles?.join(", ") ?? null,
+      exercises: logs,
+    });
+  }
+  return days;
+}
+
 export async function deleteIncompleteWorkoutsFrom(
   telegramId: number,
   fromDate: string,

@@ -117,7 +117,11 @@ export async function getOrCreateWorkoutForDate(
   if (existing) {
     return {
       ...existing.plan,
-      exercises: enrichWorkoutExercises(existing.plan.exercises, gender),
+      exercises: enrichWorkoutExercises(
+        existing.plan.exercises,
+        gender,
+        user.fitnessLevel,
+      ),
       programType: existing.plan.programType ?? "daily",
       difficultyLevel: user.fitnessLevel,
     };
@@ -126,7 +130,10 @@ export async function getOrCreateWorkoutForDate(
   const split = getSplitForDate(workoutDate, user.language);
   let plan = await generatePlan(user, recent, weeklyCount, split.muscles);
   plan = attachScheduleMeta(plan, workoutDate, user.language);
-  plan = { ...plan, exercises: enrichWorkoutExercises(plan.exercises, user.gender) };
+  plan = {
+    ...plan,
+    exercises: enrichWorkoutExercises(plan.exercises, user.gender, user.fitnessLevel),
+  };
   await saveWorkoutPlan(telegramId, workoutDate, plan);
   return plan;
 }
@@ -166,7 +173,8 @@ export async function getWorkoutSchedule(
   for (const day of skeleton) {
     const row = await getWorkoutByDate(telegramId, day.date);
     const previewExercises =
-      row?.plan.exercises?.slice(0, 3).map((e) => e.name) ?? [];
+      row?.plan.exercises?.slice(0, 3).map((e) => e.name) ??
+      (user ? peekDayPreviewExercises(user, day.date) : []);
     items.push({
       ...day,
       completed: row?.completed ?? false,
@@ -177,13 +185,20 @@ export async function getWorkoutSchedule(
   return items;
 }
 
-/** Plan for bot: generate workouts first, then return schedule with previews. */
+/** Быстрый план для бота (без генерации 7 тренировок — иначе таймаут webhook на Vercel). */
 export async function getWeekPlanForBot(
   telegramId: number,
   days = 7,
 ): Promise<ScheduleDayItem[]> {
-  await prepareWeekWorkouts(telegramId, days);
+  await ensureDefaultUser(telegramId);
   return getWorkoutSchedule(telegramId, days);
+}
+
+function peekDayPreviewExercises(user: UserProfile, workoutDate: string): string[] {
+  const split = getSplitForDate(workoutDate, user.language);
+  const request = buildRequest(user, [], 0, split.muscles);
+  const plan = buildTemplateWorkout(request);
+  return plan.exercises.slice(0, 3).map((e) => e.name);
 }
 
 export async function getGymProgramForUser(telegramId: number) {
@@ -196,6 +211,94 @@ export async function getGymProgramForUser(telegramId: number) {
   }
   const { buildGymProgram } = await import("./gym-program-service.js");
   return buildGymProgram(user);
+}
+
+export async function getOrCreateGymWorkoutForDate(
+  telegramId: number,
+  workoutDate: string,
+): Promise<WorkoutPlan> {
+  await ensureDefaultUser(telegramId);
+  const user = await getUser(telegramId);
+  if (!user) {
+    throw new Error("User profile not found");
+  }
+  if (!isPremiumActive(user)) {
+    throw new Error("PREMIUM_REQUIRED");
+  }
+
+  const { getGymDayPlanForDate, gymDayIndexForDate, buildGymProgram } = await import(
+    "./gym-program-service.js"
+  );
+
+  let existing = await getWorkoutByDate(telegramId, workoutDate);
+  const expectedKey = buildGymProgram(user).days[gymDayIndexForDate(workoutDate)]?.dayKey;
+
+  if (
+    existing &&
+    (existing.plan.programType !== "gym" ||
+      existing.plan.difficultyLevel !== user.fitnessLevel ||
+      (expectedKey && existing.plan.gymDayKey && existing.plan.gymDayKey !== expectedKey))
+  ) {
+    await deleteWorkoutByDate(telegramId, workoutDate);
+    existing = null;
+  }
+
+  if (existing) {
+    return {
+      ...existing.plan,
+      exercises: enrichWorkoutExercises(
+        existing.plan.exercises,
+        user.gender,
+        user.fitnessLevel,
+      ),
+      programType: "gym",
+      difficultyLevel: user.fitnessLevel,
+    };
+  }
+
+  const plan = getGymDayPlanForDate(user, workoutDate);
+  const enriched = {
+    ...plan,
+    exercises: enrichWorkoutExercises(plan.exercises, user.gender, user.fitnessLevel),
+    difficultyLevel: user.fitnessLevel,
+  };
+  await saveWorkoutPlan(telegramId, workoutDate, enriched);
+  return enriched;
+}
+
+export async function getGymWorkoutSchedule(
+  telegramId: number,
+  days = 7,
+): Promise<ScheduleDayItem[]> {
+  await ensureDefaultUser(telegramId);
+  const user = await getUser(telegramId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  if (!isPremiumActive(user)) {
+    throw new Error("PREMIUM_REQUIRED");
+  }
+
+  const { buildGymScheduleSkeleton } = await import("./gym-program-service.js");
+  const from = isoDateOnly();
+  const skeleton = buildGymScheduleSkeleton(user, from, days);
+  const items: ScheduleDayItem[] = [];
+
+  for (const day of skeleton) {
+    try {
+      await getOrCreateGymWorkoutForDate(telegramId, day.date);
+    } catch (err) {
+      console.warn(`getGymWorkoutSchedule ${day.date}:`, err);
+    }
+    const row = await getWorkoutByDate(telegramId, day.date);
+    items.push({
+      ...day,
+      completed: row?.completed ?? false,
+      hasWorkout: Boolean(row),
+      previewExercises: row?.plan.exercises?.slice(0, 3).map((e) => e.name) ?? [],
+    });
+  }
+  return items;
 }
 
 export async function canGenerateWorkout(telegramId: number): Promise<boolean> {

@@ -20,3 +20,16 @@ UPDATE users SET profile_complete = COALESCE(profile_complete, FALSE);
 UPDATE users SET is_premium = COALESCE(is_premium, FALSE);
 UPDATE users SET available_equipment = ARRAY['bodyweight']::text[]
   WHERE available_equipment IS NULL;
+
+CREATE TABLE IF NOT EXISTS weight_logs (
+  id SERIAL PRIMARY KEY,
+  telegram_id BIGINT NOT NULL REFERENCES users(telegram_id),
+  weight_kg DECIMAL(5, 2) NOT NULL,
+  log_date DATE NOT NULL,
+  note TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (telegram_id, log_date)
+);
+
+CREATE INDEX IF NOT EXISTS weight_logs_telegram_id_log_date_idx
+  ON weight_logs (telegram_id, log_date DESC);

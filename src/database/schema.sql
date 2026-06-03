@@ -37,3 +37,13 @@ CREATE TABLE IF NOT EXISTS exercise_logs (
   duration_seconds INTEGER,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS weight_logs (
+  id SERIAL PRIMARY KEY,
+  telegram_id BIGINT NOT NULL REFERENCES users(telegram_id),
+  weight_kg DECIMAL(5, 2) NOT NULL,
+  log_date DATE NOT NULL,
+  note TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (telegram_id, log_date)
+);

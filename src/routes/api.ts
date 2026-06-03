@@ -12,6 +12,8 @@ import {
   canGenerateWorkout,
   ensureDefaultUser,
   getGymProgramForUser,
+  getGymWorkoutSchedule,
+  getOrCreateGymWorkoutForDate,
   getOrCreateWorkoutForDate,
   getOrCreateTodayWorkout,
   getWorkoutSchedule,
@@ -198,6 +200,49 @@ apiRouter.get("/workout/gym-program", async (req, res) => {
   }
 });
 
+apiRouter.get("/workout/gym-schedule", async (req, res) => {
+  try {
+    const telegramId = parseTelegramId(req.query.telegramId);
+    const days = Math.min(14, Math.max(1, Number(req.query.days) || 7));
+    if (!telegramId) {
+      return res.status(400).json({ error: "telegramId is required" });
+    }
+    await ensureUserRow(telegramId);
+    const scheduleDays = await getGymWorkoutSchedule(telegramId, days);
+    return res.json({ days: scheduleDays });
+  } catch (err) {
+    if (err instanceof Error && err.message === "PREMIUM_REQUIRED") {
+      return res.status(402).json({ error: "premium_required", code: "PREMIUM_REQUIRED" });
+    }
+    console.error("GET /workout/gym-schedule failed:", err);
+    return res.status(500).json({ error: "Failed to load gym schedule" });
+  }
+});
+
+apiRouter.get("/workout/gym-by-date", async (req, res) => {
+  try {
+    const telegramId = parseTelegramId(req.query.telegramId);
+    const date = String(req.query.date ?? isoDateOnly());
+    if (!telegramId) {
+      return res.status(400).json({ error: "telegramId is required" });
+    }
+    await ensureUserRow(telegramId);
+    const plan = await getOrCreateGymWorkoutForDate(telegramId, date);
+    const row = await getWorkoutByDate(telegramId, date);
+    return res.json({
+      date,
+      plan,
+      completed: row?.completed ?? false,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.message === "PREMIUM_REQUIRED") {
+      return res.status(402).json({ error: "premium_required", code: "PREMIUM_REQUIRED" });
+    }
+    console.error("GET /workout/gym-by-date failed:", err);
+    return res.status(500).json({ error: "Failed to load gym workout" });
+  }
+});
+
 apiRouter.get("/workout/today", async (req, res) => {
   try {
     const telegramId = parseTelegramId(req.query.telegramId);
@@ -272,5 +317,122 @@ apiRouter.post("/workout/complete", async (req, res) => {
   } catch (err) {
     console.error("POST /workout/complete failed:", err);
     return res.status(500).json({ error: "Failed to save workout" });
+  }
+});
+
+apiRouter.get("/user/weight-history", async (req, res) => {
+  const telegramId = parseTelegramId(req.query.telegramId);
+  if (!telegramId) {
+    return res.status(400).json({ error: "telegramId is required" });
+  }
+  try {
+    await ensureUserRow(telegramId);
+    const { getUserWeightHistory } = await import("../services/results-service.js");
+    const data = await getUserWeightHistory(telegramId);
+    return res.json(data);
+  } catch (err) {
+    console.error("GET /user/weight-history failed:", err);
+    return res.status(500).json({ error: "Failed to load weight history" });
+  }
+});
+
+apiRouter.post("/user/weight", async (req, res) => {
+  const body = req.body as {
+    telegramId: number;
+    weightKg: number;
+    logDate?: string;
+    note?: string;
+  };
+  const telegramId = parseTelegramId(body.telegramId);
+  if (!telegramId || body.weightKg == null) {
+    return res.status(400).json({ error: "telegramId and weightKg are required" });
+  }
+  try {
+    await ensureUserRow(telegramId);
+    const { logUserWeight } = await import("../services/results-service.js");
+    const { setUserWeightKg } = await import("../database/users-repo.js");
+    const entries = await logUserWeight(telegramId, body.weightKg, body.logDate, body.note);
+    await setUserWeightKg(telegramId, body.weightKg);
+    return res.json({ entries });
+  } catch (err) {
+    console.error("POST /user/weight failed:", err);
+    return res.status(500).json({ error: "Failed to save weight" });
+  }
+});
+
+apiRouter.get("/workout/results", async (req, res) => {
+  const telegramId = parseTelegramId(req.query.telegramId);
+  const days = Math.min(120, Math.max(7, Number(req.query.days) || 60));
+  if (!telegramId) {
+    return res.status(400).json({ error: "telegramId is required" });
+  }
+  try {
+    await ensureUserRow(telegramId);
+    const { listWorkoutResults, getResultsComparison } = await import(
+      "../services/results-service.js"
+    );
+    const [results, comparison] = await Promise.all([
+      listWorkoutResults(telegramId, days),
+      getResultsComparison(telegramId),
+    ]);
+    return res.json({ results, comparison });
+  } catch (err) {
+    console.error("GET /workout/results failed:", err);
+    return res.status(500).json({ error: "Failed to load results" });
+  }
+});
+
+apiRouter.get("/workout/plan-for-date", async (req, res) => {
+  const telegramId = parseTelegramId(req.query.telegramId);
+  const date = String(req.query.date ?? isoDateOnly());
+  if (!telegramId) {
+    return res.status(400).json({ error: "telegramId is required" });
+  }
+  try {
+    const { getPlanForResultsDate } = await import("../services/results-service.js");
+    const plan = await getPlanForResultsDate(telegramId, date);
+    return res.json({ date, plan });
+  } catch (err) {
+    console.error("GET /workout/plan-for-date failed:", err);
+    return res.status(500).json({ error: "Failed to load plan" });
+  }
+});
+
+apiRouter.post("/workout/results/manual", async (req, res) => {
+  const body = req.body as {
+    telegramId: number;
+    workoutDate: string;
+    completionNotes?: string;
+    exercises: Array<{
+      exerciseName: string;
+      setsCompleted: number;
+      repsCompleted: number[];
+      weightUsed?: number;
+      durationSeconds?: number;
+    }>;
+  };
+  const telegramId = parseTelegramId(body.telegramId);
+  if (!telegramId || !body.workoutDate) {
+    return res.status(400).json({ error: "telegramId and workoutDate are required" });
+  }
+  try {
+    await ensureUserRow(telegramId);
+    const { saveManualWorkoutResults } = await import("../services/results-service.js");
+    const saved = await saveManualWorkoutResults(
+      telegramId,
+      body.workoutDate,
+      body.exercises.map((e) => ({
+        exerciseName: e.exerciseName,
+        setsCompleted: e.setsCompleted,
+        repsCompleted: e.repsCompleted,
+        weightUsed: e.weightUsed ?? null,
+        durationSeconds: e.durationSeconds ?? null,
+      })),
+      body.completionNotes,
+    );
+    return res.json({ ok: true, day: saved });
+  } catch (err) {
+    console.error("POST /workout/results/manual failed:", err);
+    return res.status(500).json({ error: "Failed to save results" });
   }
 });

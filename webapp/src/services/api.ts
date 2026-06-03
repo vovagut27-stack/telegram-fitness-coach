@@ -1,5 +1,12 @@
 import { getApiBase } from "../config";
-import type { GymProgram, UserProfile, WorkoutPlan } from "../types";
+import type {
+  ExerciseLog,
+  GymProgram,
+  UserProfile,
+  WeightLogEntry,
+  WorkoutPlan,
+  WorkoutResultDay,
+} from "../types";
 
 export interface ScheduleDayItem {
   date: string;
@@ -143,6 +150,114 @@ export async function fetchGymProgram(telegramId: number): Promise<GymProgram> {
     throw await parseError(res);
   }
   return res.json() as Promise<GymProgram>;
+}
+
+export async function fetchGymSchedule(telegramId: number, days = 7): Promise<ScheduleDayItem[]> {
+  const res = await apiFetch(`/workout/gym-schedule?telegramId=${telegramId}&days=${days}`);
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  const data = (await res.json()) as { days: ScheduleDayItem[] };
+  return data.days;
+}
+
+export async function fetchGymWorkoutByDate(
+  telegramId: number,
+  date: string,
+): Promise<{ date: string; plan: WorkoutPlan; completed: boolean }> {
+  const res = await apiFetch(`/workout/gym-by-date?telegramId=${telegramId}&date=${date}`);
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return res.json() as Promise<{ date: string; plan: WorkoutPlan; completed: boolean }>;
+}
+
+export interface ResultsComparison {
+  completedThisWeek: number;
+  completedLastWeek: number;
+  totalSetsThisWeek: number;
+  totalSetsLastWeek: number;
+  weightChangeKg: number | null;
+  weightTrend: "down" | "up" | "stable" | null;
+  firstWeight: number | null;
+  latestWeight: number | null;
+}
+
+export interface WeightHistoryResponse {
+  entries: WeightLogEntry[];
+  comparison: Pick<
+    ResultsComparison,
+    "weightChangeKg" | "weightTrend" | "firstWeight" | "latestWeight"
+  >;
+}
+
+export async function fetchWorkoutResults(
+  telegramId: number,
+  days = 60,
+): Promise<{ results: WorkoutResultDay[]; comparison: ResultsComparison }> {
+  const res = await apiFetch(`/workout/results?telegramId=${telegramId}&days=${days}`);
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return res.json() as Promise<{ results: WorkoutResultDay[]; comparison: ResultsComparison }>;
+}
+
+export async function fetchPlanForDate(
+  telegramId: number,
+  date: string,
+): Promise<{ date: string; plan: WorkoutPlan }> {
+  const res = await apiFetch(`/workout/plan-for-date?telegramId=${telegramId}&date=${date}`);
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return res.json() as Promise<{ date: string; plan: WorkoutPlan }>;
+}
+
+export async function saveManualWorkoutResults(
+  telegramId: number,
+  workoutDate: string,
+  exercises: ExerciseLog[],
+  completionNotes?: string,
+): Promise<void> {
+  const res = await apiFetch("/workout/results/manual", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId,
+      workoutDate,
+      completionNotes,
+      exercises,
+    }),
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+}
+
+export async function fetchWeightHistory(telegramId: number): Promise<WeightHistoryResponse> {
+  const res = await apiFetch(`/user/weight-history?telegramId=${telegramId}`);
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return res.json() as Promise<WeightHistoryResponse>;
+}
+
+export async function logUserWeight(
+  telegramId: number,
+  weightKg: number,
+  logDate?: string,
+  note?: string,
+): Promise<WeightLogEntry[]> {
+  const res = await apiFetch("/user/weight", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId, weightKg, logDate, note }),
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  const data = (await res.json()) as { entries: WeightLogEntry[] };
+  return data.entries;
 }
 
 export async function fetchPremiumInvoiceLink(

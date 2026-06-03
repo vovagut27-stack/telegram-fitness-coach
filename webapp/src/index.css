@@ -387,3 +387,162 @@ button:disabled {
   color: var(--muted);
   margin-top: 0.35rem;
 }
+
+.results-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0.5rem;
+  background: var(--surface2);
+  border-radius: 10px;
+  border: 1px solid #374151;
+}
+
+.stat-pill strong {
+  font-size: 1.25rem;
+}
+
+.stat-pill .small {
+  font-size: 0.7rem;
+}
+
+.manual-exercises {
+  margin-top: 0.75rem;
+}
+
+.manual-row {
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #374151;
+}
+
+.manual-row:last-child {
+  border-bottom: none;
+}
+
+.row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.field.compact input {
+  padding: 0.45rem;
+  font-size: 0.9rem;
+}
+
+.results-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.results-day {
+  border-bottom: 1px solid #374151;
+}
+
+.results-day-head {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.65rem 0;
+  background: none;
+  border: none;
+  color: var(--text);
+  text-align: left;
+}
+
+.results-exercises {
+  list-style: none;
+  padding: 0 0 0.5rem 0.5rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.results-exercises li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.card.inset {
+  margin-top: 1rem;
+  background: var(--surface2);
+}
+
+.weight-tracker .weight-chart {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+
+.weight-bar-row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr 3.5rem;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.weight-bar-track {
+  height: 6px;
+  background: #374151;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.weight-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 4px;
+}
+
+.weight-date {
+  color: var(--muted);
+}
+
+.weight-val {
+  text-align: right;
+}
+
+.gym-template-overview {
+  margin-top: 0.75rem;
+}
+
+.gym-template-overview summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.day-grid.compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.day-grid.compact .day-card {
+  padding: 0.65rem;
+}
+
+.day-grid.compact h3 {
+  font-size: 0.95rem;
+  margin: 0;
+}

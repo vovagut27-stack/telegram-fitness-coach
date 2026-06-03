@@ -1,32 +1,80 @@
 import { useState } from "react";
 import type { ReactElement } from "react";
-import type { Gender, GymProgram, WorkoutPlan } from "../types";
+import type { ExerciseLog, Gender, GymProgram, WorkoutPlan } from "../types";
+import type { ScheduleDayItem } from "../services/api";
+import { completeWorkout, fetchGymWorkoutByDate } from "../services/api";
+import { requireTelegramUserId } from "../services/telegram";
 import { useI18n } from "../i18n/context";
 import { levelLabel } from "../i18n/levels";
 import { WorkoutPlayer } from "./WorkoutPlayer";
+import { ScheduleList } from "./ScheduleList";
 
 interface GymProgramViewProps {
   program: GymProgram;
-  todayIndex: number;
+  schedule: ScheduleDayItem[];
   gender?: Gender | null;
+  onScheduleRefresh: () => void;
 }
 
 export function GymProgramView({
   program,
-  todayIndex,
+  schedule,
   gender,
+  onScheduleRefresh,
 }: GymProgramViewProps): ReactElement {
   const { locale, tr } = useI18n();
-  const [active, setActive] = useState<{ plan: WorkoutPlan; label: string } | null>(null);
+  const [active, setActive] = useState<{
+    plan: WorkoutPlan;
+    date: string;
+    completed: boolean;
+  } | null>(null);
+  const [loadingDate, setLoadingDate] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const openDate = async (date: string): Promise<void> => {
+    setLoadingDate(true);
+    setError(null);
+    try {
+      const data = await fetchGymWorkoutByDate(requireTelegramUserId(), date);
+      setActive({ plan: data.plan, date: data.date, completed: data.completed });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tr("load_error"));
+    } finally {
+      setLoadingDate(false);
+    }
+  };
+
+  const handleComplete = async (date: string, logs: ExerciseLog[]): Promise<void> => {
+    await completeWorkout(
+      requireTelegramUserId(),
+      date,
+      logs,
+      locale === "ru" ? "Зал — Mini App" : "Gym — Mini App",
+    );
+    onScheduleRefresh();
+  };
 
   if (active) {
+    if (active.completed) {
+      return (
+        <section className="card">
+          <h2>✅ {tr("day_done")}</h2>
+          <p className="muted">{active.date}</p>
+          <button type="button" onClick={() => setActive(null)}>
+            {tr("back")}
+          </button>
+        </section>
+      );
+    }
+
     return (
       <WorkoutPlayer
         workout={active.plan}
         gender={gender}
         gymMode
         onBack={() => setActive(null)}
-        onComplete={async () => {
+        onComplete={async (logs) => {
+          await handleComplete(active.date, logs);
           setActive(null);
         }}
       />
@@ -39,36 +87,27 @@ export function GymProgramView({
         <h2>{program.title}</h2>
         <p>{program.subtitle}</p>
       </header>
-      <p className="muted">{tr("gym_pick_day")}</p>
-      <div className="day-grid">
-        {program.days.map((day, i) => (
-          <article
-            key={day.dayKey}
-            className={`day-card ${i === todayIndex ? "today" : ""}`}
-          >
-            <h3>{day.dayLabel}</h3>
-            <p className="focus">{day.focus}</p>
-            <p className="muted">
-              {tr("exercises_count", { n: day.plan.exercises.length })} ·{" "}
-              {levelLabel(locale, day.plan.difficultyLevel)}
-            </p>
-            <ul className="gym-preview-list">
-              {day.plan.exercises.map((ex) => (
-                <li key={ex.name}>
-                  {ex.name} — {ex.sets}×{ex.reps}
-                </li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={() => setActive({ plan: day.plan, label: day.dayLabel })}
-            >
-              {i === todayIndex ? tr("gym_start_today") : tr("gym_start_day")}
-            </button>
-          </article>
-        ))}
-      </div>
+
+      <ScheduleList days={schedule} selectedDate={null} onSelect={(date) => void openDate(date)} />
+      {loadingDate ? <p className="muted center">{tr("loading")}</p> : null}
+      {error ? <p className="error center">{error}</p> : null}
+
+      <details className="card gym-template-overview">
+        <summary>{tr("gym_template_title")}</summary>
+        <p className="muted">{tr("gym_template_hint")}</p>
+        <div className="day-grid compact">
+          {program.days.map((day) => (
+            <article key={day.dayKey} className="day-card">
+              <h3>{day.dayLabel}</h3>
+              <p className="focus">{day.focus}</p>
+              <p className="muted">
+                {tr("exercises_count", { n: day.plan.exercises.length })} ·{" "}
+                {levelLabel(locale, day.plan.difficultyLevel)}
+              </p>
+            </article>
+          ))}
+        </div>
+      </details>
     </section>
   );
 }

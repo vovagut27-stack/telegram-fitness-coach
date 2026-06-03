@@ -151,3 +151,7 @@ export const EXERCISE_PHOTOS: Record<string, string> = {
 export function normalizeExerciseName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
+
+export function lookupExercisePhoto(name: string): string | undefined {
+  return EXERCISE_PHOTOS[normalizeExerciseName(name)];
+}

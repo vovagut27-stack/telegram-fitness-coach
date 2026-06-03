@@ -21,6 +21,7 @@ export interface WorkoutPlan {
   programType?: "daily" | "gym";
   splitDay?: string;
   scheduleDate?: string;
+  gymDayKey?: string;
 }
 
 export interface GymProgramDay {
@@ -61,4 +62,27 @@ export interface ExerciseLog {
   durationSeconds?: number;
 }
 
-export type TabId = "home" | "workout" | "gym" | "profile" | "premium";
+export type TabId = "home" | "workout" | "gym" | "results" | "profile" | "premium";
+
+export interface WorkoutResultExercise {
+  exerciseName: string;
+  setsCompleted: number;
+  repsCompleted: number[];
+  weightUsed: number | null;
+  durationSeconds: number | null;
+}
+
+export interface WorkoutResultDay {
+  workoutDate: string;
+  completed: boolean;
+  completionNotes: string | null;
+  focusTitle: string | null;
+  exercises: WorkoutResultExercise[];
+}
+
+export interface WeightLogEntry {
+  id: number;
+  logDate: string;
+  weightKg: number;
+  note: string | null;
+}

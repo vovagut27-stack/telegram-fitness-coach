@@ -57,8 +57,8 @@ bot.command("plan", async (ctx) => {
     return;
   }
   const locale = await getUserLocale(telegramId);
-  await ctx.reply(t(locale, "bot_plan_loading"));
-  await sendWeekPlan(ctx, telegramId);
+  const loading = await ctx.reply(t(locale, "bot_plan_loading"));
+  await sendWeekPlan(ctx, telegramId, loading.message_id);
 });
 
 bot.action("show_plan", async (ctx) => {
@@ -67,8 +67,22 @@ bot.action("show_plan", async (ctx) => {
     return;
   }
   const locale = await getUserLocale(telegramId);
-  await ctx.answerCbQuery(t(locale, "bot_plan_loading_short"));
-  await sendWeekPlan(ctx, telegramId);
+  await ctx.answerCbQuery(t(locale, "bot_plan_loading_short")).catch(() => undefined);
+  let loadingMessageId: number | undefined;
+  try {
+    const loading = await ctx.reply(t(locale, "bot_plan_loading"));
+    loadingMessageId = loading.message_id;
+  } catch (err) {
+    console.warn("plan loading message failed:", err);
+  }
+  await sendWeekPlan(ctx, telegramId, loadingMessageId);
+});
+
+bot.action(/^noop_/, async (ctx) => {
+  const locale = await getUserLocale(ctx.from?.id ?? 0);
+  await ctx
+    .answerCbQuery(t(locale, "bot_plan_footer_no_app"), { show_alert: true })
+    .catch(() => undefined);
 });
 
 bot.command("premium", async (ctx) => {

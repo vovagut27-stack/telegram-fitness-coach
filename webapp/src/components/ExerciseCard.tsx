@@ -4,8 +4,12 @@ import type { Gender, WorkoutExercise } from "../types";
 import { useI18n } from "../i18n/context";
 import { equipmentIcon, equipmentMessageKey } from "../utils/equipment";
 
-const FALLBACK_IMG =
-  "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=640&q=80";
+const FALLBACK_IMGS = [
+  "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=640&q=80",
+  "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=640&q=80",
+  "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
+  "https://images.unsplash.com/photo-1571019614242-c5c993715daa?w=640&q=80",
+];
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
@@ -21,11 +25,14 @@ export function ExerciseCard({
   gymMode = false,
 }: ExerciseCardProps): ReactElement {
   const { tr } = useI18n();
-  const [imgSrc, setImgSrc] = useState(exercise.demoUrl ?? FALLBACK_IMG);
+  const fallbackForIndex = FALLBACK_IMGS[index % FALLBACK_IMGS.length];
+  const [imgSrc, setImgSrc] = useState(exercise.demoUrl ?? fallbackForIndex);
+  const [fallbackStep, setFallbackStep] = useState(0);
 
   useEffect(() => {
-    setImgSrc(exercise.demoUrl ?? FALLBACK_IMG);
-  }, [exercise.name, exercise.demoUrl, gender]);
+    setImgSrc(exercise.demoUrl ?? fallbackForIndex);
+    setFallbackStep(0);
+  }, [exercise.name, exercise.demoUrl, gender, fallbackForIndex]);
 
   const eqKey = equipmentMessageKey(exercise.equipment);
   const eqLabel = tr(eqKey);
@@ -38,7 +45,11 @@ export function ExerciseCard({
         src={imgSrc}
         alt={exercise.name}
         loading="lazy"
-        onError={() => setImgSrc(FALLBACK_IMG)}
+        onError={() => {
+          const next = fallbackStep + 1;
+          setFallbackStep(next);
+          setImgSrc(FALLBACK_IMGS[next % FALLBACK_IMGS.length]);
+        }}
       />
       {gymMode ? (
         <p className="equipment-pill gym">

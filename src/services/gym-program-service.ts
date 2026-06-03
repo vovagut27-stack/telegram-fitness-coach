@@ -3,6 +3,13 @@ import type { FitnessLevel, GymProgram, GymProgramDay, WorkoutExercise, WorkoutP
 import type { UserProfile } from "../database/users-repo.js";
 import { calcBmi } from "../types/profile.js";
 import { enrichWorkoutExercises } from "./exercise-images.js";
+import {
+  addDaysIso,
+  dayOffsetFromToday,
+  formatDayLabel,
+  isoDateOnly,
+} from "./schedule-service.js";
+import type { ScheduleDayItem } from "./schedule-service.js";
 
 type LocalizedEx = { ru: WorkoutExercise; en: WorkoutExercise };
 
@@ -460,6 +467,7 @@ function dayPlan(
   const exercises = enrichWorkoutExercises(
     split.exercises.map((e) => (locale === "en" ? e.en : e.ru)),
     user.gender,
+    level,
   );
   const minutes = Math.round(user.timePerSession || 50);
   const bmi =
@@ -506,7 +514,72 @@ export function buildGymProgram(user: UserProfile): GymProgram {
 }
 
 export function todayGymDayIndex(): number {
-  return new Date().getDay() % 4;
+  return gymDayIndexForDate(isoDateOnly());
+}
+
+/** Maps calendar date to slot in the 4-day gym split (same rotation as home schedule). */
+export function gymDayIndexForDate(isoDate: string): number {
+  const offset = dayOffsetFromToday(isoDate);
+  const split = GYM_SPLITS.beginner;
+  return ((offset % split.length) + split.length) % split.length;
+}
+
+export function attachGymScheduleMeta(
+  plan: WorkoutPlan,
+  isoDate: string,
+  locale: Locale,
+  dayLabel: string,
+  focus: string,
+  dayKey: string,
+): WorkoutPlan {
+  const dateLabel = formatDayLabel(isoDate, locale);
+  return {
+    ...plan,
+    programType: "gym",
+    scheduleDate: isoDate,
+    gymDayKey: dayKey,
+    splitDay: `${dateLabel} · ${dayLabel}`,
+    notes: `${dateLabel} · ${focus}${plan.notes ? ` — ${plan.notes}` : ""}`,
+  };
+}
+
+export function buildGymScheduleSkeleton(
+  user: UserProfile,
+  fromDate: string,
+  count: number,
+): Omit<ScheduleDayItem, "completed" | "hasWorkout" | "previewExercises">[] {
+  const locale = user.language;
+  const program = buildGymProgram(user);
+  const today = isoDateOnly();
+  const items: Omit<ScheduleDayItem, "completed" | "hasWorkout" | "previewExercises">[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const date = addDaysIso(fromDate, i);
+    const idx = gymDayIndexForDate(date);
+    const slot = program.days[idx] ?? program.days[0];
+    items.push({
+      date,
+      dayLabel: formatDayLabel(date, locale),
+      focusTitle: `${slot.dayLabel} · ${slot.focus}`,
+      muscles: [slot.dayKey],
+      isToday: date === today,
+    });
+  }
+  return items;
+}
+
+export function getGymDayPlanForDate(user: UserProfile, isoDate: string): WorkoutPlan {
+  const program = buildGymProgram(user);
+  const idx = gymDayIndexForDate(isoDate);
+  const slot = program.days[idx] ?? program.days[0];
+  return attachGymScheduleMeta(
+    slot.plan,
+    isoDate,
+    user.language,
+    slot.dayLabel,
+    slot.focus,
+    slot.dayKey,
+  );
 }
 
 export function getTodayGymWorkout(user: UserProfile): WorkoutPlan {

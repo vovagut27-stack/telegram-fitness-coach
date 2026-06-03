@@ -47,12 +47,19 @@ export function buildPlanKeyboard(locale: Locale, days: ScheduleDayItem[]) {
   return Markup.inlineKeyboard(rows);
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export function buildQuickPlanText(locale: Locale, days: ScheduleDayItem[]): string {
   const lines = days.slice(0, 7).map((d) => {
     const mark = d.completed ? "✅" : d.hasWorkout ? "▫️" : "⏳";
-    let line = `${mark} <b>${d.dayLabel}</b> — ${d.focusTitle}`;
+    let line = `${mark} <b>${escapeHtml(d.dayLabel)}</b> — ${escapeHtml(d.focusTitle)}`;
     if (d.previewExercises?.length) {
-      const preview = d.previewExercises.join(" · ");
+      const preview = d.previewExercises.map(escapeHtml).join(" · ");
       line += `\n    ${preview}`;
     }
     return line;
