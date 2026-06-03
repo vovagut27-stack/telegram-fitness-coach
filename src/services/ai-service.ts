@@ -2,7 +2,11 @@ import OpenAI from "openai";
 import { env } from "../config/env.js";
 import { WorkoutPlan, WorkoutRequest } from "../types/workout.js";
 
-const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+const client = new OpenAI({
+  apiKey: env.OPENAI_API_KEY,
+  timeout: 12_000,
+  maxRetries: 1,
+});
 
 const fallbackWorkout: WorkoutPlan = {
   targetMuscles: ["chest", "triceps"],
@@ -24,7 +28,7 @@ const fallbackWorkout: WorkoutPlan = {
 export class AIWorkoutService {
   async generateWorkout(request: WorkoutRequest): Promise<WorkoutPlan> {
     try {
-      const response = await client.responses.create({
+      const aiCall = client.responses.create({
         model: "gpt-4o-mini",
         temperature: 0.7,
         input: [
@@ -39,6 +43,12 @@ export class AIWorkoutService {
           },
         ],
       });
+
+      const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("OpenAI timeout")), 12_000);
+      });
+
+      const response = await Promise.race([aiCall, timeout]);
 
       const text = response.output_text?.trim();
       if (!text) {

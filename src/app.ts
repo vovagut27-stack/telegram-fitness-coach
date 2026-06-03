@@ -6,7 +6,14 @@ import { db } from "./database/index.js";
 import { runMigrations } from "./database/migrate.js";
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type"],
+  }),
+);
+app.options(/.*/, cors());
 app.use(express.json());
 
 app.get("/", (_req, res) => {

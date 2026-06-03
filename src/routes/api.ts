@@ -17,17 +17,23 @@ apiRouter.get("/health", (_req, res) => {
 });
 
 apiRouter.get("/workout/today", async (req, res) => {
-  const telegramId = Number(req.query.telegramId);
-  if (!telegramId) {
-    return res.status(400).json({ error: "telegramId is required" });
+  try {
+    const telegramId = Number(req.query.telegramId);
+    if (!telegramId) {
+      return res.status(400).json({ error: "telegramId is required" });
+    }
+    await ensureDefaultUser(telegramId);
+    const allowed = await canGenerateWorkout(telegramId);
+    if (!allowed) {
+      return res.status(402).json({ error: "Weekly free limit reached. Upgrade to premium." });
+    }
+    const plan = await getOrCreateTodayWorkout(telegramId);
+    return res.json(plan);
+  } catch (err) {
+    console.error("GET /workout/today failed:", err);
+    const message = err instanceof Error ? err.message : "unknown error";
+    return res.status(500).json({ error: message });
   }
-  await ensureDefaultUser(telegramId);
-  const allowed = await canGenerateWorkout(telegramId);
-  if (!allowed) {
-    return res.status(402).json({ error: "Weekly free limit reached. Upgrade to premium." });
-  }
-  const plan = await getOrCreateTodayWorkout(telegramId);
-  return res.json(plan);
 });
 
 apiRouter.post("/workout/complete", async (req, res) => {

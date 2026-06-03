@@ -3,6 +3,11 @@ import { envConfigValid, envIssues } from "../src/config/env.js";
 export default async function handler(req: any, res: any): Promise<void> {
   const path = (req.url ?? "/").split("?")[0];
 
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+
   if (!envConfigValid) {
     res.status(503).json({
       ok: false,
