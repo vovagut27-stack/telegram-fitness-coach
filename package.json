@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
+    "build:vercel": "node scripts/vercel-stub-dist.mjs",
     "start": "node dist/server.js",
     "db:init": "tsx src/database/init.ts",
     "webhook:set": "node scripts/set-webhook.mjs"
