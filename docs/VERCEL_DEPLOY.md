@@ -64,17 +64,19 @@
 | Build Command | `npm run build` |
 | Output Directory | `dist` |
 
-### Переменная Mini App (обязательно!)
+### API из Mini App (без CORS)
 
-| Переменная | Значение |
-|------------|----------|
-| `VITE_API_BASE_URL` | `https://telegram-fitness-coach.vercel.app/api` |
+В `webapp/vercel.json` настроен прокси:
 
-Замените домен на **ваш** backend URL. Должен заканчиваться на **`/api`**.
+`/api/*` → `https://telegram-fitness-coach.vercel.app/api/*`
 
-Без этой переменной в Mini App будет: **«Нет связи с API»**.
+Mini App ходит на **тот же домен** (`/api/...`), Vercel пересылает на backend.
 
-После изменения — **Redeploy** webapp (переменные Vite вшиваются при сборке).
+Если backend на **другом** URL — измените `destination` в `webapp/vercel.json` и сделайте Redeploy webapp.
+
+`VITE_API_BASE_URL` для production **не обязателен** (используется только в `npm run dev`).
+
+Файл `webapp/public/app-config.json` содержит `"apiBase": "/api"`.
 
 ---
 

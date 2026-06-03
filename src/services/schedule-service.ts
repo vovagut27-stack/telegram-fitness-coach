@@ -99,6 +99,8 @@ export interface ScheduleDayItem {
   completed: boolean;
   hasWorkout: boolean;
   isToday: boolean;
+  /** First exercise names for bot preview */
+  previewExercises?: string[];
 }
 
 export function buildScheduleDays(

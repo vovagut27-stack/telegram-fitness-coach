@@ -49,8 +49,16 @@ export function buildPlanKeyboard(locale: Locale, days: ScheduleDayItem[]) {
 
 export function buildQuickPlanText(locale: Locale, days: ScheduleDayItem[]): string {
   const lines = days.slice(0, 7).map((d) => {
-    const mark = d.completed ? "✅" : "▫️";
-    return `${mark} ${d.dayLabel}, ${d.focusTitle}`;
+    const mark = d.completed ? "✅" : d.hasWorkout ? "▫️" : "⏳";
+    let line = `${mark} <b>${d.dayLabel}</b> — ${d.focusTitle}`;
+    if (d.previewExercises?.length) {
+      const preview = d.previewExercises.join(" · ");
+      line += `\n    ${preview}`;
+    }
+    return line;
   });
-  return [t(locale, "bot_plan_header"), "", ...lines].join("\n");
+  const footer = isValidWebAppUrl(env.WEBAPP_URL)
+    ? t(locale, "bot_plan_footer_app")
+    : t(locale, "bot_plan_footer_no_app");
+  return [t(locale, "bot_plan_header"), "", ...lines, "", footer].join("\n");
 }

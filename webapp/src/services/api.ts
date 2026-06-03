@@ -11,6 +11,22 @@ export interface ScheduleDayItem {
   isToday: boolean;
 }
 
+async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  const url = path.startsWith("http") ? path : `${getApiBase()}${path.startsWith("/") ? path : `/${path}`}`;
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: init?.signal ?? AbortSignal.timeout(25_000),
+    });
+  } catch (err) {
+    const base = getApiBase();
+    if (err instanceof Error) {
+      throw new Error(`${err.message} → ${base}`);
+    }
+    throw err;
+  }
+}
+
 async function parseError(res: Response): Promise<Error> {
   const text = await res.text();
   try {
@@ -27,7 +43,7 @@ async function parseError(res: Response): Promise<Error> {
 }
 
 export async function fetchProfile(telegramId: number): Promise<UserProfile> {
-  const res = await fetch(`${getApiBase()}/user/profile?telegramId=${telegramId}`);
+  const res = await apiFetch(`/user/profile?telegramId=${telegramId}`);
   if (!res.ok) {
     throw await parseError(res);
   }
@@ -40,13 +56,13 @@ export async function saveProfile(
   const body = JSON.stringify(profile);
   const headers = { "Content-Type": "application/json" };
 
-  let res = await fetch(`${getApiBase()}/user/profile`, {
+  let res = await apiFetch("/user/profile", {
     method: "POST",
     headers,
     body,
   });
   if (!res.ok && (res.status === 405 || res.status === 404)) {
-    res = await fetch(`${getApiBase()}/user/profile`, {
+    res = await apiFetch("/user/profile", {
       method: "PUT",
       headers,
       body,
@@ -59,7 +75,7 @@ export async function saveProfile(
 }
 
 export async function fetchSchedule(telegramId: number, days = 7): Promise<ScheduleDayItem[]> {
-  const res = await fetch(`${getApiBase()}/workout/schedule?telegramId=${telegramId}&days=${days}`);
+  const res = await apiFetch(`/workout/schedule?telegramId=${telegramId}&days=${days}`);
   if (!res.ok) {
     throw await parseError(res);
   }
@@ -76,7 +92,7 @@ export async function fetchWorkoutByDate(
   completed: boolean;
   profile: UserProfile | null;
 }> {
-  const res = await fetch(`${getApiBase()}/workout/by-date?telegramId=${telegramId}&date=${date}`);
+  const res = await apiFetch(`/workout/by-date?telegramId=${telegramId}&date=${date}`);
   if (!res.ok) {
     throw await parseError(res);
   }
@@ -93,7 +109,7 @@ export async function fetchTodayWorkout(telegramId: number): Promise<{
   plan: WorkoutPlan;
   profile: UserProfile | null;
 }> {
-  const res = await fetch(`${getApiBase()}/workout/today?telegramId=${telegramId}`);
+  const res = await apiFetch(`/workout/today?telegramId=${telegramId}`);
   if (!res.ok) {
     throw await parseError(res);
   }
@@ -106,7 +122,7 @@ export async function completeWorkout(
   exercises: unknown[],
   notes: string,
 ): Promise<void> {
-  const res = await fetch(`${getApiBase()}/workout/complete`, {
+  const res = await apiFetch("/workout/complete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -122,7 +138,7 @@ export async function completeWorkout(
 }
 
 export async function fetchGymProgram(telegramId: number): Promise<GymProgram> {
-  const res = await fetch(`${getApiBase()}/workout/gym-program?telegramId=${telegramId}`);
+  const res = await apiFetch(`/workout/gym-program?telegramId=${telegramId}`);
   if (!res.ok) {
     throw await parseError(res);
   }
@@ -133,8 +149,8 @@ export async function fetchPremiumInvoiceLink(
   telegramId: number,
   language: string,
 ): Promise<string> {
-  const res = await fetch(
-    `${getApiBase()}/premium/invoice-link?telegramId=${telegramId}&language=${language}`,
+  const res = await apiFetch(
+    `/premium/invoice-link?telegramId=${telegramId}&language=${language}`,
   );
   if (!res.ok) {
     throw await parseError(res);

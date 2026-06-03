@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type { FitnessLevel, Gender, UserProfile } from "../types";
 import { useI18n } from "../i18n/context";
+import { getApiBase } from "../config";
 import { saveProfile } from "../services/api";
 import { requireTelegramUserId } from "../services/telegram";
 
@@ -49,10 +50,10 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
       setMsg(tr("saved"));
     } catch (err) {
       setIsError(true);
-      if (err instanceof TypeError) {
-        setMsg(tr("network_error"));
+      const detail = err instanceof Error ? err.message : "";
+      if (err instanceof TypeError || detail.includes("fetch")) {
+        setMsg(`${tr("network_error")}: ${getApiBase()}`);
       } else {
-        const detail = err instanceof Error ? err.message : "";
         setMsg(detail || tr("load_error"));
       }
     } finally {

@@ -10,7 +10,8 @@ import {
 } from "../database/users-repo.js";
 import { isPremiumPayload, parsePremiumPayload, sendPremiumInvoice } from "./payments.js";
 import { t } from "../i18n/index.js";
-import { ensureDefaultUser, getWorkoutSchedule } from "../services/workout-service.js";
+import { sendWeekPlan } from "./plan.js";
+import { ensureDefaultUser } from "../services/workout-service.js";
 import { isPremiumActive } from "../services/premium-service.js";
 
 export const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
@@ -55,31 +56,19 @@ bot.command("plan", async (ctx) => {
   if (!telegramId) {
     return;
   }
-  try {
-    await ensureDefaultUser(telegramId);
-    const locale = await getUserLocale(telegramId);
-    const schedule = await getWorkoutSchedule(telegramId, 7);
-    await ctx.reply(buildQuickPlanText(locale, schedule), buildPlanKeyboard(locale, schedule));
-  } catch (err) {
-    console.error("/plan failed:", err);
-    await ctx.reply(t(await getUserLocale(telegramId), "bot_error_generic"));
-  }
+  const locale = await getUserLocale(telegramId);
+  await ctx.reply(t(locale, "bot_plan_loading"));
+  await sendWeekPlan(ctx, telegramId);
 });
 
 bot.action("show_plan", async (ctx) => {
-  await ctx.answerCbQuery();
   const telegramId = ctx.from?.id;
   if (!telegramId) {
     return;
   }
-  try {
-    await ensureDefaultUser(telegramId);
-    const locale = await getUserLocale(telegramId);
-    const schedule = await getWorkoutSchedule(telegramId, 7);
-    await ctx.reply(buildQuickPlanText(locale, schedule), buildPlanKeyboard(locale, schedule));
-  } catch (err) {
-    console.error("show_plan failed:", err);
-  }
+  const locale = await getUserLocale(telegramId);
+  await ctx.answerCbQuery(t(locale, "bot_plan_loading_short"));
+  await sendWeekPlan(ctx, telegramId);
 });
 
 bot.command("premium", async (ctx) => {

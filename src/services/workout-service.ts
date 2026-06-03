@@ -135,6 +135,23 @@ export async function getOrCreateTodayWorkout(telegramId: number): Promise<Worko
   return getOrCreateWorkoutForDate(telegramId, isoDateOnly());
 }
 
+/** Create workouts for the next N days so bot plan and Mini App work immediately. */
+export async function prepareWeekWorkouts(telegramId: number, days = 7): Promise<void> {
+  await ensureDefaultUser(telegramId);
+  const user = await getUser(telegramId);
+  if (!user) {
+    return;
+  }
+  const skeleton = buildScheduleDays(user.language, isoDateOnly(), days);
+  for (const day of skeleton) {
+    try {
+      await getOrCreateWorkoutForDate(telegramId, day.date);
+    } catch (err) {
+      console.warn(`prepareWeekWorkouts ${day.date}:`, err);
+    }
+  }
+}
+
 export async function getWorkoutSchedule(
   telegramId: number,
   days = 7,
@@ -148,13 +165,25 @@ export async function getWorkoutSchedule(
   const items: ScheduleDayItem[] = [];
   for (const day of skeleton) {
     const row = await getWorkoutByDate(telegramId, day.date);
+    const previewExercises =
+      row?.plan.exercises?.slice(0, 3).map((e) => e.name) ?? [];
     items.push({
       ...day,
       completed: row?.completed ?? false,
       hasWorkout: Boolean(row),
+      previewExercises,
     });
   }
   return items;
+}
+
+/** Plan for bot: generate workouts first, then return schedule with previews. */
+export async function getWeekPlanForBot(
+  telegramId: number,
+  days = 7,
+): Promise<ScheduleDayItem[]> {
+  await prepareWeekWorkouts(telegramId, days);
+  return getWorkoutSchedule(telegramId, days);
 }
 
 export async function getGymProgramForUser(telegramId: number) {

@@ -1,11 +1,18 @@
-const DEFAULT_LOCAL = "http://localhost:3000/api";
-/** Fallback if VITE_API_BASE_URL is not set on Vercel webapp build. */
-const PRODUCTION_FALLBACK = "https://telegram-fitness-coach.vercel.app/api";
+const PRODUCTION_BACKEND = "https://telegram-fitness-coach.vercel.app/api";
 
 function normalizeApiBase(raw: string): string {
   const value = raw.trim().replace(/\/+$/, "");
+
+  if (value.startsWith("/")) {
+    if (typeof window !== "undefined") {
+      const path = value.endsWith("/api") ? value : `${value}/api`;
+      return `${window.location.origin}${path}`;
+    }
+    return PRODUCTION_BACKEND;
+  }
+
   if (value.includes("<") || value.includes(">")) {
-    return normalizeApiBase(PRODUCTION_FALLBACK);
+    return resolveApiBase();
   }
   if (!value.endsWith("/api")) {
     return `${value}/api`;
@@ -13,12 +20,27 @@ function normalizeApiBase(raw: string): string {
   return value;
 }
 
-function fromEnv(): string | undefined {
-  const raw = import.meta.env.VITE_API_BASE_URL as string | undefined;
-  if (!raw?.trim()) {
+/** Same domain as Mini App — Vercel rewrites /api → backend (no CORS). */
+function sameOriginApi(): string | undefined {
+  if (typeof window === "undefined") {
     return undefined;
   }
-  if (raw.includes("localhost") && !import.meta.env.DEV) {
+  const { protocol, hostname } = window.location;
+  if (protocol !== "http:" && protocol !== "https:") {
+    return undefined;
+  }
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return `${window.location.origin}/api`;
+  }
+  return `${window.location.origin}/api`;
+}
+
+function fromEnvDevOnly(): string | undefined {
+  if (!import.meta.env.DEV) {
+    return undefined;
+  }
+  const raw = import.meta.env.VITE_API_BASE_URL as string | undefined;
+  if (!raw?.trim()) {
     return undefined;
   }
   return normalizeApiBase(raw);
@@ -29,20 +51,17 @@ function fromQuery(): string | undefined {
     return undefined;
   }
   const api = new URLSearchParams(window.location.search).get("api");
-  if (api?.startsWith("http")) {
+  if (api?.startsWith("http") || api?.startsWith("/")) {
     return normalizeApiBase(api);
   }
   return undefined;
 }
 
-function productionFallback(): string {
-  if (typeof window !== "undefined" && window.location.hostname.includes("vercel.app")) {
-    return normalizeApiBase(PRODUCTION_FALLBACK);
-  }
-  return normalizeApiBase(DEFAULT_LOCAL);
+function resolveApiBase(): string {
+  return sameOriginApi() ?? normalizeApiBase(PRODUCTION_BACKEND);
 }
 
-let resolvedBase = fromQuery() ?? fromEnv() ?? productionFallback();
+let resolvedBase = fromQuery() ?? fromEnvDevOnly() ?? resolveApiBase();
 
 export function getApiBase(): string {
   return resolvedBase;
@@ -52,7 +71,6 @@ export function setApiBase(url: string): void {
   resolvedBase = normalizeApiBase(url);
 }
 
-/** Load /app-config.json (editable without rebuild on static host). */
 export async function loadApiConfig(): Promise<string> {
   const q = fromQuery();
   if (q) {
@@ -60,10 +78,9 @@ export async function loadApiConfig(): Promise<string> {
     return resolvedBase;
   }
 
-  const env = fromEnv();
-  if (env) {
-    resolvedBase = env;
-    return resolvedBase;
+  const same = sameOriginApi();
+  if (same) {
+    resolvedBase = same;
   }
 
   try {
@@ -72,22 +89,32 @@ export async function loadApiConfig(): Promise<string> {
     });
     if (res.ok) {
       const data = (await res.json()) as { apiBase?: string };
-      if (data.apiBase?.startsWith("http")) {
+      if (data.apiBase) {
         resolvedBase = normalizeApiBase(data.apiBase);
-        return resolvedBase;
       }
     }
   } catch {
     // ignore
   }
 
-  resolvedBase = productionFallback();
+  const dev = fromEnvDevOnly();
+  if (dev) {
+    resolvedBase = dev;
+  }
+
+  if (!resolvedBase) {
+    resolvedBase = resolveApiBase();
+  }
+
   return resolvedBase;
 }
 
 export async function probeApiHealth(): Promise<boolean> {
   try {
-    const res = await fetch(`${getApiBase()}/health`, { cache: "no-store" });
+    const res = await fetch(`${getApiBase()}/health`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
+    });
     if (!res.ok) {
       return false;
     }
