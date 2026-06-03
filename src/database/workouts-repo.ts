@@ -94,6 +94,16 @@ export async function getRecentWorkouts(
   return result.rows.map((row) => row.ai_generated_plan as WorkoutPlan);
 }
 
+export async function deleteWorkoutByDate(telegramId: number, workoutDate: string): Promise<void> {
+  await db.query(
+    `
+      DELETE FROM workouts
+      WHERE telegram_id = $1 AND workout_date = $2
+    `,
+    [telegramId, workoutDate],
+  );
+}
+
 export async function countCompletedThisWeek(telegramId: number): Promise<number> {
   const result = await db.query(
     `

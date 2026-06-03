@@ -23,32 +23,33 @@ const fallbackWorkout: WorkoutPlan = {
 
 export class AIWorkoutService {
   async generateWorkout(request: WorkoutRequest): Promise<WorkoutPlan> {
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      temperature: 0.7,
-      input: [
-        {
-          role: "system",
-          content:
-            "You are a fitness coach. Return strict JSON only, no markdown. Keep plans safe and realistic.",
-        },
-        {
-          role: "user",
-          content: this.buildPrompt(request),
-        },
-      ],
-    });
-
-    const text = response.output_text?.trim();
-    if (!text) {
-      return fallbackWorkout;
-    }
-
     try {
+      const response = await client.responses.create({
+        model: "gpt-4o-mini",
+        temperature: 0.7,
+        input: [
+          {
+            role: "system",
+            content:
+              "You are a fitness coach. Return strict JSON only, no markdown. Keep plans safe and realistic.",
+          },
+          {
+            role: "user",
+            content: this.buildPrompt(request),
+          },
+        ],
+      });
+
+      const text = response.output_text?.trim();
+      if (!text) {
+        return { ...fallbackWorkout, difficultyLevel: request.fitnessLevel };
+      }
+
       const parsed = JSON.parse(text) as WorkoutPlan;
       return parsed;
-    } catch {
-      return fallbackWorkout;
+    } catch (err) {
+      console.error("OpenAI generateWorkout failed, using fallback:", err);
+      return { ...fallbackWorkout, difficultyLevel: request.fitnessLevel };
     }
   }
 

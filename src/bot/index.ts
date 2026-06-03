@@ -1,7 +1,8 @@
-import { Telegraf } from "telegraf";
+import { Context, Telegraf } from "telegraf";
 import { env } from "../config/env.js";
 import { startCommand } from "./commands/start.js";
-import { todayKeyboard } from "./keyboards/main.js";
+import { buildTodayKeyboard } from "./keyboards/main.js";
+import { deleteWorkoutByDate } from "../database/workouts-repo.js";
 import { ensureDefaultUser, getOrCreateTodayWorkout } from "../services/workout-service.js";
 import { getUser, upgradePremium, upsertUser } from "../database/users-repo.js";
 import type { FitnessLevel } from "../types/workout.js";
@@ -47,30 +48,48 @@ for (const [action, level] of Object.entries(levelActions)) {
   });
 }
 
-bot.command("today", async (ctx) => {
+function formatWorkoutMessage(plan: Awaited<ReturnType<typeof getOrCreateTodayWorkout>>): string {
+  return [
+    `Today's focus: ${plan.targetMuscles.join(", ")}`,
+    `Duration: ${plan.totalMinutes} min`,
+    `Difficulty: ${plan.difficultyLevel}`,
+    "",
+    ...plan.exercises.map((e, i) => `${i + 1}. ${e.name} - ${e.sets} x ${e.reps}`),
+    "",
+    plan.notes ? `Note: ${plan.notes}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+async function sendTodayWorkout(ctx: Context): Promise<void> {
   const telegramId = ctx.from?.id;
   if (!telegramId) {
     return;
   }
+  const plan = await getOrCreateTodayWorkout(telegramId);
+  const text = formatWorkoutMessage(plan);
+  const keyboard = buildTodayKeyboard();
+
   try {
-    const plan = await getOrCreateTodayWorkout(telegramId);
+    await ctx.reply(text, keyboard);
+  } catch (replyErr) {
+    console.error("/today reply with keyboard failed:", replyErr);
     await ctx.reply(
-      [
-        `Today's focus: ${plan.targetMuscles.join(", ")}`,
-        `Duration: ${plan.totalMinutes} min`,
-        `Difficulty: ${plan.difficultyLevel}`,
-        "",
-        ...plan.exercises.map((e, i) => `${i + 1}. ${e.name} - ${e.sets} x ${e.reps}`),
-        "",
-        plan.notes ? `Note: ${plan.notes}` : "",
-      ]
-        .filter(Boolean)
-        .join("\n"),
-      todayKeyboard,
+      `${text}\n\nTip: set WEBAPP_URL on Vercel to your HTTPS mini app URL to enable the Start Workout button.`,
     );
+  }
+}
+
+bot.command("today", async (ctx) => {
+  try {
+    await sendTodayWorkout(ctx);
   } catch (err) {
     console.error("/today failed:", err);
-    await ctx.reply("Could not load workout. Check database connection and try again.");
+    const message = err instanceof Error ? err.message : "unknown error";
+    await ctx.reply(
+      `Could not load workout (${message}). Check OPENAI_API_KEY and DATABASE_URL on Vercel.`,
+    );
   }
 });
 
@@ -82,10 +101,18 @@ bot.command("settings", async (ctx) => {
   await ctx.reply("Settings flow: choose level with /start. More options in next iteration.");
 });
 
-bot.action("today", async (ctx) => {
-  await ctx.answerCbQuery();
-  if (ctx.from?.id) {
-    await ctx.telegram.sendMessage(ctx.from.id, "Use /today to fetch your workout.");
+bot.action("today_regenerate", async (ctx) => {
+  await ctx.answerCbQuery("Generating...");
+  try {
+    const telegramId = ctx.from?.id;
+    if (telegramId) {
+      const today = new Date().toISOString().slice(0, 10);
+      await deleteWorkoutByDate(telegramId, today);
+    }
+    await sendTodayWorkout(ctx);
+  } catch (err) {
+    console.error("today_regenerate failed:", err);
+    await ctx.reply("Could not regenerate workout. Try /today again.");
   }
 });
 

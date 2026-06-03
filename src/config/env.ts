@@ -10,7 +10,7 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().min(1),
   DATABASE_URL: z.string().min(1),
   TELEGRAM_WEBHOOK_SECRET: z.string().default("local-secret"),
-  WEBAPP_URL: z.string().url().default("http://localhost:5173"),
+  WEBAPP_URL: z.string().default(""),
   FREE_WORKOUTS_PER_WEEK: z.coerce.number().default(3),
 });
 
