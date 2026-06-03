@@ -1,21 +1,14 @@
 import { Context, Telegraf } from "telegraf";
 import { env } from "../config/env.js";
-import { startCommand, languageCommand, getUserLocale } from "./commands/start.js";
+import { startCommand, getUserLocale } from "./commands/start.js";
+import { buildMainKeyboard } from "./keyboards/main.js";
+import { upgradePremium } from "../database/users-repo.js";
 import {
-  buildLanguageKeyboard,
-  buildLevelKeyboard,
-  buildTodayKeyboard,
-} from "./keyboards/main.js";
-import { deleteWorkoutByDate } from "../database/workouts-repo.js";
-import { getOrCreateTodayWorkout } from "../services/workout-service.js";
-import {
-  setUserFitnessLevel,
-  setUserLanguage,
-  upgradePremium,
-} from "../database/users-repo.js";
-import { levelLabel, t } from "../i18n/index.js";
-import type { Locale } from "../types/locale.js";
-import type { FitnessLevel } from "../types/workout.js";
+  isPremiumPayload,
+  parsePremiumPayload,
+  sendPremiumInvoice,
+} from "./payments.js";
+import { t } from "../i18n/index.js";
 
 export const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
 
@@ -37,136 +30,51 @@ bot.catch(async (err, ctx) => {
 });
 
 bot.start(startCommand);
-bot.command("language", languageCommand);
-bot.command("lang", languageCommand);
 
-for (const lang of ["ru", "en"] as const) {
-  bot.action(`set_lang_${lang}`, async (ctx) => {
-    const telegramId = ctx.from?.id;
-    if (!telegramId) {
-      await ctx.answerCbQuery().catch(() => undefined);
-      return;
-    }
-    try {
-      await ctx.answerCbQuery();
-      await setUserLanguage(telegramId, lang);
-      await ctx.reply(
-        `${t(lang, "bot_lang_saved")}\n\n${t(lang, "bot_choose_level")}`,
-        buildLevelKeyboard(lang),
-      );
-    } catch (err) {
-      console.error(`set_lang_${lang} failed:`, err);
-      await ctx.answerCbQuery().catch(() => undefined);
-      await ctx.reply(t(lang, "bot_error_generic"), buildLanguageKeyboard(lang));
-    }
-  });
-}
+bot.command("app", startCommand);
+bot.command("premium", async (ctx) => {
+  try {
+    await sendPremiumInvoice(ctx);
+  } catch (err) {
+    console.error("/premium failed:", err);
+    const locale = await getUserLocale(ctx.from?.id ?? 0);
+    await ctx.reply(t(locale, "bot_premium_error"));
+  }
+});
 
-const levelActions: Record<string, FitnessLevel> = {
-  set_level_beginner: "beginner",
-  set_level_intermediate: "intermediate",
-  set_level_advanced: "advanced",
-};
+bot.action("buy_premium", async (ctx) => {
+  await ctx.answerCbQuery();
+  try {
+    await sendPremiumInvoice(ctx);
+  } catch (err) {
+    console.error("buy_premium failed:", err);
+    const locale = await getUserLocale(ctx.from?.id ?? 0);
+    await ctx.reply(t(locale, "bot_premium_error"));
+  }
+});
 
-for (const [action, level] of Object.entries(levelActions)) {
-  bot.action(action, async (ctx) => {
-    await ctx.answerCbQuery();
-    const telegramId = ctx.from?.id;
-    if (!telegramId) {
-      return;
-    }
-    try {
-      const user = await setUserFitnessLevel(telegramId, level);
-      await ctx.reply(
-        t(user.language, "bot_level_saved", { level: levelLabel(user.language, level) }),
-      );
-    } catch (err) {
-      console.error(`Level action ${action} failed:`, err);
-      const locale = await getUserLocale(telegramId);
-      await ctx.reply(t(locale, "bot_level_error"));
-    }
-  });
-}
-
-function formatWorkoutMessage(
-  locale: Locale,
-  plan: Awaited<ReturnType<typeof getOrCreateTodayWorkout>>,
-): string {
-  return [
-    t(locale, "bot_workout_focus", { muscles: plan.targetMuscles.join(", ") }),
-    t(locale, "bot_workout_duration", { minutes: plan.totalMinutes }),
-    t(locale, "bot_workout_difficulty", { level: levelLabel(locale, plan.difficultyLevel) }),
-    "",
-    ...plan.exercises.map((e, i) => `${i + 1}. ${e.name} - ${e.sets} x ${e.reps}`),
-    "",
-    plan.notes ? t(locale, "bot_workout_note", { note: plan.notes }) : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
-async function sendTodayWorkout(ctx: Context): Promise<void> {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) {
+bot.on("pre_checkout_query", async (ctx) => {
+  const payload = ctx.preCheckoutQuery.invoice_payload;
+  if (!isPremiumPayload(payload)) {
+    await ctx.answerPreCheckoutQuery(false, "Invalid product");
     return;
   }
-  void ctx.sendChatAction("typing");
-  const locale = await getUserLocale(telegramId);
-  const plan = await getOrCreateTodayWorkout(telegramId);
-  const text = formatWorkoutMessage(locale, plan);
-  const keyboard = buildTodayKeyboard(locale);
-
-  try {
-    await ctx.reply(text, keyboard);
-  } catch (replyErr) {
-    console.error("/today reply with keyboard failed:", replyErr);
-    await ctx.reply(`${text}\n\n${t(locale, "bot_workout_webapp_tip")}`);
-  }
-}
-
-bot.command("today", async (ctx) => {
-  const locale = await getUserLocale(ctx.from?.id ?? 0);
-  try {
-    await sendTodayWorkout(ctx);
-  } catch (err) {
-    console.error("/today failed:", err);
-    const message = err instanceof Error ? err.message : "unknown error";
-    await ctx.reply(t(locale, "bot_workout_load_error", { message }));
-  }
-});
-
-bot.command("progress", async (ctx) => {
-  const locale = await getUserLocale(ctx.from?.id ?? 0);
-  await ctx.reply(t(locale, "bot_progress"));
-});
-
-bot.command("settings", async (ctx) => {
-  const locale = await getUserLocale(ctx.from?.id ?? 0);
-  await ctx.reply(t(locale, "bot_settings"), buildLanguageKeyboard(locale));
-});
-
-bot.action("today_regenerate", async (ctx) => {
-  const locale = await getUserLocale(ctx.from?.id ?? 0);
-  await ctx.answerCbQuery(t(locale, "bot_regenerating"));
-  try {
-    const telegramId = ctx.from?.id;
-    if (telegramId) {
-      const today = new Date().toISOString().slice(0, 10);
-      await deleteWorkoutByDate(telegramId, today);
-    }
-    await sendTodayWorkout(ctx);
-  } catch (err) {
-    console.error("today_regenerate failed:", err);
-    await ctx.reply(t(locale, "bot_regenerate_error"));
-  }
+  await ctx.answerPreCheckoutQuery(true);
 });
 
 bot.on("successful_payment", async (ctx) => {
   const locale = await getUserLocale(ctx.from?.id ?? 0);
-  if (ctx.from?.id) {
-    await upgradePremium(ctx.from.id, 30);
-    await ctx.reply(t(locale, "bot_premium"));
+  const payment = ctx.message.successful_payment;
+  if (!payment || !isPremiumPayload(payment.invoice_payload)) {
+    return;
   }
+  const parsed = parsePremiumPayload(payment.invoice_payload);
+  const telegramId = ctx.from?.id;
+  if (!parsed || !telegramId || parsed.telegramId !== telegramId) {
+    return;
+  }
+  await upgradePremium(telegramId, parsed.days || env.PREMIUM_DAYS);
+  await ctx.reply(t(locale, "bot_premium_ok"), buildMainKeyboard(locale));
 });
 
 function buildWebhookUrl(): string {
@@ -180,12 +88,10 @@ export function webhookPath(): string {
 
 export async function setupWebhook(): Promise<void> {
   const webhookUrl = buildWebhookUrl();
-
   if (!webhookUrl.startsWith("https://")) {
     console.warn(`Skip webhook setup: need https URL, got ${webhookUrl}`);
     return;
   }
-
   try {
     const info = await bot.telegram.getWebhookInfo();
     if (info.url === webhookUrl) {

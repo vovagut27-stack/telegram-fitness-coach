@@ -110,6 +110,7 @@ export async function countCompletedThisWeek(telegramId: number): Promise<number
       SELECT COUNT(*)::int AS workout_count
       FROM workouts
       WHERE telegram_id = $1
+        AND completed = TRUE
         AND workout_date >= date_trunc('week', CURRENT_DATE)::date
     `,
     [telegramId],

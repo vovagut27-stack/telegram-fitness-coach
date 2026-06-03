@@ -17,6 +17,9 @@ const envSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
+  /** Telegram Stars price for 30-day premium (XTR amount, e.g. 100 = 100 Stars). */
+  PREMIUM_STARS_PRICE: z.coerce.number().default(150),
+  PREMIUM_DAYS: z.coerce.number().default(30),
 });
 
 const parsed = envSchema.safeParse(process.env);

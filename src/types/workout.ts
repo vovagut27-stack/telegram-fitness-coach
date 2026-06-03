@@ -16,6 +16,21 @@ export interface WorkoutPlan {
   totalMinutes: number;
   difficultyLevel: FitnessLevel;
   notes?: string;
+  programType?: "daily" | "gym";
+  splitDay?: string;
+}
+
+export interface GymProgramDay {
+  dayKey: string;
+  dayLabel: string;
+  focus: string;
+  plan: WorkoutPlan;
+}
+
+export interface GymProgram {
+  title: string;
+  subtitle: string;
+  days: GymProgramDay[];
 }
 
 export interface WorkoutRequest {
@@ -26,4 +41,11 @@ export interface WorkoutRequest {
   lastWorkouts: WorkoutPlan[];
   targetMuscles?: string[];
   language?: "ru" | "en";
+  gender?: string | null;
+  age?: number | null;
+  weightKg?: number | null;
+  heightCm?: number | null;
+  bmi?: number | null;
+  trainingMode?: "home" | "gym";
+  goals?: string[];
 }

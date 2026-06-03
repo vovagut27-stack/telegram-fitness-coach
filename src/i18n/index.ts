@@ -18,7 +18,11 @@ export function t(locale: Locale, key: MessageKey, vars?: Record<string, string 
   return message;
 }
 
+const LEVEL_LABELS: Record<Locale, Record<FitnessLevel, string>> = {
+  ru: { beginner: "Новичок", intermediate: "Средний", advanced: "Продвинутый" },
+  en: { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced" },
+};
+
 export function levelLabel(locale: Locale, level: FitnessLevel): string {
-  const key = `level_${level}` as MessageKey;
-  return t(locale, key);
+  return LEVEL_LABELS[locale]?.[level] ?? LEVEL_LABELS.en[level];
 }

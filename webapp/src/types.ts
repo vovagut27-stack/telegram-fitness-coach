@@ -1,3 +1,7 @@
+export type FitnessLevel = "beginner" | "intermediate" | "advanced";
+export type Gender = "male" | "female" | "other";
+export type TrainingMode = "home" | "gym";
+
 export interface WorkoutExercise {
   name: string;
   sets: number;
@@ -12,13 +16,48 @@ export interface WorkoutPlan {
   targetMuscles: string[];
   exercises: WorkoutExercise[];
   totalMinutes: number;
-  difficultyLevel: "beginner" | "intermediate" | "advanced";
+  difficultyLevel: FitnessLevel;
   notes?: string;
+  programType?: "daily" | "gym";
+  splitDay?: string;
+}
+
+export interface GymProgramDay {
+  dayKey: string;
+  dayLabel: string;
+  focus: string;
+  plan: WorkoutPlan;
+}
+
+export interface GymProgram {
+  title: string;
+  subtitle: string;
+  days: GymProgramDay[];
+}
+
+export interface UserProfile {
+  telegramId: number;
+  language: string;
+  fitnessLevel: FitnessLevel;
+  gender: Gender | null;
+  age: number | null;
+  weightKg: number | null;
+  heightCm: number | null;
+  bmi: number | null;
+  trainingMode: TrainingMode;
+  profileComplete: boolean;
+  goals: string[];
+  timePerSession: number;
+  isPremium: boolean;
+  premiumUntil: string | null;
 }
 
 export interface ExerciseLog {
   exerciseName: string;
   setsCompleted: number;
   repsCompleted: number[];
-  durationSeconds: number;
+  weightUsed?: number;
+  durationSeconds?: number;
 }
+
+export type TabId = "home" | "workout" | "gym" | "profile" | "premium";

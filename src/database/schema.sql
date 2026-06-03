@@ -5,6 +5,12 @@ CREATE TABLE IF NOT EXISTS users (
   goals TEXT[] NOT NULL DEFAULT ARRAY['strength'],
   time_per_session INTEGER NOT NULL DEFAULT 25,
   language VARCHAR(5) NOT NULL DEFAULT 'ru',
+  gender VARCHAR(10),
+  age INTEGER,
+  weight_kg DECIMAL(5, 2),
+  height_cm INTEGER,
+  training_mode VARCHAR(10) NOT NULL DEFAULT 'home',
+  profile_complete BOOLEAN NOT NULL DEFAULT FALSE,
   is_premium BOOLEAN NOT NULL DEFAULT FALSE,
   premium_until TIMESTAMP NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
