@@ -14,4 +14,23 @@ const envSchema = z.object({
   FREE_WORKOUTS_PER_WEEK: z.coerce.number().default(3),
 });
 
-export const env = envSchema.parse(process.env);
+const parsed = envSchema.safeParse(process.env);
+
+export const envConfigValid = parsed.success;
+export const envIssues = parsed.success ? null : parsed.error.flatten().fieldErrors;
+
+export function getEnv(): z.infer<typeof envSchema> {
+  if (!parsed.success) {
+    throw new Error(
+      `Missing or invalid environment variables: ${JSON.stringify(parsed.error.flatten().fieldErrors)}`,
+    );
+  }
+  return parsed.data;
+}
+
+/** Use getEnv() in new code; this proxy keeps existing imports working after validation. */
+export const env = new Proxy({} as z.infer<typeof envSchema>, {
+  get(_target, prop: string) {
+    return getEnv()[prop as keyof z.infer<typeof envSchema>];
+  },
+});

@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (_req, res) => {
-  res.json({ ok: true, service: "fitbot-backend" });
+  res.json({ ok: true, service: "fitbot-backend", env: "ok" });
 });
 
 let dbReady: Promise<void> | null = null;
