@@ -1,6 +1,10 @@
+import { useState } from "react";
 import type { ReactElement } from "react";
 import type { WorkoutExercise } from "../types";
 import { useI18n } from "../i18n/context";
+
+const FALLBACK_IMG =
+  "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=640&q=80";
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
@@ -9,11 +13,19 @@ interface ExerciseCardProps {
 
 export function ExerciseCard({ exercise, index }: ExerciseCardProps): ReactElement {
   const { tr } = useI18n();
+  const [imgSrc, setImgSrc] = useState(exercise.demoUrl ?? FALLBACK_IMG);
   const equipment =
     exercise.equipment === "none" ? tr("equipment_none") : exercise.equipment;
 
   return (
     <article className="exercise-card">
+      <img
+        className="exercise-img"
+        src={imgSrc}
+        alt={exercise.name}
+        loading="lazy"
+        onError={() => setImgSrc(FALLBACK_IMG)}
+      />
       <h3>
         {index + 1}. {exercise.name}
       </h3>
@@ -23,11 +35,6 @@ export function ExerciseCard({ exercise, index }: ExerciseCardProps): ReactEleme
         {tr("equipment")}: {equipment}
       </p>
       <p>{exercise.instructions}</p>
-      {exercise.demoUrl ? (
-        <a href={exercise.demoUrl} target="_blank" rel="noreferrer">
-          {tr("demo")}
-        </a>
-      ) : null}
     </article>
   );
 }

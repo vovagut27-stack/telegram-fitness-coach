@@ -1,5 +1,6 @@
 import type { Locale } from "../types/locale.js";
 import type { FitnessLevel, WorkoutExercise, WorkoutPlan, WorkoutRequest } from "../types/workout.js";
+import { enrichExerciseImage, enrichWorkoutExercises } from "./exercise-images.js";
 
 type MuscleFocus = "push" | "pull" | "legs";
 
@@ -1054,7 +1055,7 @@ function recentExerciseNames(lastWorkouts: WorkoutPlan[]): Set<string> {
 }
 
 function localize(item: LocalizedExercise, locale: Locale): WorkoutExercise {
-  return item[locale] ?? item.en;
+  return enrichExerciseImage(item[locale] ?? item.en);
 }
 
 function filterByEquipment(
@@ -1114,7 +1115,7 @@ const MIN_EXERCISES = 4;
 export function normalizeWorkoutPlan(plan: WorkoutPlan, request: WorkoutRequest): WorkoutPlan {
   const exercises = [...(plan.exercises ?? [])].filter((ex) => ex?.name?.trim());
   if (exercises.length >= MIN_EXERCISES) {
-    return { ...plan, exercises: exercises.slice(0, 6) };
+    return { ...plan, exercises: enrichWorkoutExercises(exercises.slice(0, 6)) };
   }
 
   const template = buildTemplateWorkout(request);
@@ -1131,7 +1132,7 @@ export function normalizeWorkoutPlan(plan: WorkoutPlan, request: WorkoutRequest)
 
   return {
     ...plan,
-    exercises,
+    exercises: enrichWorkoutExercises(exercises),
     targetMuscles: plan.targetMuscles?.length ? plan.targetMuscles : template.targetMuscles,
     totalMinutes: plan.totalMinutes || template.totalMinutes,
     difficultyLevel: plan.difficultyLevel ?? request.fitnessLevel,

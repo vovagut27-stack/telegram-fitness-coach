@@ -16,9 +16,20 @@
 
 ## Тест Premium без оплаты
 
-1. Узнайте свой Telegram ID ([@userinfobot](https://t.me/userinfobot))
-2. На Vercel backend: `ADMIN_TELEGRAM_IDS=123456789` (ваш ID)
-3. В боте: `/devpremium` — включить/выключить Premium (переключатель)
+**Способ A — по ID**
+
+1. В боте: `/myid` — покажет ваш Telegram ID
+2. Vercel backend → `ADMIN_TELEGRAM_IDS=ваш_id` (без пробелов)
+3. Redeploy backend
+4. `/devpremium` — вкл/выкл Premium
+
+**Способ B — секретное слово**
+
+1. Vercel backend → `DEV_PREMIUM_SECRET=моё_секретное_слово` (мин. 4 символа)
+2. Redeploy
+3. В боте: `/devpremium моё_секретное_слово` — вкл/выкл Premium
+
+Локально в `.env` те же переменные.
 
 ## Шаг 2 — Переменные на Vercel (backend)
 

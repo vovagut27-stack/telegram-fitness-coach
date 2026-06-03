@@ -2,6 +2,7 @@ import type { Locale } from "../types/locale.js";
 import type { FitnessLevel, GymProgram, GymProgramDay, WorkoutExercise, WorkoutPlan } from "../types/workout.js";
 import type { UserProfile } from "../database/users-repo.js";
 import { calcBmi } from "../types/profile.js";
+import { enrichWorkoutExercises } from "./exercise-images.js";
 
 type LocalizedEx = { ru: WorkoutExercise; en: WorkoutExercise };
 
@@ -456,7 +457,9 @@ function dayPlan(
   level: FitnessLevel,
   user: UserProfile,
 ): WorkoutPlan {
-  const exercises = split.exercises.map((e) => (locale === "en" ? e.en : e.ru));
+  const exercises = enrichWorkoutExercises(
+    split.exercises.map((e) => (locale === "en" ? e.en : e.ru)),
+  );
   const minutes = Math.round(user.timePerSession || 50);
   const bmi =
     user.weightKg && user.heightCm ? calcBmi(user.weightKg, user.heightCm) : null;

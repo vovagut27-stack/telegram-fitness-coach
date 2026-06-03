@@ -12,6 +12,7 @@ import { FitnessLevel, WorkoutPlan, WorkoutRequest } from "../types/workout.js";
 import { buildTemplateWorkout } from "./workout-templates.js";
 import { getTodayGymWorkout } from "./gym-program-service.js";
 import { isPremiumActive } from "./premium-service.js";
+import { enrichWorkoutExercises } from "./exercise-images.js";
 import {
   attachScheduleMeta,
   buildScheduleDays,
@@ -117,7 +118,10 @@ export async function getOrCreateWorkoutForDate(
 ): Promise<WorkoutPlan> {
   const existing = await getWorkoutByDate(telegramId, workoutDate);
   if (existing) {
-    return existing.plan;
+    return {
+      ...existing.plan,
+      exercises: enrichWorkoutExercises(existing.plan.exercises),
+    };
   }
 
   await ensureDefaultUser(telegramId);
@@ -135,6 +139,7 @@ export async function getOrCreateWorkoutForDate(
   const split = getSplitForDate(workoutDate, user.language);
   let plan = await generatePlan(user, recent, weeklyCount, split.muscles);
   plan = attachScheduleMeta(plan, workoutDate, user.language);
+  plan = { ...plan, exercises: enrichWorkoutExercises(plan.exercises) };
   await saveWorkoutPlan(telegramId, workoutDate, plan);
   return plan;
 }

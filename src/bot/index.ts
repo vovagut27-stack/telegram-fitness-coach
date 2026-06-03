@@ -25,6 +25,14 @@ function isAdmin(telegramId: number | undefined): boolean {
   return Boolean(telegramId && adminIds.includes(telegramId));
 }
 
+function canUseDevPremium(telegramId: number | undefined, secretArg?: string): boolean {
+  if (isAdmin(telegramId)) {
+    return true;
+  }
+  const secret = env.DEV_PREMIUM_SECRET.trim();
+  return Boolean(secret.length >= 4 && secretArg && secretArg === secret);
+}
+
 bot.catch(async (err, ctx) => {
   console.error("Bot error:", err);
   try {
@@ -84,10 +92,25 @@ bot.command("premium", async (ctx) => {
   }
 });
 
+bot.command("myid", async (ctx) => {
+  const telegramId = ctx.from?.id;
+  const locale = await getUserLocale(telegramId ?? 0);
+  if (!telegramId) {
+    return;
+  }
+  await ctx.reply(t(locale, "bot_my_id", { id: String(telegramId) }));
+});
+
 bot.command("devpremium", async (ctx) => {
   const telegramId = ctx.from?.id;
-  if (!telegramId || !isAdmin(telegramId)) {
-    await ctx.reply(t(await getUserLocale(telegramId ?? 0), "bot_dev_denied"));
+  const locale = await getUserLocale(telegramId ?? 0);
+  const text = ctx.message && "text" in ctx.message ? ctx.message.text : "";
+  const secretArg = text.split(/\s+/).slice(1).join(" ").trim();
+
+  if (!telegramId || !canUseDevPremium(telegramId, secretArg || undefined)) {
+    await ctx.reply(
+      t(locale, "bot_dev_denied", { id: String(telegramId ?? "—") }),
+    );
     return;
   }
   try {

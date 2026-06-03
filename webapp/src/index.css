@@ -204,6 +204,15 @@ button:disabled {
   margin: 0.65rem 0;
 }
 
+.exercise-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 0.65rem;
+  background: #0f1419;
+}
+
 .exercise-card h3 {
   margin: 0 0 0.35rem;
   color: var(--accent);
