@@ -1,3 +1,23 @@
+/** Отдельные кадры для домашних ног / кардио (без generic gym photo). */
+const PHOTO_SQUAT =
+  "https://images.unsplash.com/photo-1649887974297-4be052375a67?w=640&q=80&auto=format&fit=crop";
+const PHOTO_REVERSE_LUNGE =
+  "https://images.unsplash.com/photo-1576678927481-e4c07d32309a?w=640&q=80&auto=format&fit=crop";
+const PHOTO_FORWARD_LUNGE =
+  "https://images.unsplash.com/photo-1609899517237-77d357b047cf?w=640&q=80&auto=format&fit=crop";
+const PHOTO_GLUTE_BRIDGE =
+  "https://images.unsplash.com/photo-1599904490399-5514912ea3a5?w=640&q=80&auto=format&fit=crop";
+const PHOTO_BURPEE =
+  "https://images.unsplash.com/photo-1476480862126-209bfaa8ebaa?w=640&q=80&auto=format&fit=crop";
+const PHOTO_HIGH_KNEES =
+  "https://images.unsplash.com/photo-1486218119243-138835b8b8038?w=640&q=80&auto=format&fit=crop";
+const PHOTO_SIDE_PLANK =
+  "https://images.unsplash.com/photo-1571019614242-c5c993715daa?w=640&q=80&auto=format&fit=crop";
+const PHOTO_FORWARD_FOLD =
+  "https://images.unsplash.com/photo-1506126613408-07c117e81c1c?w=640&q=80&auto=format&fit=crop";
+const PHOTO_CAT_COW =
+  "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=640&q=80&auto=format&fit=crop";
+
 /** Exact exercise name → photo URL (ru + en). */
 export const EXERCISE_PHOTOS: Record<string, string> = {
   // Push / chest / triceps (home)
@@ -75,26 +95,34 @@ export const EXERCISE_PHOTOS: Record<string, string> = {
   "скалолаз": "https://images.unsplash.com/photo-1476480862126-209bfaa8ebaa?w=640&q=80",
   "mountain climbers": "https://images.unsplash.com/photo-1476480862126-209bfaa8ebaa?w=640&q=80",
   // Legs
-  "приседания": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "bodyweight squats": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "выпады назад": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "reverse lunges": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "ягодичный мост": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "glute bridge": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
+  "приседания": PHOTO_SQUAT,
+  "bodyweight squats": PHOTO_SQUAT,
+  "выпады назад": PHOTO_REVERSE_LUNGE,
+  "reverse lunges": PHOTO_REVERSE_LUNGE,
+  "ягодичный мост": PHOTO_GLUTE_BRIDGE,
+  "glute bridge": PHOTO_GLUTE_BRIDGE,
+  "бёрпи": PHOTO_BURPEE,
+  "burpees": PHOTO_BURPEE,
+  "бег с высоким подниманием колена": PHOTO_HIGH_KNEES,
+  "high knees": PHOTO_HIGH_KNEES,
+  "растяжка «кошка-корова»": PHOTO_CAT_COW,
+  "cat-cow stretch": PHOTO_CAT_COW,
+  "наклон вперёд стоя": PHOTO_FORWARD_FOLD,
+  "standing forward fold": PHOTO_FORWARD_FOLD,
   "присед у стены": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
   "wall sit": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
   "подъёмы на носки": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
   "calf raises": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "боковая планка": "https://images.unsplash.com/photo-1567598508481-65985588e295?w=640&q=80",
-  "side plank": "https://images.unsplash.com/photo-1567598508481-65985588e295?w=640&q=80",
-  "выпады вперёд": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "forward lunges": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
+  "боковая планка": PHOTO_SIDE_PLANK,
+  "side plank": PHOTO_SIDE_PLANK,
+  "выпады вперёд": PHOTO_FORWARD_LUNGE,
+  "forward lunges": PHOTO_FORWARD_LUNGE,
   "присед «сумо»": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
   "sumo squats": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "выпады в сторону": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "lateral lunges": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "мостик на одной ноге": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "single-leg glute bridge": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
+  "выпады в сторону": PHOTO_FORWARD_LUNGE,
+  "lateral lunges": PHOTO_FORWARD_LUNGE,
+  "мостик на одной ноге": PHOTO_GLUTE_BRIDGE,
+  "single-leg glute bridge": PHOTO_GLUTE_BRIDGE,
   "прыжковые приседания (мягко)": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
   "soft squat jumps": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
   "скручивания «велосипед»": "https://images.unsplash.com/photo-1571019614242-c5c993715daa?w=640&q=80",
