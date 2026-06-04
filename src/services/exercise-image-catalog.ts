@@ -75,9 +75,9 @@ export const EXERCISE_PHOTOS: Record<string, string> = {
   "full burpees": "https://images.unsplash.com/photo-1476480862126-209bfaa8ebaa?w=640&q=80",
   // Pull / back
   "супермен":
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Superman_exercise.jpg/640px-Superman_exercise.jpg",
+    "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80&auto=format&fit=crop",
   "superman hold":
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Superman_exercise.jpg/640px-Superman_exercise.jpg",
+    "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80&auto=format&fit=crop",
   "вращения плечами":
     "https://images.unsplash.com/photo-1583454111551-3ef18f1c3b0e?w=640&q=80&auto=format&fit=crop",
   "shoulder circles":
@@ -205,9 +205,9 @@ export const EXERCISE_PHOTOS: Record<string, string> = {
   "negative dragon flag":
     "https://images.unsplash.com/photo-1571019614242-c5c993715daa?w=640&q=80",
   "тяга супермена":
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Superman_exercise.jpg/640px-Superman_exercise.jpg",
+    "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80&auto=format&fit=crop",
   "superman pull":
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Superman_exercise.jpg/640px-Superman_exercise.jpg",
+    "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80&auto=format&fit=crop",
   "планка «медведь»": "https://images.unsplash.com/photo-1567598508481-65985588e295?w=640&q=80",
   "bear plank": "https://images.unsplash.com/photo-1567598508481-65985588e295?w=640&q=80",
   // Gym — готовые тренировки
@@ -273,8 +273,10 @@ export const EXERCISE_PHOTOS: Record<string, string> = {
   "rear delt fly": PHOTO_SHOULDER,
   "французский жим": PHOTO_TRICEPS,
   "skull crushers": PHOTO_TRICEPS,
-  "молотковые сгибания": PHOTO_TRICEPS,
-  "hammer curls": PHOTO_TRICEPS,
+  "молотковые сгибания":
+    "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=720&q=80&auto=format&fit=crop",
+  "hammer curls":
+    "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=720&q=80&auto=format&fit=crop",
 };
 
 export function normalizeExerciseName(name: string): string {

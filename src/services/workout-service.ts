@@ -17,6 +17,11 @@ import { isPremiumActive } from "./premium-service.js";
 import { getFreeTierStatus, type FreeTierStatus } from "./free-tier-service.js";
 import { enrichWorkoutExercises } from "./exercise-images.js";
 import {
+  isWorkoutPlanStale,
+  withWorkoutPlanVersion,
+} from "./workout-plan-version.js";
+import { getHomeReadyDay } from "./home-ready-splits.js";
+import {
   attachScheduleMeta,
   buildScheduleDays,
   getSplitForDate,
@@ -94,11 +99,13 @@ async function generatePlan(
 ): Promise<WorkoutPlan> {
   const request = buildRequest(user, recent, weeklyCount, targetMuscles);
   const split = getSplitForDate(workoutDate, user.language);
+  const locale = user.language === "en" ? "en" : "ru";
+  const homeDay = getHomeReadyDay(workoutDate, locale);
   const ai = new AIWorkoutService();
   return ai.generateWorkout(request, {
     workoutDate,
     splitTitle: split.title,
-    dayKey: `home_${workoutDate}`,
+    dayKey: homeDay.dayKey,
   });
 }
 
@@ -125,6 +132,7 @@ export async function getOrCreateWorkoutForDate(
     existing &&
     (existing.plan.programType === "gym" ||
       existing.plan.difficultyLevel !== user.fitnessLevel ||
+      isWorkoutPlanStale(existing.plan) ||
       !planMatchesDaySplit(existing.plan, workoutDate, user.language));
   if (stale) {
     await deleteWorkoutByDate(telegramId, workoutDate);
@@ -155,8 +163,9 @@ export async function getOrCreateWorkoutForDate(
     ...plan,
     exercises: enrichWorkoutExercises(plan.exercises, user.gender, user.fitnessLevel),
   };
-  await saveWorkoutPlan(telegramId, workoutDate, plan);
-  return plan;
+  const versioned = withWorkoutPlanVersion(plan);
+  await saveWorkoutPlan(telegramId, workoutDate, versioned);
+  return versioned;
 }
 
 export async function getOrCreateTodayWorkout(telegramId: number): Promise<WorkoutPlan> {
@@ -199,6 +208,7 @@ export async function cleanupStaleHomeWorkouts(
     }
     if (
       row.plan.programType === "gym" ||
+      isWorkoutPlanStale(row.plan) ||
       !planMatchesDaySplit(row.plan, day.date, user.language)
     ) {
       await deleteWorkoutByDate(telegramId, day.date);
@@ -315,6 +325,7 @@ export async function getOrCreateGymWorkoutForDate(
     existing &&
     (existing.plan.programType !== "gym" ||
       existing.plan.difficultyLevel !== user.fitnessLevel ||
+      isWorkoutPlanStale(existing.plan) ||
       (expectedKey && existing.plan.gymDayKey && existing.plan.gymDayKey !== expectedKey))
   ) {
     await deleteWorkoutByDate(telegramId, workoutDate);
@@ -363,8 +374,9 @@ export async function getOrCreateGymWorkoutForDate(
     programType: "gym" as const,
     gymDayKey: slot.dayKey,
   };
-  await saveWorkoutPlan(telegramId, workoutDate, enriched);
-  return enriched;
+  const versioned = withWorkoutPlanVersion(enriched);
+  await saveWorkoutPlan(telegramId, workoutDate, versioned);
+  return versioned;
 }
 
 export async function getGymWorkoutSchedule(

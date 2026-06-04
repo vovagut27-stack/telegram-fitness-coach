@@ -4,6 +4,7 @@ import type { Gender, WorkoutExercise } from "../types";
 import { useI18n } from "../i18n/context";
 import { equipmentIcon, equipmentMessageKey } from "../utils/equipment";
 import { exerciseImageCandidates } from "../utils/exerciseImage";
+import { resolveLocalExerciseAsset } from "../utils/exerciseIllustration";
 import { repTargetsPerSet } from "../utils/repTargets";
 
 interface ExerciseCardProps {
@@ -25,10 +26,11 @@ export function ExerciseCard({
     [exercise.name, exercise.demoUrl, exercise.imageFallback, exercise.equipment, gender, exercise.instructions],
   );
   const [candidateIndex, setCandidateIndex] = useState(0);
-  const imgSrc =
+  const rawSrc =
     candidates[candidateIndex] ??
     candidates[0] ??
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
+  const imgSrc = resolveLocalExerciseAsset(rawSrc);
   const isIllustration = /\.svg(\?|$)/i.test(imgSrc);
 
   useEffect(() => {

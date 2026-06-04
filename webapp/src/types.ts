@@ -25,6 +25,7 @@ export interface WorkoutPlan {
   scheduleDate?: string;
   gymDayKey?: string;
   homeDayKey?: string;
+  planVersion?: number;
 }
 
 export interface GymProgramDay {

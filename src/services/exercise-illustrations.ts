@@ -176,7 +176,6 @@ const EXACT_SLUG: Record<string, IllustrationSlug> = {
   [normalizeExerciseName("Планка с греблей")]: "inverted-row",
   [normalizeExerciseName("Plank rows")]: "inverted-row",
   [normalizeExerciseName("Сгибания рук с полотенцем")]: "barbell-curl",
-  [normalizeExerciseName("Towel biceps curls")]: "barbell-curl",
   [normalizeExerciseName("Молитвенное сгибание с полотенцем")]: "hammer-curl",
   [normalizeExerciseName("Towel hammer curls")]: "hammer-curl",
   [normalizeExerciseName("Складной нож (v-up)")]: "hollow-body",

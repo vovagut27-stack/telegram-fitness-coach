@@ -5,6 +5,17 @@ import type { Gender } from "../types/profile.js";
 
 const ALLOWED_HOSTS = new Set(["images.unsplash.com"]);
 
+function isProxyablePhotoUrl(url: string): boolean {
+  if (url.startsWith("/")) {
+    return false;
+  }
+  try {
+    return ALLOWED_HOSTS.has(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
+
 function parseGenderParam(value: unknown): Gender | null {
   if (value === "male" || value === "female") {
     return value;
@@ -21,26 +32,18 @@ export async function exercisePhotoHandler(req: Request, res: Response): Promise
 
   const gender = parseGenderParam(req.query.gender);
   const equipment = String(req.query.equipment ?? "").trim() || undefined;
+  const catalogUrl = lookupExercisePhoto(name);
   const url =
-    lookupExercisePhoto(name) ?? resolveExerciseVisualUrl(name, gender, equipment);
+    catalogUrl && isProxyablePhotoUrl(catalogUrl)
+      ? catalogUrl
+      : resolveExerciseVisualUrl(name, gender, equipment);
 
-  if (!url) {
+  if (!url || !isProxyablePhotoUrl(url)) {
     res.status(404).json({ error: "not_found" });
     return;
   }
 
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  } catch {
-    res.status(400).json({ error: "invalid_url" });
-    return;
-  }
-
-  if (!ALLOWED_HOSTS.has(parsed.hostname)) {
-    res.status(400).json({ error: "invalid_source" });
-    return;
-  }
+  const parsed = new URL(url);
 
   try {
     const upstream = await fetch(url, {
@@ -52,7 +55,7 @@ export async function exercisePhotoHandler(req: Request, res: Response): Promise
     }
     const contentType = upstream.headers.get("content-type") ?? "image/jpeg";
     res.setHeader("Content-Type", contentType);
-    res.setHeader("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
+    res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=600");
     const body = Buffer.from(await upstream.arrayBuffer());
     res.send(body);
   } catch {

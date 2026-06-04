@@ -25,6 +25,8 @@ export interface WorkoutPlan {
   scheduleDate?: string;
   gymDayKey?: string;
   homeDayKey?: string;
+  /** Версия генератора; ниже текущей — план пересоздаётся. */
+  planVersion?: number;
 }
 
 export interface GymProgramDay {
