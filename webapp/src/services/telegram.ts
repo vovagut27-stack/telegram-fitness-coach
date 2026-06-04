@@ -101,8 +101,18 @@ export function getTelegramUserId(): number | null {
   return readUserIdFromLocationHash();
 }
 
+let cachedTelegramUserId: number | null | undefined;
+
+/** User id resolved during initTelegramWebApp (avoids second 12s wait in App). */
+export function getCachedTelegramUserId(): number | null {
+  if (cachedTelegramUserId !== undefined) {
+    return cachedTelegramUserId;
+  }
+  return getTelegramUserId();
+}
+
 /** Wait until Telegram WebApp SDK is injected (mobile can be slower than desktop). */
-export function waitForTelegramWebApp(timeoutMs = 12000): Promise<TelegramWebApp | null> {
+export function waitForTelegramWebApp(timeoutMs = 5000): Promise<TelegramWebApp | null> {
   const immediate = getTelegramWebApp();
   if (immediate) {
     return Promise.resolve(immediate);
@@ -120,18 +130,24 @@ export function waitForTelegramWebApp(timeoutMs = 12000): Promise<TelegramWebApp
         resolve(null);
         return;
       }
-      window.setTimeout(tick, 40);
+      window.setTimeout(tick, 25);
     };
     tick();
   });
 }
 
 /** Wait until Telegram WebApp SDK exposes the user (opens inside Telegram). */
-export async function waitForTelegramUserId(timeoutMs = 12000): Promise<number | null> {
+export async function waitForTelegramUserId(timeoutMs = 4000): Promise<number | null> {
+  const cached = getCachedTelegramUserId();
+  if (cached) {
+    return cached;
+  }
+
   await waitForTelegramWebApp(timeoutMs);
 
   const immediate = getTelegramUserId();
   if (immediate) {
+    cachedTelegramUserId = immediate;
     return immediate;
   }
 
@@ -140,14 +156,16 @@ export async function waitForTelegramUserId(timeoutMs = 12000): Promise<number |
     const tick = (): void => {
       const id = getTelegramUserId();
       if (id) {
+        cachedTelegramUserId = id;
         resolve(id);
         return;
       }
       if (Date.now() - started >= timeoutMs) {
+        cachedTelegramUserId = null;
         resolve(null);
         return;
       }
-      window.setTimeout(tick, 50);
+      window.setTimeout(tick, 30);
     };
     tick();
   });
@@ -218,10 +236,17 @@ function applyMobileLayout(tg: TelegramWebApp): void {
   }
 
   if (isTelegramMobile() && typeof tg.requestFullscreen === "function") {
-    try {
-      tg.requestFullscreen();
-    } catch {
-      // optional Bot API 8+
+    const runFullscreen = (): void => {
+      try {
+        tg.requestFullscreen?.();
+      } catch {
+        // optional Bot API 8+
+      }
+    };
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(runFullscreen, { timeout: 800 });
+    } else {
+      window.setTimeout(runFullscreen, 120);
     }
   }
 }
@@ -230,10 +255,12 @@ function applyMobileLayout(tg: TelegramWebApp): void {
 export async function initTelegramWebApp(): Promise<void> {
   const tg = await waitForTelegramWebApp();
   if (!tg) {
+    cachedTelegramUserId = getTelegramUserId();
     return;
   }
 
   tg.ready?.();
+  cachedTelegramUserId = getTelegramUserId();
   applyTelegramTheme(tg);
   applyMobileLayout(tg);
 }

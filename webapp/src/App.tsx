@@ -1,14 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
-import { WorkoutPlayer } from "./components/WorkoutPlayer";
-import { ProfileForm } from "./components/ProfileForm";
-import { GymProgramView } from "./components/GymProgramView";
-import { PremiumPanel } from "./components/PremiumPanel";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { ScheduleList } from "./components/ScheduleList";
-import { ResultsView } from "./components/ResultsView";
 import { FreeLimitBanner } from "./components/FreeLimitBanner";
 import { PremiumInsightsCard } from "./components/PremiumInsightsCard";
+import { LanguageSwitcher } from "./components/LanguageSwitcher";
 import { getApiBase, probeApiHealth } from "./config";
 import {
+  getCachedTelegramUserId,
   getWorkoutDateFromUrl,
   requireTelegramUserId,
   waitForTelegramUserId,
@@ -27,10 +24,30 @@ import {
 import type { ExerciseLog, GymProgram, TabId, UserProfile, WorkoutPlan } from "./types";
 import { useI18n } from "./i18n/context";
 import { levelLabel } from "./i18n/levels";
-import { LanguageSwitcher } from "./components/LanguageSwitcher";
+
+const WorkoutPlayer = lazy(() =>
+  import("./components/WorkoutPlayer").then((m) => ({ default: m.WorkoutPlayer })),
+);
+const ProfileForm = lazy(() =>
+  import("./components/ProfileForm").then((m) => ({ default: m.ProfileForm })),
+);
+const GymProgramView = lazy(() =>
+  import("./components/GymProgramView").then((m) => ({ default: m.GymProgramView })),
+);
+const PremiumPanel = lazy(() =>
+  import("./components/PremiumPanel").then((m) => ({ default: m.PremiumPanel })),
+);
+const ResultsView = lazy(() =>
+  import("./components/ResultsView").then((m) => ({ default: m.ResultsView })),
+);
+
+function TabFallback() {
+  const { tr } = useI18n();
+  return <p className="muted center">{tr("loading")}</p>;
+}
 
 function App() {
-  const { tr, locale } = useI18n();
+  const { tr, locale, applyLocaleFromProfile } = useI18n();
   const [telegramId, setTelegramId] = useState<number | null>(null);
   const [tab, setTab] = useState<TabId>("home");
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -47,9 +64,10 @@ function App() {
 
   const loadProfile = useCallback(async () => {
     const p = await fetchProfile(requireTelegramUserId());
+    applyLocaleFromProfile(p.language);
     setProfile(p);
     return p;
-  }, []);
+  }, [applyLocaleFromProfile]);
 
   const loadSchedule = useCallback(async () => {
     const id = requireTelegramUserId();
@@ -68,31 +86,22 @@ function App() {
   useEffect(() => {
     let cancelled = false;
 
-    void waitForTelegramUserId().then((id) => {
-      if (cancelled) {
-        return;
-      }
-      setTelegramId(id);
-      if (!id) {
-        setLoading(false);
-        setError(tr("open_in_telegram"));
-        return;
-      }
-      void probeApiHealth().then((ok) => {
-        if (!ok && !cancelled) {
-          setError(tr("network_error"));
-        }
-      });
-      loadProfile()
+    const bootstrap = (id: number): void => {
+      void loadProfile()
         .then((p) =>
           Promise.all([
-            fetchSchedule(requireTelegramUserId(), p.isPremium ? 14 : 7).then((data) => {
-              setSchedule(data.days);
+            fetchSchedule(id, p.isPremium ? 14 : 7).then((data) => {
+              if (!cancelled) {
+                setSchedule(Array.isArray(data.days) ? data.days : []);
+              }
             }),
             loadUserStats(),
           ]),
         )
         .catch((err) => {
+          if (cancelled) {
+            return;
+          }
           if (err instanceof TypeError) {
             setError(`${tr("network_error")} (${getApiBase()})`);
           } else {
@@ -104,12 +113,40 @@ function App() {
             setLoading(false);
           }
         });
+
+      void probeApiHealth(5000).then((ok) => {
+        if (!ok && !cancelled) {
+          setError((prev) => prev ?? tr("network_error"));
+        }
+      });
+    };
+
+    const cachedId = getCachedTelegramUserId();
+    if (cachedId) {
+      setTelegramId(cachedId);
+      bootstrap(cachedId);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    void waitForTelegramUserId(3500).then((id) => {
+      if (cancelled) {
+        return;
+      }
+      setTelegramId(id);
+      if (!id) {
+        setLoading(false);
+        setError(tr("open_in_telegram"));
+        return;
+      }
+      bootstrap(id);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [loadProfile, loadSchedule, loadUserStats, tr]);
+  }, [loadProfile, loadUserStats, tr]);
 
   useEffect(() => {
     const preset = getWorkoutDateFromUrl();
@@ -388,61 +425,71 @@ function App() {
               </button>
             </section>
           ) : (
-            <WorkoutPlayer
-              workout={workout}
-              gender={profile?.gender}
-              restPreset={profile?.restPreset}
-              onComplete={(logs) => handleCompleteSafe(logs)}
-              onGoHome={goHomeAfterWorkout}
-            />
+            <Suspense fallback={<TabFallback />}>
+              <WorkoutPlayer
+                workout={workout}
+                gender={profile?.gender}
+                restPreset={profile?.restPreset}
+                onComplete={(logs) => handleCompleteSafe(logs)}
+                onGoHome={goHomeAfterWorkout}
+              />
+            </Suspense>
           )
         ) : null}
 
         {tab === "gym" && gym ? (
-          <GymProgramView
-            program={gym}
-            schedule={gymSchedule}
-            gender={profile?.gender}
-            onScheduleRefresh={() => void loadGymSchedule()}
-            onCompleteWorkout={(logs, date) => handleCompleteSafe(logs, date, true)}
-          />
+          <Suspense fallback={<TabFallback />}>
+            <GymProgramView
+              program={gym}
+              schedule={gymSchedule}
+              gender={profile?.gender}
+              onScheduleRefresh={() => void loadGymSchedule()}
+              onCompleteWorkout={(logs, date) => handleCompleteSafe(logs, date, true)}
+            />
+          </Suspense>
         ) : null}
 
         {tab === "results" ? (
-          <ResultsView
-            key={resultsRefreshKey}
-            isPremium={Boolean(profile?.isPremium)}
-            showGymFilter={Boolean(profile?.isPremium)}
-            onUpgrade={() => setTab("premium")}
-            onSaved={() => {
-              refreshAfterWorkout();
-              void loadProfile();
-            }}
-          />
+          <Suspense fallback={<TabFallback />}>
+            <ResultsView
+              key={resultsRefreshKey}
+              isPremium={Boolean(profile?.isPremium)}
+              showGymFilter={Boolean(profile?.isPremium)}
+              onUpgrade={() => setTab("premium")}
+              onSaved={() => {
+                refreshAfterWorkout();
+                void loadProfile();
+              }}
+            />
+          </Suspense>
         ) : null}
 
         {tab === "profile" && profile ? (
-          <ProfileForm
-            profile={profile}
-            onSaved={(p) => {
-              setProfile(p);
-              void loadSchedule();
-            }}
-          />
+          <Suspense fallback={<TabFallback />}>
+            <ProfileForm
+              profile={profile}
+              onSaved={(p) => {
+                setProfile(p);
+                void loadSchedule();
+              }}
+            />
+          </Suspense>
         ) : null}
 
         {tab === "premium" && profile ? (
-          <PremiumPanel
-            profile={profile}
-            onPaid={() => {
-              void loadProfile().then((p) => {
-                setProfile(p);
-                if (p.isPremium) {
-                  void loadGym();
-                }
-              });
-            }}
-          />
+          <Suspense fallback={<TabFallback />}>
+            <PremiumPanel
+              profile={profile}
+              onPaid={() => {
+                void loadProfile().then((p) => {
+                  setProfile(p);
+                  if (p.isPremium) {
+                    void loadGym();
+                  }
+                });
+              }}
+            />
+          </Suspense>
         ) : null}
       </main>
 

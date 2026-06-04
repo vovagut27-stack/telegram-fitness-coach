@@ -1,28 +1,29 @@
 import type { Gender } from "../types/profile.js";
 import type { FitnessLevel, WorkoutExercise } from "../types/workout.js";
 import { applyExerciseRest } from "./exercise-rest.js";
+import { lookupExercisePhoto } from "./exercise-image-catalog.js";
 import { illustrationAssetPath } from "./exercise-illustrations.js";
-import {
-  resolveExerciseVisualUrl,
-  resolveMovementFallbackUrl,
-} from "./exercise-visual-catalog.js";
+import { resolveExerciseVisualUrl } from "./exercise-visual-catalog.js";
 
-/** Primary image — local SVG on webapp origin (works in Telegram WebView). */
+/** Основное фото / иллюстрация с человеком (wger, Pexels, Unsplash). */
 export function resolveExerciseImageUrl(
   name: string,
-  _gender?: Gender | null,
-  _equipment?: string,
+  gender?: Gender | null,
+  equipment?: string,
 ): string {
-  return illustrationAssetPath(name);
+  return (
+    lookupExercisePhoto(name) ??
+    resolveExerciseVisualUrl(name, gender, equipment)
+  );
 }
 
-/** Optional second URL (wger / pexels) if primary fails in client. */
+/** Запас — схема SVG на своём домене, если CDN не открылся. */
 export function resolveExerciseImageAltUrl(
   name: string,
   gender?: Gender | null,
   equipment?: string,
 ): string {
-  return resolveExerciseVisualUrl(name, gender, equipment);
+  return illustrationAssetPath(name);
 }
 
 export function enrichExerciseImage(

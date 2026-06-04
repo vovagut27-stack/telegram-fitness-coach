@@ -1,7 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { getTelegramUserId, waitForTelegramUserId } from "../services/telegram";
-import { getApiBase } from "../config";
+import { getTelegramUserId } from "../services/telegram";
 import {
   loadStoredLocale,
   saveStoredLocale,
@@ -9,33 +8,30 @@ import {
   type Locale,
   type MessageKey,
 } from "./index";
+import { getApiBase } from "../config";
 
 interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
+  applyLocaleFromProfile: (language?: string) => void;
   tr: (key: MessageKey, vars?: Record<string, string | number>) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
+function parseLocale(raw: string | undefined): Locale | null {
+  return raw === "en" || raw === "ru" ? raw : null;
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(loadStoredLocale);
 
-  useEffect(() => {
-    void waitForTelegramUserId().then((telegramId) => {
-      if (!telegramId) {
-        return;
-      }
-      fetch(`${getApiBase()}/user/settings?telegramId=${telegramId}`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data: { language?: string } | null) => {
-          if (data?.language === "en" || data?.language === "ru") {
-            setLocaleState(data.language);
-            saveStoredLocale(data.language);
-          }
-        })
-        .catch(() => undefined);
-    });
+  const applyLocaleFromProfile = useCallback((language: string | undefined) => {
+    const next = parseLocale(language);
+    if (next) {
+      setLocaleState(next);
+      saveStoredLocale(next);
+    }
   }, []);
 
   const setLocale = useCallback((next: Locale) => {
@@ -56,9 +52,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     () => ({
       locale,
       setLocale,
+      applyLocaleFromProfile,
       tr: (key, vars) => t(locale, key, vars),
     }),
-    [locale, setLocale],
+    [locale, setLocale, applyLocaleFromProfile],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

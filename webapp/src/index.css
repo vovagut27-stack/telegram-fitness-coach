@@ -104,6 +104,38 @@ html.telegram-mobile body {
   font-weight: 600;
 }
 
+.boot-splash .boot-splash-text {
+  margin: 0.5rem 0 1rem;
+  font-size: 0.85rem;
+}
+
+.skeleton-card {
+  min-height: 5.5rem;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(
+    90deg,
+    var(--surface) 0%,
+    var(--surface2) 50%,
+    var(--surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s ease-in-out infinite;
+}
+
+.skeleton-card.short {
+  min-height: 3rem;
+  width: 70%;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
 .top-bar h1 {
   margin: 0;
   font-size: 1.5rem;
@@ -279,6 +311,12 @@ button:disabled {
   background: linear-gradient(135deg, #dbeafe 0%, #ecfdf5 50%, #f8fafc 100%);
   border: 1px solid #e2e8f0;
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1);
+}
+
+.exercise-img.exercise-img-photo {
+  object-fit: cover;
+  background: #f1f5f9;
+  min-height: 180px;
 }
 
 .exercise-card.gym-mode .exercise-img {

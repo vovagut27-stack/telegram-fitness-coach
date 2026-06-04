@@ -80,14 +80,22 @@ export async function loadApiConfig(): Promise<string> {
     return resolvedBase;
   }
 
+  const dev = fromEnvDevOnly();
+  if (dev) {
+    resolvedBase = dev;
+    return resolvedBase;
+  }
+
   const same = sameOriginApi();
   if (same) {
+    // Production Mini App on Vercel: /api proxy — skip extra app-config round-trip.
     resolvedBase = same;
+    return resolvedBase;
   }
 
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}app-config.json`, {
-      cache: "no-store",
+      cache: "force-cache",
     });
     if (res.ok) {
       const data = (await res.json()) as { apiBase?: string };
@@ -99,11 +107,6 @@ export async function loadApiConfig(): Promise<string> {
     // ignore
   }
 
-  const dev = fromEnvDevOnly();
-  if (dev) {
-    resolvedBase = dev;
-  }
-
   if (!resolvedBase) {
     resolvedBase = resolveApiBase();
   }
@@ -111,11 +114,11 @@ export async function loadApiConfig(): Promise<string> {
   return resolvedBase;
 }
 
-export async function probeApiHealth(): Promise<boolean> {
+export async function probeApiHealth(timeoutMs = 6000): Promise<boolean> {
   try {
     const res = await fetch(`${getApiBase()}/health`, {
       cache: "no-store",
-      signal: abortSignalTimeout(20_000),
+      signal: abortSignalTimeout(timeoutMs),
     });
     if (!res.ok) {
       return false;

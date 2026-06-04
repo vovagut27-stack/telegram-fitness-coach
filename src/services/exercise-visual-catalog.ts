@@ -128,11 +128,13 @@ export function resolveMovementKey(name: string, equipment?: string): MovementKe
   return "default";
 }
 
+/** Реальные фото / понятные позы (как в референсах), не схематичные SVG. */
 function pickVisual(movement: MovementKey, gender: Gender | null | undefined): string {
   if (gender === "female") {
     return FEMALE[movement] ?? FEMALE.default;
   }
-  return WGER[movement] ?? WGER.default;
+  const photo = FALLBACK_MALE[movement] ?? FALLBACK_MALE.default;
+  return photo;
 }
 
 const EXACT_WGER: Record<string, MovementKey> = {
@@ -182,6 +184,28 @@ const EXACT_WGER: Record<string, MovementKey> = {
   [normalizeExerciseName("Plank hold")]: "plank",
   [normalizeExerciseName("Отжимания от пола")]: "push",
   [normalizeExerciseName("Standard push-ups")]: "push",
+  [normalizeExerciseName("Отжимания с колен")]: "push",
+  [normalizeExerciseName("Knee push-ups")]: "push",
+  [normalizeExerciseName("Бёрпи")]: "cardio",
+  [normalizeExerciseName("Burpees")]: "cardio",
+  [normalizeExerciseName("Прыжки с разведением рук")]: "cardio",
+  [normalizeExerciseName("Jumping jacks")]: "cardio",
+  [normalizeExerciseName("Приседания")]: "squat",
+  [normalizeExerciseName("Bodyweight squats")]: "squat",
+  [normalizeExerciseName("Выпады назад")]: "lunge",
+  [normalizeExerciseName("Reverse lunges")]: "lunge",
+  [normalizeExerciseName("Выпады вперёд")]: "lunge",
+  [normalizeExerciseName("Forward lunges")]: "lunge",
+  [normalizeExerciseName("Бег с высоким подниманием колена")]: "cardio",
+  [normalizeExerciseName("High knees")]: "cardio",
+  [normalizeExerciseName("Ягодичный мост")]: "bridge",
+  [normalizeExerciseName("Glute bridge")]: "bridge",
+  [normalizeExerciseName("Супермен")]: "bridge",
+  [normalizeExerciseName("Superman hold")]: "bridge",
+  [normalizeExerciseName("Птица-собака")]: "core",
+  [normalizeExerciseName("Bird-dog")]: "core",
+  [normalizeExerciseName("Скручивания на пресс")]: "core",
+  [normalizeExerciseName("Crunches")]: "core",
 };
 
 export function resolveMovementFallbackUrl(

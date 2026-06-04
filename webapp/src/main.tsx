@@ -1,11 +1,13 @@
-import { StrictMode } from "react";
+import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { I18nProvider } from "./i18n/context";
+import { AppBootSplash } from "./components/AppBootSplash";
 import { loadApiConfig } from "./config";
 import { initTelegramWebApp, reloadMiniApp } from "./services/telegram";
+
+const App = lazy(() => import("./App.tsx"));
 
 const container = document.getElementById("root");
 if (!container) {
@@ -18,7 +20,9 @@ function renderApp(): void {
   const tree = (
     <ErrorBoundary>
       <I18nProvider>
-        <App />
+        <Suspense fallback={<AppBootSplash />}>
+          <App />
+        </Suspense>
       </I18nProvider>
     </ErrorBoundary>
   );
@@ -37,16 +41,16 @@ function renderBootError(message: string): void {
   );
 }
 
-root.render(<p className="muted center" style={{ padding: "2rem" }}>Загрузка…</p>);
+root.render(<AppBootSplash />);
 
-void loadApiConfig()
-  .then(() => initTelegramWebApp())
-  .then(() => {
+void (async () => {
+  try {
+    await Promise.all([loadApiConfig(), initTelegramWebApp()]);
     renderApp();
-  })
-  .catch((err: unknown) => {
+  } catch (err: unknown) {
     console.error("Boot failed:", err);
     const msg =
       err instanceof Error ? err.message : "Не удалось загрузить конфигурацию приложения.";
     renderBootError(msg);
-  });
+  }
+})();

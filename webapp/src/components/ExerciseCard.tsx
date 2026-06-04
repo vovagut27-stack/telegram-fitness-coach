@@ -21,7 +21,7 @@ export function ExerciseCard({
   const { tr } = useI18n();
   const candidates = useMemo(
     () => exerciseImageCandidates(exercise, gender),
-    [exercise.name, exercise.demoUrl, exercise.imageFallback, exercise.equipment, gender],
+    [exercise.name, exercise.demoUrl, exercise.imageFallback, exercise.equipment, gender, exercise.instructions],
   );
   const [candidateIndex, setCandidateIndex] = useState(0);
   const imgSrc =
@@ -40,11 +40,12 @@ export function ExerciseCard({
   return (
     <article className={`exercise-card ${gymMode ? "gym-mode" : ""}`}>
       <img
-        className="exercise-img"
+        className="exercise-img exercise-img-photo"
         src={imgSrc}
         alt={exercise.name}
         loading="lazy"
         decoding="async"
+        referrerPolicy="no-referrer"
         onError={() => {
           setCandidateIndex((i) => {
             if (i + 1 < candidates.length) {
