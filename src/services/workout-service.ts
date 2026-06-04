@@ -36,6 +36,7 @@ export async function ensureDefaultUser(telegramId: number): Promise<void> {
     isPremium: false,
     premiumUntil: null,
     language: DEFAULT_LOCALE,
+    languageChosen: false,
     gender: null,
     age: null,
     weightKg: null,

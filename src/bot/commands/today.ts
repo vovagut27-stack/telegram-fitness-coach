@@ -6,6 +6,7 @@ import { isoDateOnly } from "../../services/schedule-service.js";
 import { getOrCreateWorkoutForDate } from "../../services/workout-service.js";
 import { buildMainKeyboard } from "../keyboards/main.js";
 import { getUserLocale } from "./start.js";
+import { ensureLanguageChosen } from "./language.js";
 
 function webAppUrlForDate(date: string): string | null {
   const base = env.WEBAPP_URL?.replace(/\/+$/, "");
@@ -18,6 +19,9 @@ function webAppUrlForDate(date: string): string | null {
 export async function todayCommand(ctx: Context): Promise<void> {
   const telegramId = ctx.from?.id;
   if (!telegramId) {
+    return;
+  }
+  if (!(await ensureLanguageChosen(ctx))) {
     return;
   }
   const locale = await getUserLocale(telegramId);

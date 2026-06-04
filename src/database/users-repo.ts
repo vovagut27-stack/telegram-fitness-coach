@@ -19,6 +19,7 @@ export interface UserProfile {
   isPremium: boolean;
   premiumUntil: string | null;
   language: Locale;
+  languageChosen: boolean;
   gender: Gender | null;
   age: number | null;
   weightKg: number | null;
@@ -33,7 +34,7 @@ export interface UserProfile {
 
 const USER_COLUMNS = `
   telegram_id, fitness_level, available_equipment, goals, time_per_session,
-  is_premium, premium_until, language, gender, age, weight_kg, height_cm,
+  is_premium, premium_until, language, language_chosen, gender, age, weight_kg, height_cm,
   training_mode, profile_complete, reminders_enabled, reminder_hour, timezone_offset_minutes,
   rest_preset
 `;
@@ -48,6 +49,7 @@ function mapRow(row: Record<string, unknown>): UserProfile {
     isPremium: Boolean(row.is_premium),
     premiumUntil: row.premium_until ? String(row.premium_until) : null,
     language: parseLocale(row.language),
+    languageChosen: Boolean(row.language_chosen ?? true),
     gender: parseGender(row.gender),
     age: row.age != null ? Number(row.age) : null,
     weightKg: row.weight_kg != null ? Number(row.weight_kg) : null,
@@ -129,11 +131,11 @@ export async function ensureUserRow(telegramId: number): Promise<void> {
     `
       INSERT INTO users (
         telegram_id, fitness_level, available_equipment, goals, time_per_session,
-        language, training_mode, profile_complete, is_premium
+        language, language_chosen, training_mode, profile_complete, is_premium
       )
       VALUES (
         $1::bigint, 'beginner', ARRAY['bodyweight', 'home']::text[], ARRAY['strength']::text[],
-        45, 'ru', 'home', FALSE, FALSE
+        45, 'ru', FALSE, 'home', FALSE, FALSE
       )
       ON CONFLICT (telegram_id) DO NOTHING
     `,
@@ -161,6 +163,7 @@ export async function updateUserProfile(
     isPremium: false,
     premiumUntil: null,
     language: DEFAULT_LOCALE,
+    languageChosen: false,
     gender: null,
     age: null,
     weightKg: null,
@@ -217,6 +220,7 @@ export async function updateUserProfile(
         height_cm = EXCLUDED.height_cm,
         fitness_level = EXCLUDED.fitness_level,
         language = EXCLUDED.language,
+        language_chosen = CASE WHEN $11::boolean THEN TRUE ELSE users.language_chosen END,
         goals = EXCLUDED.goals,
         time_per_session = EXCLUDED.time_per_session,
         training_mode = 'home',
@@ -235,6 +239,7 @@ export async function updateUserProfile(
       timePerSession,
       heightCm,
       profileComplete,
+      patch.language !== undefined,
     ],
   );
 
@@ -281,7 +286,15 @@ export async function setUserFitnessLevel(
 }
 
 export async function setUserLanguage(telegramId: number, language: Locale): Promise<void> {
-  await updateUserProfile(telegramId, { language });
+  await ensureUserRow(telegramId);
+  await db.query(
+    `UPDATE users SET language = $2, language_chosen = TRUE WHERE telegram_id = $1::bigint`,
+    [String(telegramId), language],
+  );
+}
+
+export function userNeedsLanguagePick(user: UserProfile | null): boolean {
+  return Boolean(user && !user.languageChosen);
 }
 
 export async function updateUserSettings(
@@ -353,6 +366,7 @@ export async function upgradePremium(telegramId: number, days: number): Promise<
       isPremium: true,
       premiumUntil: null,
       language: DEFAULT_LOCALE,
+      languageChosen: false,
       gender: null,
       age: null,
       weightKg: null,

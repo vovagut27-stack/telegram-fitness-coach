@@ -45,6 +45,9 @@ export const en = {
   bot_settings_reminders_on: "Reminders: on · {hour}:00",
   bot_settings_reminders_off: "Reminders: off",
   bot_settings_hint: "Turn on reminders and pick an hour in the Mini App profile.",
+  bot_settings_language_hint: "Language: /language",
+  bot_language_saved: "✅ Language saved. Open the app — the UI will update.",
+  bot_language_change: "Choose your language:",
   report_prompt:
     "🐛 <b>Report a bug</b>\n\nDescribe the issue in your next message, or send a screenshot.\n\nOr at once: <code>/report your message</code>\nCancel: /cancel",
   report_sent: "✅ Thanks! Your report was sent to the developer.",

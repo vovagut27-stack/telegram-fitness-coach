@@ -45,6 +45,9 @@ export const ru = {
   bot_settings_reminders_on: "Напоминания: вкл · {hour}:00",
   bot_settings_reminders_off: "Напоминания: вык",
   bot_settings_hint: "Включи напоминания и час в профиле Mini App.",
+  bot_settings_language_hint: "Язык: /language",
+  bot_language_saved: "✅ Язык сохранён. Открой приложение — интерфейс обновится.",
+  bot_language_change: "Выбери язык / Choose language:",
   report_prompt:
     "🐛 <b>Сообщить об ошибке</b>\n\nОпиши проблему одним сообщением или отправь скриншот.\n\nМожно сразу: <code>/report текст ошибки</code>\nОтмена: /cancel",
   report_sent: "✅ Спасибо! Сообщение отправлено разработчику.",

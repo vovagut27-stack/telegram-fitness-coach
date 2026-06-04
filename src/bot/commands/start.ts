@@ -3,7 +3,8 @@ import { buildMainKeyboard } from "../keyboards/main.js";
 import { t } from "../../i18n/index.js";
 import { DEFAULT_LOCALE } from "../../types/locale.js";
 import { ensureDefaultUser } from "../../services/workout-service.js";
-import { getUser } from "../../database/users-repo.js";
+import { getUser, userNeedsLanguagePick } from "../../database/users-repo.js";
+import { promptChooseLanguage } from "./language.js";
 
 export async function startCommand(ctx: Context): Promise<void> {
   const telegramId = ctx.from?.id;
@@ -13,6 +14,10 @@ export async function startCommand(ctx: Context): Promise<void> {
   try {
     await ensureDefaultUser(telegramId);
     const user = await getUser(telegramId);
+    if (userNeedsLanguagePick(user)) {
+      await promptChooseLanguage(ctx);
+      return;
+    }
     const locale = user?.language ?? DEFAULT_LOCALE;
     await ctx.reply(t(locale, "bot_start_short"), buildMainKeyboard(locale));
   } catch (err) {

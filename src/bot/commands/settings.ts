@@ -3,10 +3,14 @@ import { t } from "../../i18n/index.js";
 import { getUser } from "../../database/users-repo.js";
 import { buildMainKeyboard } from "../keyboards/main.js";
 import { getUserLocale } from "./start.js";
+import { ensureLanguageChosen } from "./language.js";
 
 export async function settingsCommand(ctx: Context): Promise<void> {
   const telegramId = ctx.from?.id;
   if (!telegramId) {
+    return;
+  }
+  if (!(await ensureLanguageChosen(ctx))) {
     return;
   }
   const locale = await getUserLocale(telegramId);
@@ -17,6 +21,6 @@ export async function settingsCommand(ctx: Context): Promise<void> {
   } else {
     lines.push(t(locale, "bot_settings_reminders_off"));
   }
-  lines.push("", t(locale, "bot_settings_hint"));
+  lines.push("", t(locale, "bot_settings_hint"), t(locale, "bot_settings_language_hint"));
   await ctx.reply(lines.join("\n"), buildMainKeyboard(locale));
 }

@@ -21,6 +21,13 @@ import {
 import { todayCommand } from "./commands/today.js";
 import { statsCommand } from "./commands/stats.js";
 import { settingsCommand } from "./commands/settings.js";
+import {
+  ensureLanguageChosen,
+  LANG_PICK_EN,
+  LANG_PICK_RU,
+  languageCommand,
+  languagePickAction,
+} from "./commands/language.js";
 import { setupReportHandlers } from "./commands/report.js";
 import { setupTelegramMenuButton } from "./telegram-mini-app-setup.js";
 import { ensureDefaultUser } from "../services/workout-service.js";
@@ -69,9 +76,22 @@ bot.command("stats", statsCommand);
 
 bot.command("settings", settingsCommand);
 
+bot.command("language", languageCommand);
+
+bot.action(LANG_PICK_RU, async (ctx) => {
+  await languagePickAction(ctx, "ru");
+});
+
+bot.action(LANG_PICK_EN, async (ctx) => {
+  await languagePickAction(ctx, "en");
+});
+
 bot.command("plan", async (ctx) => {
   const telegramId = ctx.from?.id;
   if (!telegramId) {
+    return;
+  }
+  if (!(await ensureLanguageChosen(ctx))) {
     return;
   }
   const locale = await getUserLocale(telegramId);
@@ -82,6 +102,9 @@ bot.command("plan", async (ctx) => {
 bot.action("show_plan", async (ctx) => {
   const telegramId = ctx.from?.id;
   if (!telegramId) {
+    return;
+  }
+  if (!(await ensureLanguageChosen(ctx))) {
     return;
   }
   const locale = await getUserLocale(telegramId);

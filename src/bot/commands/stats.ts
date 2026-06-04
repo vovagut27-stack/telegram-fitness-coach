@@ -3,6 +3,7 @@ import { t } from "../../i18n/index.js";
 import { getUserStats } from "../../services/results-service.js";
 import { buildMainKeyboard } from "../keyboards/main.js";
 import { getUserLocale } from "./start.js";
+import { ensureLanguageChosen } from "./language.js";
 
 function weightTrendLine(
   locale: "ru" | "en",
@@ -25,6 +26,9 @@ function weightTrendLine(
 export async function statsCommand(ctx: Context): Promise<void> {
   const telegramId = ctx.from?.id;
   if (!telegramId) {
+    return;
+  }
+  if (!(await ensureLanguageChosen(ctx))) {
     return;
   }
   const locale = await getUserLocale(telegramId);
