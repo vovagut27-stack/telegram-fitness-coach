@@ -22,6 +22,8 @@ const envSchema = z.object({
   PREMIUM_DAYS: z.coerce.number().default(30),
   /** Comma-separated Telegram user IDs allowed to use /devpremium toggle */
   ADMIN_TELEGRAM_IDS: z.string().default(""),
+  /** Comma-separated IDs to receive /report messages (falls back to ADMIN_TELEGRAM_IDS) */
+  REPORT_TELEGRAM_IDS: z.string().default(""),
   /** Secret word: /devpremium <secret> — test Premium without admin ID */
   DEV_PREMIUM_SECRET: z.string().default(""),
   /** Bearer token for Vercel Cron → GET /api/cron/reminders */

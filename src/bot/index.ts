@@ -21,6 +21,7 @@ import {
 import { todayCommand } from "./commands/today.js";
 import { statsCommand } from "./commands/stats.js";
 import { settingsCommand } from "./commands/settings.js";
+import { setupReportHandlers } from "./commands/report.js";
 import { ensureDefaultUser } from "../services/workout-service.js";
 import { isPremiumActive } from "../services/premium-service.js";
 
@@ -112,6 +113,8 @@ bot.command("premium", async (ctx) => {
 });
 
 bot.command("resetdata", resetDataCommand);
+
+setupReportHandlers(bot);
 
 bot.action(RESET_DATA_CONFIRM, resetDataConfirmAction);
 bot.action(RESET_DATA_CANCEL, resetDataCancelAction);

@@ -45,4 +45,12 @@ export const en = {
   bot_settings_reminders_on: "Reminders: on · {hour}:00",
   bot_settings_reminders_off: "Reminders: off",
   bot_settings_hint: "Turn on reminders and pick an hour in the Mini App profile.",
+  report_prompt:
+    "🐛 <b>Report a bug</b>\n\nDescribe the issue in your next message, or send a screenshot.\n\nOr at once: <code>/report your message</code>\nCancel: /cancel",
+  report_sent: "✅ Thanks! Your report was sent to the developer.",
+  report_empty: "Describe what went wrong, or cancel with /cancel",
+  report_cancelled: "Report cancelled.",
+  report_not_configured: "Reports are temporarily unavailable. Try again later.",
+  report_send_failed: "Could not send. Please try again in a minute.",
+  report_photo_no_caption: "(screenshot without caption)",
 } as const;

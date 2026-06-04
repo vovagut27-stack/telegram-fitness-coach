@@ -45,4 +45,12 @@ export const ru = {
   bot_settings_reminders_on: "Напоминания: вкл · {hour}:00",
   bot_settings_reminders_off: "Напоминания: вык",
   bot_settings_hint: "Включи напоминания и час в профиле Mini App.",
+  report_prompt:
+    "🐛 <b>Сообщить об ошибке</b>\n\nОпиши проблему одним сообщением или отправь скриншот.\n\nМожно сразу: <code>/report текст ошибки</code>\nОтмена: /cancel",
+  report_sent: "✅ Спасибо! Сообщение отправлено разработчику.",
+  report_empty: "Напиши, что именно сломалось, или отмени: /cancel",
+  report_cancelled: "Отправка отменена.",
+  report_not_configured: "Репорты временно недоступны. Попробуй позже.",
+  report_send_failed: "Не удалось отправить. Попробуй ещё раз через минуту.",
+  report_photo_no_caption: "(скриншот без подписи)",
 } as const;
