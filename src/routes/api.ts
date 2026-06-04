@@ -208,8 +208,8 @@ apiRouter.get("/workout/schedule", async (req, res) => {
     const cap = maxScheduleDays(Boolean(user && isPremiumActive(user)));
     const requested = Math.max(1, Number(req.query.days) || cap);
     const days = Math.min(cap, requested);
-    const schedule = await getWorkoutSchedule(telegramId, days);
-    return res.json({ days, maxDays: cap });
+    const scheduleDays = await getWorkoutSchedule(telegramId, days);
+    return res.json({ days: scheduleDays, maxDays: cap });
   } catch (err) {
     console.error("GET /workout/schedule failed:", err);
     return res.status(500).json({ error: "Failed to load schedule" });

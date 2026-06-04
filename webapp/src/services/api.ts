@@ -111,6 +111,13 @@ export async function saveUserSettings(
   return res.json() as Promise<UserProfile>;
 }
 
+function normalizeScheduleDays(raw: unknown): ScheduleDayItem[] {
+  if (Array.isArray(raw)) {
+    return raw as ScheduleDayItem[];
+  }
+  return [];
+}
+
 export async function fetchSchedule(
   telegramId: number,
   days = 7,
@@ -119,7 +126,11 @@ export async function fetchSchedule(
   if (!res.ok) {
     throw await parseError(res);
   }
-  return res.json() as Promise<{ days: ScheduleDayItem[]; maxDays: number }>;
+  const data = (await res.json()) as { days?: unknown; maxDays?: number };
+  return {
+    days: normalizeScheduleDays(data.days),
+    maxDays: typeof data.maxDays === "number" ? data.maxDays : days,
+  };
 }
 
 export interface PersonalRecord {
@@ -152,7 +163,11 @@ export async function fetchPremiumInsights(telegramId: number): Promise<PremiumI
   if (!res.ok) {
     throw await parseError(res);
   }
-  return res.json() as Promise<PremiumInsights>;
+  const data = (await res.json()) as PremiumInsights;
+  return {
+    ...data,
+    weeklyVolume: Array.isArray(data.weeklyVolume) ? data.weeklyVolume : [],
+  };
 }
 
 export async function fetchPersonalRecords(telegramId: number): Promise<PersonalRecord[]> {
@@ -160,8 +175,8 @@ export async function fetchPersonalRecords(telegramId: number): Promise<Personal
   if (!res.ok) {
     throw await parseError(res);
   }
-  const data = (await res.json()) as { records: PersonalRecord[] };
-  return data.records;
+  const data = (await res.json()) as { records?: unknown };
+  return Array.isArray(data.records) ? (data.records as PersonalRecord[]) : [];
 }
 
 export async function fetchWorkoutByDate(
@@ -287,7 +302,23 @@ export async function fetchWorkoutResults(
   if (!res.ok) {
     throw await parseError(res);
   }
-  return res.json() as Promise<{ results: WorkoutResultDay[]; comparison: ResultsComparison }>;
+  const data = (await res.json()) as {
+    results?: unknown;
+    comparison?: ResultsComparison;
+  };
+  return {
+    results: Array.isArray(data.results) ? (data.results as WorkoutResultDay[]) : [],
+    comparison: data.comparison ?? {
+      completedThisWeek: 0,
+      completedLastWeek: 0,
+      totalSetsThisWeek: 0,
+      totalSetsLastWeek: 0,
+      weightChangeKg: null,
+      weightTrend: null,
+      firstWeight: null,
+      latestWeight: null,
+    },
+  };
 }
 
 export async function fetchPlanForDate(

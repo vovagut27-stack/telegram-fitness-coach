@@ -54,7 +54,7 @@ function App() {
     const id = requireTelegramUserId();
     const premium = profile?.isPremium ?? false;
     const { days } = await fetchSchedule(id, premium ? 14 : 7);
-    setSchedule(days);
+    setSchedule(Array.isArray(days) ? days : []);
     return days;
   }, [profile?.isPremium]);
 
