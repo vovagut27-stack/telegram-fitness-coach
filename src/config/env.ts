@@ -28,6 +28,8 @@ const envSchema = z.object({
   DEV_PREMIUM_SECRET: z.string().default(""),
   /** Bearer token for Vercel Cron → GET /api/cron/reminders */
   CRON_SECRET: z.string().default(""),
+  /** Код из панели Appss — ответ на /appss_verify (только этот текст) */
+  APPSS_VERIFY_CODE: z.string().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -21,7 +21,8 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@shared/exercise-image-catalog": ["../src/services/exercise-image-catalog.ts"]
+      "@shared/exercise-image-catalog": ["../src/services/exercise-image-catalog.ts"],
+      "@shared/exercise-illustrations": ["../src/services/exercise-illustrations.ts"]
     }
   },
   "include": ["src"]

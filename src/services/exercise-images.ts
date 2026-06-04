@@ -3,38 +3,37 @@ import type { FitnessLevel, WorkoutExercise } from "../types/workout.js";
 import { applyExerciseRest } from "./exercise-rest.js";
 import { lookupExercisePhoto } from "./exercise-image-catalog.js";
 import { illustrationAssetPath } from "./exercise-illustrations.js";
-import { resolveExerciseVisualUrl } from "./exercise-visual-catalog.js";
 
-/** Основное фото / иллюстрация с человеком (wger, Pexels, Unsplash). */
+/**
+ * Основная картинка — SVG по названию упражнения (всегда верное движение).
+ * Generic Unsplash по «типу движения» давал становую/скручивания не к месту.
+ */
 export function resolveExerciseImageUrl(
   name: string,
-  gender?: Gender | null,
-  equipment?: string,
-): string {
-  return (
-    lookupExercisePhoto(name) ??
-    resolveExerciseVisualUrl(name, gender, equipment)
-  );
-}
-
-/** Запас — схема SVG на своём домене, если CDN не открылся. */
-export function resolveExerciseImageAltUrl(
-  name: string,
-  gender?: Gender | null,
-  equipment?: string,
+  _gender?: Gender | null,
+  _equipment?: string,
 ): string {
   return illustrationAssetPath(name);
+}
+
+/** Опциональное фото — только если есть точная запись в каталоге. */
+export function resolveExerciseImageAltUrl(
+  name: string,
+  _gender?: Gender | null,
+  _equipment?: string,
+): string | undefined {
+  return lookupExercisePhoto(name);
 }
 
 export function enrichExerciseImage(
   exercise: WorkoutExercise,
   gender?: Gender | null,
 ): WorkoutExercise {
-  const equipment = exercise.equipment ?? "";
+  const alt = resolveExerciseImageAltUrl(exercise.name, gender, exercise.equipment);
   return {
     ...exercise,
-    demoUrl: resolveExerciseImageUrl(exercise.name, gender, equipment),
-    imageFallback: resolveExerciseImageAltUrl(exercise.name, gender, equipment),
+    demoUrl: resolveExerciseImageUrl(exercise.name, gender, exercise.equipment),
+    imageFallback: alt,
   };
 }
 

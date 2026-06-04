@@ -23,12 +23,10 @@ export const EXERCISE_PHOTOS: Record<string, string> = {
   // Push / chest / triceps (home)
   "отжимания от пола": "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=640&q=80",
   "standard push-ups": "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=640&q=80",
-  "отжимания с колен": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=640&q=80",
-  "knee push-ups": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=640&q=80",
+  "отжимания с колен": "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=640&q=80&auto=format&fit=crop",
+  "knee push-ups": "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=640&q=80&auto=format&fit=crop",
   "обратные отжимания от стула": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
   "chair triceps dips": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "планка": "https://images.unsplash.com/photo-1567598508481-65985588e295?w=640&q=80",
-  "plank hold": "https://images.unsplash.com/photo-1567598508481-65985588e295?w=640&q=80",
   "подъёмы рук в стороны (без веса)": "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=640&q=80",
   "lateral arm raises": "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=640&q=80",
   "супермен для плеч": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
@@ -58,16 +56,32 @@ export const EXERCISE_PHOTOS: Record<string, string> = {
   "бёрпи полные": "https://images.unsplash.com/photo-1476480862126-209bfaa8ebaa?w=640&q=80",
   "full burpees": "https://images.unsplash.com/photo-1476480862126-209bfaa8ebaa?w=640&q=80",
   // Pull / back
-  "супермен": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "superman hold": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
+  "супермен":
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Superman_exercise.jpg/640px-Superman_exercise.jpg",
+  "superman hold":
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Superman_exercise.jpg/640px-Superman_exercise.jpg",
+  "вращения плечами":
+    "https://images.unsplash.com/photo-1583454111551-3ef18f1c3b0e?w=640&q=80&auto=format&fit=crop",
+  "shoulder circles":
+    "https://images.unsplash.com/photo-1583454111551-3ef18f1c3b0e?w=640&q=80&auto=format&fit=crop",
+  "растяжка плеч":
+    "https://images.unsplash.com/photo-1506126613408-07c117e81c1c?w=640&q=80&auto=format&fit=crop",
+  "shoulder stretch":
+    "https://images.unsplash.com/photo-1506126613408-07c117e81c1c?w=640&q=80&auto=format&fit=crop",
+  "прыжки с разведением рук":
+    "https://images.unsplash.com/photo-1476480862126-209bfaa8ebaa?w=640&q=80&auto=format&fit=crop",
+  "jumping jacks":
+    "https://images.unsplash.com/photo-1476480862126-209bfaa8ebaa?w=640&q=80&auto=format&fit=crop",
+  "птица-собака":
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Bird-dog_pose.jpg/640px-Bird-dog_pose.jpg",
+  "bird-dog":
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Bird-dog_pose.jpg/640px-Bird-dog_pose.jpg",
   "обратная планка": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
   "reverse plank": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
   "тяга полотенца к поясу": "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=640&q=80",
   "towel door rows": "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=640&q=80",
   "сгибания рук с полотенцем": "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=640&q=80",
   "towel biceps curls": "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=640&q=80",
-  "птица-собака": "https://images.unsplash.com/photo-1571019614242-c5c993715daa?w=640&q=80",
-  "bird-dog": "https://images.unsplash.com/photo-1571019614242-c5c993715daa?w=640&q=80",
   "скручивания на пресс": "https://images.unsplash.com/photo-1571019614242-c5c993715daa?w=640&q=80",
   "crunches": "https://images.unsplash.com/photo-1571019614242-c5c993715daa?w=640&q=80",
   "австралийские подтягивания под столом": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=640&q=80",

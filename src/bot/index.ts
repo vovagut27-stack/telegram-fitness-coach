@@ -30,6 +30,7 @@ import {
   languagePickAction,
 } from "./commands/language.js";
 import { setupReportHandlers } from "./commands/report.js";
+import { appssVerifyCommand } from "./commands/appss-verify.js";
 import { setupBotCommands, setupTelegramMenuButton } from "./telegram-mini-app-setup.js";
 import { ensureDefaultUser } from "../services/workout-service.js";
 import { isPremiumActive } from "../services/premium-service.js";
@@ -68,6 +69,9 @@ bot.catch(async (err, ctx) => {
 });
 
 bot.start(startCommand);
+
+/** Каталог Appss — проверка, что бот ваш (ответ с кодом из панели публикации). */
+bot.command("appss_verify", appssVerifyCommand);
 
 bot.command("app", startCommand);
 

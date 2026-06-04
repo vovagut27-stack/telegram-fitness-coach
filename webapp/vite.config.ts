@@ -10,6 +10,10 @@ export default defineConfig({
         __dirname,
         "../src/services/exercise-image-catalog.ts",
       ),
+      "@shared/exercise-illustrations": path.resolve(
+        __dirname,
+        "../src/services/exercise-illustrations.ts",
+      ),
     },
   },
   build: {

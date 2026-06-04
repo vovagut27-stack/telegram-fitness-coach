@@ -28,6 +28,7 @@ export function ExerciseCard({
     candidates[candidateIndex] ??
     candidates[0] ??
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
+  const isIllustration = /\.svg(\?|$)/i.test(imgSrc);
 
   useEffect(() => {
     setCandidateIndex(0);
@@ -40,7 +41,7 @@ export function ExerciseCard({
   return (
     <article className={`exercise-card ${gymMode ? "gym-mode" : ""}`}>
       <img
-        className="exercise-img exercise-img-photo"
+        className={`exercise-img ${isIllustration ? "" : "exercise-img-photo"}`}
         src={imgSrc}
         alt={exercise.name}
         loading="lazy"
