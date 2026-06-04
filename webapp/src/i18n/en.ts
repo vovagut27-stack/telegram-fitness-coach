@@ -107,7 +107,7 @@ export const en = {
   open_workout: "Open workout",
   open_in_telegram: "Open the app from the Telegram bot (Open App button).",
   profile_home_only: "Home workouts here. Gym program is under the Gym tab (Premium).",
-  profile_need_gender: "Select gender — exercise illustrations depend on it.",
+  profile_need_gender: "Select gender — exercise photos depend on it.",
   profile_complete_ok: "Profile complete",
   week_done: "This week: {done} of {total} days done",
   home_streak: "{n} days in a row",

@@ -107,7 +107,7 @@ export const ru = {
   open_workout: "Открыть тренировку",
   open_in_telegram: "Откройте приложение из Telegram-бота (кнопка «Открыть приложение»).",
   profile_home_only: "Домашние тренировки. Программа зала — во вкладке «Зал» (Premium).",
-  profile_need_gender: "Выберите пол — от него зависят иллюстрации упражнений.",
+  profile_need_gender: "Выберите пол — от него зависят фото упражнений.",
   profile_complete_ok: "Профиль заполнен",
   week_done: "На этой неделе: {done} из {total} дней",
   home_streak: "{n} дн. подряд",

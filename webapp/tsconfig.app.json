@@ -22,7 +22,7 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@shared/exercise-image-catalog": ["../src/services/exercise-image-catalog.ts"],
-      "@shared/exercise-illustrations": ["../src/services/exercise-illustrations.ts"],
+      "@shared/exercise-photo-urls": ["../src/services/exercise-photo-urls.ts"],
       "@shared/exercise-visual-catalog": ["../src/services/exercise-visual-catalog.ts"],
       "@shared/rep-targets": ["../src/utils/rep-targets.ts"]
     }

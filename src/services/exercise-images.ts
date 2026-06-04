@@ -1,45 +1,34 @@
 import type { Gender } from "../types/profile.js";
 import type { FitnessLevel, WorkoutExercise } from "../types/workout.js";
 import { applyExerciseRest } from "./exercise-rest.js";
-import { lookupExercisePhoto } from "./exercise-image-catalog.js";
 import {
-  illustrationAssetPath,
-  illustrationSlugForExercise,
-} from "./exercise-illustrations.js";
-import { resolveExerciseVisualUrl } from "./exercise-visual-catalog.js";
+  buildExercisePhotoCandidates,
+  resolvePrimaryExercisePhoto,
+  resolveSecondaryExercisePhoto,
+} from "./exercise-photo-urls.js";
 
-function isBundledExercisePhoto(url: string): boolean {
-  return url.startsWith("/exercises/photos/");
-}
-
-/** Локальное фото (зал) → SVG по названию → Unsplash. */
+/** Только фото (Unsplash / локальные PNG), без SVG. */
 export function resolveExerciseImageUrl(
   name: string,
   gender?: Gender | null,
   equipment?: string,
 ): string {
-  const photo = lookupExercisePhoto(name);
-  if (photo && isBundledExercisePhoto(photo)) {
-    return photo;
-  }
-  if (illustrationSlugForExercise(name) !== "generic-workout") {
-    return illustrationAssetPath(name);
-  }
-  return photo ?? resolveExerciseVisualUrl(name, gender, equipment);
+  return resolvePrimaryExercisePhoto(name, { gender, equipment });
 }
 
 export function resolveExerciseImageAltUrl(
   name: string,
-  _gender?: Gender | null,
-  _equipment?: string,
+  gender?: Gender | null,
+  equipment?: string,
 ): string {
-  return illustrationAssetPath(name);
+  return resolveSecondaryExercisePhoto(name, { gender, equipment });
 }
 
 export function enrichExerciseImage(
   exercise: WorkoutExercise,
   gender?: Gender | null,
 ): WorkoutExercise {
+  const opts = { gender, equipment: exercise.equipment };
   return {
     ...exercise,
     demoUrl: resolveExerciseImageUrl(exercise.name, gender, exercise.equipment),
@@ -54,3 +43,5 @@ export function enrichWorkoutExercises(
 ): WorkoutExercise[] {
   return exercises.map((ex) => applyExerciseRest(enrichExerciseImage(ex, gender), fitnessLevel));
 }
+
+export { buildExercisePhotoCandidates };

@@ -94,8 +94,8 @@ export const EXERCISE_PHOTOS: Record<string, string> = {
     "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Bird-dog_pose.jpg/640px-Bird-dog_pose.jpg",
   "bird-dog":
     "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Bird-dog_pose.jpg/640px-Bird-dog_pose.jpg",
-  "обратная планка": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "reverse plank": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
+  "обратная планка": PHOTO_SIDE_PLANK,
+  "reverse plank": PHOTO_SIDE_PLANK,
   "тяга полотенца к поясу": "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=640&q=80",
   "towel door rows": "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=640&q=80",
   "сгибания рук с полотенцем": "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=640&q=80",

@@ -10,7 +10,7 @@ export interface WorkoutExercise {
   /** Рабочий вес на подход (кг), для зала. */
   weightKg?: number;
   demoUrl?: string;
-  /** Second image URL if demoUrl fails to load (e.g. wger). */
+  /** Запасное фото, если demoUrl не загрузилось. */
   imageFallback?: string;
 }
 

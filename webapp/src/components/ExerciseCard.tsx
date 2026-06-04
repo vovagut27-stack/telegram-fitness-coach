@@ -4,7 +4,8 @@ import type { Gender, WorkoutExercise } from "../types";
 import { useI18n } from "../i18n/context";
 import { equipmentIcon, equipmentMessageKey } from "../utils/equipment";
 import { exerciseImageCandidates } from "../utils/exerciseImage";
-import { resolveLocalExerciseAsset } from "../utils/exerciseIllustration";
+import { resolveExerciseAssetUrl } from "../utils/exerciseIllustration";
+import { GENERIC_EXERCISE_PHOTO } from "@shared/exercise-photo-urls";
 import { repTargetsPerSet } from "../utils/repTargets";
 
 interface ExerciseCardProps {
@@ -27,11 +28,8 @@ export function ExerciseCard({
   );
   const [candidateIndex, setCandidateIndex] = useState(0);
   const rawSrc =
-    candidates[candidateIndex] ??
-    candidates[0] ??
-    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
-  const imgSrc = resolveLocalExerciseAsset(rawSrc);
-  const isIllustration = /\.svg(\?|$)/i.test(imgSrc);
+    candidates[candidateIndex] ?? candidates[0] ?? GENERIC_EXERCISE_PHOTO;
+  const imgSrc = resolveExerciseAssetUrl(rawSrc);
 
   useEffect(() => {
     setCandidateIndex(0);
@@ -51,7 +49,7 @@ export function ExerciseCard({
   return (
     <article className={`exercise-card ${gymMode ? "gym-mode" : ""}`}>
       <img
-        className={`exercise-img ${isIllustration ? "" : "exercise-img-photo"}`}
+        className="exercise-img exercise-img-photo"
         src={imgSrc}
         alt={exercise.name}
         loading="lazy"
