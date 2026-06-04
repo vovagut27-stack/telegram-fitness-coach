@@ -82,7 +82,15 @@ function App() {
           setError(tr("network_error"));
         }
       });
-      Promise.all([loadProfile(), loadSchedule(), loadUserStats()])
+      loadProfile()
+        .then((p) =>
+          Promise.all([
+            fetchSchedule(requireTelegramUserId(), p.isPremium ? 14 : 7).then((data) => {
+              setSchedule(data.days);
+            }),
+            loadUserStats(),
+          ]),
+        )
         .catch((err) => {
           if (err instanceof TypeError) {
             setError(`${tr("network_error")} (${getApiBase()})`);
@@ -104,11 +112,11 @@ function App() {
 
   useEffect(() => {
     const preset = getWorkoutDateFromUrl();
-    if (preset && telegramId) {
+    if (preset && telegramId && profile && !loading) {
       void loadWorkoutForDate(preset);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [telegramId]);
+  }, [telegramId, profile?.telegramId, loading]);
 
   const loadWorkoutForDate = async (date: string): Promise<void> => {
     setLoading(true);

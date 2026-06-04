@@ -12,6 +12,7 @@ declare global {
         ready: () => void;
         expand: () => void;
         close: () => void;
+        reload?: () => void;
       };
     };
   }

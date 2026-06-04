@@ -24,7 +24,10 @@ export function ExerciseCard({
     [exercise.name, exercise.demoUrl, exercise.imageFallback, exercise.equipment, gender],
   );
   const [candidateIndex, setCandidateIndex] = useState(0);
-  const imgSrc = candidates[candidateIndex] ?? candidates[0];
+  const imgSrc =
+    candidates[candidateIndex] ??
+    candidates[0] ??
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
 
   useEffect(() => {
     setCandidateIndex(0);

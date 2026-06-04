@@ -17,15 +17,23 @@ initTelegramWebApp();
 const root = createRoot(container);
 
 function renderApp(): void {
-  root.render(
-    <StrictMode>
-      <ErrorBoundary>
-        <I18nProvider>
-          <App />
-        </I18nProvider>
-      </ErrorBoundary>
-    </StrictMode>,
+  const tree = (
+    <ErrorBoundary>
+      <I18nProvider>
+        <App />
+      </I18nProvider>
+    </ErrorBoundary>
   );
+  root.render(import.meta.env.DEV ? <StrictMode>{tree}</StrictMode> : tree);
+}
+
+function reloadMiniApp(): void {
+  const tg = window.Telegram?.WebApp;
+  if (typeof tg?.reload === "function") {
+    tg.reload();
+    return;
+  }
+  window.location.reload();
 }
 
 function renderBootError(message: string): void {
@@ -33,7 +41,7 @@ function renderBootError(message: string): void {
     <div className="app-shell" style={{ padding: "1.5rem" }}>
       <h1>FitBot</h1>
       <p className="error">{message}</p>
-      <button type="button" className="btn-primary" onClick={() => window.location.reload()}>
+      <button type="button" className="btn-primary" onClick={() => reloadMiniApp()}>
         Перезагрузить
       </button>
     </div>,

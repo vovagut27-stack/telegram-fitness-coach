@@ -57,7 +57,13 @@ export function RestTimerSettings({ profile, onSaved }: RestTimerSettingsProps):
             className={preset === key ? "active" : ""}
             onClick={() => setPreset(key)}
           >
-            {tr(`rest_preset_${key}`)}
+            {tr(
+              key === "short"
+                ? "rest_preset_short"
+                : key === "long"
+                  ? "rest_preset_long"
+                  : "rest_preset_normal",
+            )}
           </button>
         ))}
       </div>
