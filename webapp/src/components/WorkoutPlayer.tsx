@@ -6,6 +6,7 @@ import { Timer } from "./Timer";
 import { useI18n } from "../i18n/context";
 import { levelLabel } from "../i18n/levels";
 import { effectiveRestSeconds } from "../utils/exerciseRest";
+import { repTargetsPerSet } from "../utils/repTargets";
 
 interface WorkoutPlayerProps {
   workout: WorkoutPlan;
@@ -17,15 +18,11 @@ interface WorkoutPlayerProps {
   onGoHome?: () => void;
 }
 
-function defaultReps(reps: string): number {
-  return Number(reps.split("-")[0]) || 10;
-}
-
 function buildLogsFromPlan(workout: WorkoutPlan): ExerciseLog[] {
   return workout.exercises.map((ex) => ({
     exerciseName: ex.name,
     setsCompleted: ex.sets,
-    repsCompleted: Array.from({ length: ex.sets }, () => defaultReps(ex.reps)),
+    repsCompleted: repTargetsPerSet(ex.reps, ex.sets),
     durationSeconds: ex.sets * 45,
   }));
 }
@@ -46,6 +43,7 @@ export function WorkoutPlayer({
   const [isResting, setIsResting] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [repsInput, setRepsInput] = useState("");
+  const [loggedReps, setLoggedReps] = useState<number[]>([]);
   const [weightInput, setWeightInput] = useState("");
   const autoSaveStarted = useRef(false);
 
@@ -60,14 +58,29 @@ export function WorkoutPlayer({
     [exerciseIndex, exercises.length],
   );
 
+  const repPlan = useMemo(
+    () => (current ? repTargetsPerSet(current.reps, current.sets) : []),
+    [current],
+  );
+
   useEffect(() => {
     if (!current) {
       return;
     }
-    setRepsInput(String(defaultReps(current.reps)));
+    const targets = repTargetsPerSet(current.reps, current.sets);
+    setRepsInput(String(targets[0] ?? 10));
+    setLoggedReps([]);
     setWeightInput("");
     setSetDone(0);
   }, [exerciseIndex, current]);
+
+  useEffect(() => {
+    if (!current || repPlan.length === 0) {
+      return;
+    }
+    const target = repPlan[setDone] ?? repPlan[repPlan.length - 1];
+    setRepsInput(String(target));
+  }, [setDone, current, repPlan]);
 
   const finalLogs = useMemo(
     () => (logs.length > 0 ? logs : buildLogsFromPlan(workout)),
@@ -93,20 +106,30 @@ export function WorkoutPlayer({
     void runSave();
   };
 
-  const finishExercise = (): void => {
+  const markSetCompleted = (): void => {
     if (!current) {
       return;
     }
-    const reps = Math.max(1, Number(repsInput) || defaultReps(current.reps));
+    const planned = repPlan[setDone] ?? 10;
+    const actual = Math.max(1, Number(repsInput) || planned);
+    const nextLogged = [...loggedReps, actual];
+    setLoggedReps(nextLogged);
+
+    const nextSet = setDone + 1;
+    if (nextSet < current.sets) {
+      setSetDone(nextSet);
+      setIsResting(true);
+      return;
+    }
+
     const weight = weightInput.trim() ? Number(weightInput) : undefined;
     const entry: ExerciseLog = {
       exerciseName: current.name,
       setsCompleted: current.sets,
-      repsCompleted: Array.from({ length: current.sets }, () => reps),
+      repsCompleted: nextLogged,
       durationSeconds: current.sets * 45,
       weightUsed: weight,
     };
-
     setLogs((prev) => [...prev, entry]);
 
     if (isLastExercise) {
@@ -116,19 +139,7 @@ export function WorkoutPlayer({
 
     setExerciseIndex((idx) => idx + 1);
     setSetDone(0);
-  };
-
-  const markSetCompleted = (): void => {
-    if (!current) {
-      return;
-    }
-    const nextSet = setDone + 1;
-    if (nextSet < current.sets) {
-      setSetDone(nextSet);
-      setIsResting(true);
-      return;
-    }
-    finishExercise();
+    setLoggedReps([]);
   };
 
   if (exercises.length === 0) {
@@ -214,9 +225,14 @@ export function WorkoutPlayer({
       <p className="set-progress">
         {tr("set_progress", { current: setDone + 1, total: current.sets })}
       </p>
+      <p className="set-target muted">
+        {tr("player_set_target", {
+          reps: repPlan[setDone] ?? repPlan[0] ?? 10,
+        })}
+      </p>
       <div className="row-2 log-inputs">
         <label className="field compact">
-          {tr("player_reps")}
+          {tr("player_reps_actual", { set: setDone + 1 })}
           <input
             type="number"
             min={1}

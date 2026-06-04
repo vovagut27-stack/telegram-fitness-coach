@@ -23,30 +23,6 @@ export type MovementKey =
   | "shoulder"
   | "default";
 
-/** wger — разные иллюстрации по типу движения (муж / нейтральный). */
-const WGER: Record<MovementKey, string> = {
-  push: "https://wger.de/media/exercise-images/195/Push-ups-2.png",
-  pull: "https://wger.de/media/exercise-images/108/Pull-ups-2.png",
-  squat: "https://wger.de/media/exercise-images/131/Squats-2.png",
-  lunge: "https://wger.de/media/exercise-images/158/Lunges-2.png",
-  hinge: "https://wger.de/media/exercise-images/24/Dead-lifts-2.png",
-  plank: "https://wger.de/media/exercise-images/97/Plank-2.png",
-  sidePlank: "https://wger.de/media/exercise-images/97/Plank-2.png",
-  core: "https://wger.de/media/exercise-images/91/Crunches-1.png",
-  curl: "https://wger.de/media/exercise-images/74/Bicep-curls-1.png",
-  row: "https://wger.de/media/exercise-images/109/Bent-over-barbell-rows-1.png",
-  press: "https://wger.de/media/exercise-images/192/Bench-press-1.png",
-  fly: "https://wger.de/media/exercise-images/122/Dumbbell-flyes-1.png",
-  triceps: "https://wger.de/media/exercise-images/83/Triceps-dips-1.png",
-  calf: "https://wger.de/media/exercise-images/206/Standing-calf-raises-2.png",
-  cardio: "https://wger.de/media/exercise-images/369/Burpees-1.png",
-  burpee: "https://wger.de/media/exercise-images/369/Burpees-1.png",
-  highKnees: "https://wger.de/media/exercise-images/369/Burpees-1.png",
-  bridge: "https://wger.de/media/exercise-images/898/Hip-thrust-1.png",
-  shoulder: "https://wger.de/media/exercise-images/119/Shoulder-press-1.png",
-  default: "https://wger.de/media/exercise-images/131/Squats-2.png",
-};
-
 /** Unsplash — женские кадры (Pexels CDN часто 404 в WebView). */
 const FEMALE: Record<MovementKey, string> = {
   push: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=640&q=80&auto=format&fit=crop",

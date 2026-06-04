@@ -27,6 +27,7 @@ import {
   maxScheduleDays,
 } from "../services/premium-service.js";
 import type { FitnessLevel } from "../types/workout.js";
+import { exercisePhotoHandler } from "../handlers/exercise-photo.js";
 
 export const apiRouter = Router();
 
@@ -69,6 +70,8 @@ async function saveProfileHandler(
     res.status(500).json({ error: message });
   }
 }
+
+apiRouter.get("/media/exercise-photo", (req, res) => void exercisePhotoHandler(req, res));
 
 apiRouter.get("/health", (_req, res) => {
   res.json({ ok: true });

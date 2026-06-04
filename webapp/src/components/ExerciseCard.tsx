@@ -4,6 +4,7 @@ import type { Gender, WorkoutExercise } from "../types";
 import { useI18n } from "../i18n/context";
 import { equipmentIcon, equipmentMessageKey } from "../utils/equipment";
 import { exerciseImageCandidates } from "../utils/exerciseImage";
+import { repTargetsPerSet } from "../utils/repTargets";
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
@@ -33,6 +34,11 @@ export function ExerciseCard({
   useEffect(() => {
     setCandidateIndex(0);
   }, [candidates]);
+
+  const repPlan = useMemo(
+    () => repTargetsPerSet(exercise.reps, exercise.sets),
+    [exercise.reps, exercise.sets],
+  );
 
   const eqKey = equipmentMessageKey(exercise.equipment);
   const eqLabel = tr(eqKey);
@@ -64,8 +70,16 @@ export function ExerciseCard({
       <h3>
         {index + 1}. {exercise.name}
       </h3>
-      <p>{tr("sets_reps", { sets: exercise.sets, reps: exercise.reps })}</p>
-      <p>{tr("rest_seconds", { seconds: exercise.restSeconds })}</p>
+      <p className="sets-summary">
+        {tr("sets_count", { sets: exercise.sets })} · {tr("rest_seconds", { seconds: exercise.restSeconds })}
+      </p>
+      <ul className="set-rep-plan">
+        {repPlan.map((target, setIndex) => (
+          <li key={setIndex}>
+            {tr("set_rep_line", { set: setIndex + 1, reps: target })}
+          </li>
+        ))}
+      </ul>
       {!gymMode ? (
         <p>
           {tr("equipment")}: {eqLabel}

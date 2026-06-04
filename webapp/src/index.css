@@ -332,6 +332,31 @@ button:disabled {
   background: #eef1f6;
 }
 
+.sets-summary {
+  margin: 0.25rem 0 0.5rem;
+  font-weight: 600;
+}
+
+.set-rep-plan {
+  list-style: none;
+  margin: 0 0 0.65rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.set-rep-plan li {
+  padding: 0.2rem 0;
+  font-weight: 600;
+  color: var(--accent, #10b981);
+}
+
+.set-target {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 0.95rem;
+}
+
 .equipment-pill.gym {
   display: inline-flex;
   align-items: center;

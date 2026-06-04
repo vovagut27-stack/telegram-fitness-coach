@@ -14,6 +14,11 @@ export default defineConfig({
         __dirname,
         "../src/services/exercise-illustrations.ts",
       ),
+      "@shared/exercise-visual-catalog": path.resolve(
+        __dirname,
+        "../src/services/exercise-visual-catalog.ts",
+      ),
+      "@shared/rep-targets": path.resolve(__dirname, "../src/utils/rep-targets.ts"),
     },
   },
   build: {

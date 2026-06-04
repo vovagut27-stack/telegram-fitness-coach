@@ -17,6 +17,26 @@ const PHOTO_FORWARD_FOLD =
   "https://images.unsplash.com/photo-1506126613408-07c117e81c1c?w=640&q=80&auto=format&fit=crop";
 const PHOTO_CAT_COW =
   "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=640&q=80&auto=format&fit=crop";
+const PHOTO_BENCH =
+  "https://images.unsplash.com/photo-1526506118085-60ce8714f8b5?w=720&q=80&auto=format&fit=crop";
+const PHOTO_INCLINE_PRESS =
+  "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=720&q=80&auto=format&fit=crop";
+const PHOTO_CHEST_FLY =
+  "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=720&q=80&auto=format&fit=crop";
+const PHOTO_CABLE =
+  "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=720&q=80&auto=format&fit=crop";
+const PHOTO_TRICEPS =
+  "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=720&q=80&auto=format&fit=crop";
+const PHOTO_PULLUP =
+  "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=720&q=80&auto=format&fit=crop";
+const PHOTO_ROW =
+  "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=720&q=80&auto=format&fit=crop";
+const PHOTO_LEG_PRESS =
+  "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=720&q=80&auto=format&fit=crop";
+const PHOTO_RDL =
+  "https://images.unsplash.com/photo-1517960413843-0aee8e012128?w=720&q=80&auto=format&fit=crop";
+const PHOTO_SHOULDER =
+  "https://images.unsplash.com/photo-1583454111551-3ef18f1c3b0e?w=720&q=80&auto=format&fit=crop";
 
 /** Exact exercise name → photo URL (ru + en). */
 export const EXERCISE_PHOTOS: Record<string, string> = {
@@ -146,48 +166,48 @@ export const EXERCISE_PHOTOS: Record<string, string> = {
   "выпады с прыжком": "https://images.unsplash.com/photo-1476480862126-209bfaa8ebaa?w=640&q=80",
   "jumping lunges": "https://images.unsplash.com/photo-1476480862126-209bfaa8ebaa?w=640&q=80",
   // Gym
-  "жим штанги лёжа": "https://images.unsplash.com/photo-1526506118085-60ce8714f8b5?w=640&q=80",
-  "barbell bench press": "https://images.unsplash.com/photo-1526506118085-60ce8714f8b5?w=640&q=80",
-  "жим гантелей на наклонной": "https://images.unsplash.com/photo-1526506118085-60ce8714f8b5?w=640&q=80",
-  "incline dumbbell press": "https://images.unsplash.com/photo-1526506118085-60ce8714f8b5?w=640&q=80",
-  "разводка гантелей": "https://images.unsplash.com/photo-1526506118085-60ce8714f8b5?w=640&q=80",
-  "dumbbell flyes": "https://images.unsplash.com/photo-1526506118085-60ce8714f8b5?w=640&q=80",
-  "кроссовер / блок": "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=640&q=80",
-  "cable crossover": "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=640&q=80",
-  "разгибание на блоке (трицепс)": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "cable triceps pushdown": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "подтягивания / гравитрон": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=640&q=80",
-  "pull-ups / assisted": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=640&q=80",
-  "тяга верхнего блока": "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=640&q=80",
-  "lat pulldown": "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=640&q=80",
-  "тяга гантели в наклоне": "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=640&q=80",
-  "single-arm dumbbell row": "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=640&q=80",
-  "тяга горизонтальная": "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=640&q=80",
-  "seated cable row": "https://images.unsplash.com/photo-1603287681839-a1fac9b573b4?w=640&q=80",
-  "сгибание штанги": "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=640&q=80",
-  "barbell curl": "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=640&q=80",
-  "присед со штангой": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "barbell back squat": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "жим ногами": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "leg press": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "румынская тяга": "https://images.unsplash.com/photo-1517960413843-0aee8e012128?w=640&q=80",
-  "romanian deadlift": "https://images.unsplash.com/photo-1517960413843-0aee8e012128?w=640&q=80",
-  "разгибание ног": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "leg extension": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "сгибание ног": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "leg curl": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "подъём на носки стоя": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "standing calf raise": "https://images.unsplash.com/photo-1434682881908-b5d6e698fe2d?w=640&q=80",
-  "жим гантелей сидя": "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=640&q=80",
-  "seated dumbbell press": "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=640&q=80",
-  "махи в стороны": "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=640&q=80",
-  "lateral raises": "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=640&q=80",
-  "махи в наклоне": "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=640&q=80",
-  "rear delt fly": "https://images.unsplash.com/photo-1583500178690-f7d403a27cde?w=640&q=80",
-  "французский жим": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "skull crushers": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80",
-  "молотковые сгибания": "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=640&q=80",
-  "hammer curls": "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=640&q=80",
+  "жим штанги лёжа": PHOTO_BENCH,
+  "barbell bench press": PHOTO_BENCH,
+  "жим гантелей на наклонной": PHOTO_INCLINE_PRESS,
+  "incline dumbbell press": PHOTO_INCLINE_PRESS,
+  "разводка гантелей": PHOTO_CHEST_FLY,
+  "dumbbell flyes": PHOTO_CHEST_FLY,
+  "кроссовер / блок": PHOTO_CABLE,
+  "cable crossover": PHOTO_CABLE,
+  "разгибание на блоке (трицепс)": PHOTO_TRICEPS,
+  "cable triceps pushdown": PHOTO_TRICEPS,
+  "подтягивания / гравитрон": PHOTO_PULLUP,
+  "pull-ups / assisted": PHOTO_PULLUP,
+  "тяга верхнего блока": PHOTO_ROW,
+  "lat pulldown": PHOTO_ROW,
+  "тяга гантели в наклоне": PHOTO_ROW,
+  "single-arm dumbbell row": PHOTO_ROW,
+  "тяга горизонтальная": PHOTO_ROW,
+  "seated cable row": PHOTO_ROW,
+  "сгибание штанги": PHOTO_TRICEPS,
+  "barbell curl": PHOTO_TRICEPS,
+  "присед со штангой": PHOTO_SQUAT,
+  "barbell back squat": PHOTO_SQUAT,
+  "жим ногами": PHOTO_LEG_PRESS,
+  "leg press": PHOTO_LEG_PRESS,
+  "румынская тяга": PHOTO_RDL,
+  "romanian deadlift": PHOTO_RDL,
+  "разгибание ног": PHOTO_LEG_PRESS,
+  "leg extension": PHOTO_LEG_PRESS,
+  "сгибание ног": PHOTO_LEG_PRESS,
+  "leg curl": PHOTO_LEG_PRESS,
+  "подъём на носки стоя": PHOTO_SQUAT,
+  "standing calf raise": PHOTO_SQUAT,
+  "жим гантелей сидя": PHOTO_SHOULDER,
+  "seated dumbbell press": PHOTO_SHOULDER,
+  "махи в стороны": PHOTO_SHOULDER,
+  "lateral raises": PHOTO_SHOULDER,
+  "махи в наклоне": PHOTO_SHOULDER,
+  "rear delt fly": PHOTO_SHOULDER,
+  "французский жим": PHOTO_TRICEPS,
+  "skull crushers": PHOTO_TRICEPS,
+  "молотковые сгибания": PHOTO_TRICEPS,
+  "hammer curls": PHOTO_TRICEPS,
 };
 
 export function normalizeExerciseName(name: string): string {
