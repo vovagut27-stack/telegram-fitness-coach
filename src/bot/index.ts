@@ -22,6 +22,7 @@ import { todayCommand } from "./commands/today.js";
 import { statsCommand } from "./commands/stats.js";
 import { settingsCommand } from "./commands/settings.js";
 import { setupReportHandlers } from "./commands/report.js";
+import { setupTelegramMenuButton } from "./telegram-mini-app-setup.js";
 import { ensureDefaultUser } from "../services/workout-service.js";
 import { isPremiumActive } from "../services/premium-service.js";
 
@@ -215,11 +216,11 @@ export async function setupWebhook(): Promise<void> {
   }
   try {
     const info = await bot.telegram.getWebhookInfo();
-    if (info.url === webhookUrl) {
-      return;
+    if (info.url !== webhookUrl) {
+      await bot.telegram.setWebhook(webhookUrl);
+      console.log(`Telegram webhook set: ${webhookUrl}`);
     }
-    await bot.telegram.setWebhook(webhookUrl);
-    console.log(`Telegram webhook set: ${webhookUrl}`);
+    await setupTelegramMenuButton(bot);
   } catch (err) {
     console.error("Webhook setup failed (non-fatal):", err);
   }

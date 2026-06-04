@@ -1,19 +1,27 @@
+export interface TelegramWebApp {
+  initData?: string;
+  initDataUnsafe?: { user?: { id?: number | string }; start_param?: string };
+  platform?: string;
+  themeParams?: {
+    bg_color?: string;
+    secondary_bg_color?: string;
+    header_bg_color?: string;
+  };
+  openInvoice?: (url: string, callback?: (status: string) => void) => void;
+  ready: () => void;
+  expand: () => void;
+  close: () => void;
+  reload?: () => void;
+  requestFullscreen?: () => void;
+  disableVerticalSwipes?: () => void;
+  setHeaderColor?: (color: string) => void;
+  setBackgroundColor?: (color: string) => void;
+}
+
 declare global {
   interface Window {
     Telegram?: {
-      WebApp?: {
-        initData?: string;
-        initDataUnsafe?: { user?: { id?: number | string }; start_param?: string };
-        openInvoice?: (url: string, callback?: (status: string) => void) => void;
-        themeParams?: {
-          bg_color?: string;
-          secondary_bg_color?: string;
-        };
-        ready: () => void;
-        expand: () => void;
-        close: () => void;
-        reload?: () => void;
-      };
+      WebApp?: TelegramWebApp;
     };
   }
 }
@@ -40,9 +48,40 @@ function readUserIdFromInitData(initData: string): number | null {
   }
 }
 
+/** Некоторые клиенты (часть mobile) кладут init data в hash. */
+function readUserIdFromLocationHash(): number | null {
+  const raw = window.location.hash.replace(/^#/, "");
+  if (!raw) {
+    return null;
+  }
+  try {
+    const params = new URLSearchParams(raw);
+    const tgData = params.get("tgWebAppData");
+    if (tgData) {
+      return readUserIdFromInitData(decodeURIComponent(tgData));
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+export function getTelegramWebApp(): TelegramWebApp | null {
+  return window.Telegram?.WebApp ?? null;
+}
+
+export function isInsideTelegram(): boolean {
+  return Boolean(getTelegramWebApp());
+}
+
+export function isTelegramMobile(): boolean {
+  const platform = getTelegramWebApp()?.platform?.toLowerCase() ?? "";
+  return platform === "ios" || platform === "android";
+}
+
 /** Real Telegram user id, or null if the app is opened outside Telegram. */
 export function getTelegramUserId(): number | null {
-  const tg = window.Telegram?.WebApp;
+  const tg = getTelegramWebApp();
   if (!tg) {
     return null;
   }
@@ -53,17 +92,47 @@ export function getTelegramUserId(): number | null {
   }
 
   if (tg.initData) {
-    return readUserIdFromInitData(tg.initData);
+    const fromInit = readUserIdFromInitData(tg.initData);
+    if (fromInit) {
+      return fromInit;
+    }
   }
 
-  return null;
+  return readUserIdFromLocationHash();
+}
+
+/** Wait until Telegram WebApp SDK is injected (mobile can be slower than desktop). */
+export function waitForTelegramWebApp(timeoutMs = 12000): Promise<TelegramWebApp | null> {
+  const immediate = getTelegramWebApp();
+  if (immediate) {
+    return Promise.resolve(immediate);
+  }
+
+  return new Promise((resolve) => {
+    const started = Date.now();
+    const tick = (): void => {
+      const tg = getTelegramWebApp();
+      if (tg) {
+        resolve(tg);
+        return;
+      }
+      if (Date.now() - started >= timeoutMs) {
+        resolve(null);
+        return;
+      }
+      window.setTimeout(tick, 40);
+    };
+    tick();
+  });
 }
 
 /** Wait until Telegram WebApp SDK exposes the user (opens inside Telegram). */
-export function waitForTelegramUserId(timeoutMs = 8000): Promise<number | null> {
+export async function waitForTelegramUserId(timeoutMs = 12000): Promise<number | null> {
+  await waitForTelegramWebApp(timeoutMs);
+
   const immediate = getTelegramUserId();
   if (immediate) {
-    return Promise.resolve(immediate);
+    return immediate;
   }
 
   return new Promise((resolve) => {
@@ -98,30 +167,77 @@ export function getWorkoutDateFromUrl(): string | null {
   if (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) {
     return q;
   }
-  const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
+  const sp = getTelegramWebApp()?.initDataUnsafe?.start_param;
   if (sp && /^\d{4}-\d{2}-\d{2}$/.test(sp)) {
     return sp;
   }
   return null;
 }
 
-export function initTelegramWebApp(): void {
-  const tg = window.Telegram?.WebApp;
-  if (!tg) {
-    return;
-  }
-  tg.ready?.();
-  tg.expand?.();
+function applyTelegramTheme(tg: TelegramWebApp): void {
   const params = tg.themeParams;
   const bg = params?.bg_color ?? params?.secondary_bg_color;
+  const header = params?.header_bg_color ?? bg;
   if (bg) {
     document.body.style.backgroundColor = bg;
     document.documentElement.style.setProperty("--tg-bg", bg);
+    document.documentElement.style.setProperty("--bg", bg);
+  }
+  if (header && typeof tg.setHeaderColor === "function") {
+    try {
+      tg.setHeaderColor(header);
+    } catch {
+      // ignore
+    }
+  }
+  if (bg && typeof tg.setBackgroundColor === "function") {
+    try {
+      tg.setBackgroundColor(bg);
+    } catch {
+      // ignore
+    }
   }
 }
 
+function applyMobileLayout(tg: TelegramWebApp): void {
+  document.documentElement.classList.add("telegram-webapp");
+  if (isTelegramMobile()) {
+    document.documentElement.classList.add("telegram-mobile");
+  }
+
+  tg.expand?.();
+
+  if (typeof tg.disableVerticalSwipes === "function") {
+    try {
+      tg.disableVerticalSwipes();
+    } catch {
+      // older clients
+    }
+  }
+
+  if (isTelegramMobile() && typeof tg.requestFullscreen === "function") {
+    try {
+      tg.requestFullscreen();
+    } catch {
+      // optional Bot API 8+
+    }
+  }
+}
+
+/** Call once at boot — same Mini App shell on Desktop / iOS / Android. */
+export async function initTelegramWebApp(): Promise<void> {
+  const tg = await waitForTelegramWebApp();
+  if (!tg) {
+    return;
+  }
+
+  tg.ready?.();
+  applyTelegramTheme(tg);
+  applyMobileLayout(tg);
+}
+
 export function openStarsInvoice(url: string, onDone?: (paid: boolean) => void): void {
-  const tg = window.Telegram?.WebApp;
+  const tg = getTelegramWebApp();
   if (tg?.openInvoice) {
     tg.openInvoice(url, (status) => {
       onDone?.(status === "paid");
@@ -130,4 +246,13 @@ export function openStarsInvoice(url: string, onDone?: (paid: boolean) => void):
   }
   window.open(url, "_blank");
   onDone?.(false);
+}
+
+export function reloadMiniApp(): void {
+  const tg = getTelegramWebApp();
+  if (typeof tg?.reload === "function") {
+    tg.reload();
+    return;
+  }
+  window.location.reload();
 }

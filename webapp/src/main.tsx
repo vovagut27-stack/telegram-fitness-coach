@@ -5,14 +5,12 @@ import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { I18nProvider } from "./i18n/context";
 import { loadApiConfig } from "./config";
-import { initTelegramWebApp } from "./services/telegram";
+import { initTelegramWebApp, reloadMiniApp } from "./services/telegram";
 
 const container = document.getElementById("root");
 if (!container) {
   throw new Error("root element missing");
 }
-
-initTelegramWebApp();
 
 const root = createRoot(container);
 
@@ -25,15 +23,6 @@ function renderApp(): void {
     </ErrorBoundary>
   );
   root.render(import.meta.env.DEV ? <StrictMode>{tree}</StrictMode> : tree);
-}
-
-function reloadMiniApp(): void {
-  const tg = window.Telegram?.WebApp;
-  if (typeof tg?.reload === "function") {
-    tg.reload();
-    return;
-  }
-  window.location.reload();
 }
 
 function renderBootError(message: string): void {
@@ -51,6 +40,7 @@ function renderBootError(message: string): void {
 root.render(<p className="muted center" style={{ padding: "2rem" }}>Загрузка…</p>);
 
 void loadApiConfig()
+  .then(() => initTelegramWebApp())
   .then(() => {
     renderApp();
   })

@@ -16,12 +16,25 @@
   box-sizing: border-box;
 }
 
+html.telegram-webapp {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   background: radial-gradient(ellipse at top, #1a2332 0%, var(--bg) 55%);
   color: var(--text);
   min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+html.telegram-mobile body {
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 #root {
@@ -34,7 +47,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-bottom: 72px;
+  min-height: 100dvh;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
 .top-bar {
@@ -75,8 +89,14 @@ body {
   backdrop-filter: blur(12px);
   border-top: 1px solid #2a3548;
   padding: 0.35rem;
+  padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
   gap: 0.2rem;
   z-index: 10;
+}
+
+html.telegram-mobile .tab-bar button {
+  min-height: 44px;
+  font-size: 0.72rem;
 }
 
 .tab-bar button {

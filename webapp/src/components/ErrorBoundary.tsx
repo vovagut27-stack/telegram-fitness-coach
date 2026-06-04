@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { reloadMiniApp } from "../services/telegram";
 
 interface Props {
   children: ReactNode;
@@ -6,15 +7,6 @@ interface Props {
 
 interface State {
   error: Error | null;
-}
-
-function reloadMiniApp(): void {
-  const tg = window.Telegram?.WebApp;
-  if (typeof tg?.reload === "function") {
-    tg.reload();
-    return;
-  }
-  window.location.reload();
 }
 
 export class ErrorBoundary extends Component<Props, State> {

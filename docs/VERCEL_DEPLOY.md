@@ -55,6 +55,26 @@
 
 ---
 
+## Telegram: одно и то же приложение на телефоне и ПК
+
+Чтобы Mini App открывалась **внутри** Telegram (а не в Safari/Chrome):
+
+1. **BotFather** → ваш бот → **Bot Settings** → **Menu Button** или **Configure Mini App**  
+   URL = тот же `WEBAPP_URL`, что на Vercel (https, без `/` в конце).
+
+2. **Vercel backend** → `WEBAPP_URL` = URL проекта **webapp** (не backend).
+
+3. После деплоя backend сам вызывает `setChatMenuButton` — слева внизу в чате кнопка **🏋️ FitBot** (на iOS/Android и Desktop).
+
+4. Открывайте только через:
+   - кнопку **«Открыть приложение»** в боте,
+   - кнопку **Меню** (☰) внизу,
+   - дни в **плане на неделю** (web_app).
+
+Не открывайте ссылку webapp в обычном браузере — там не будет `initData` пользователя.
+
+---
+
 ## 2. Mini App — второй проект Vercel
 
 | Настройка | Значение |
