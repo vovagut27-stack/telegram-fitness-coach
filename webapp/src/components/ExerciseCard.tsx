@@ -39,6 +39,8 @@ export function ExerciseCard({
     () => repTargetsPerSet(exercise.reps, exercise.sets),
     [exercise.reps, exercise.sets],
   );
+  const isTimed = /сек|sec/i.test(exercise.reps);
+  const repsLabel = exercise.reps.replace(/\s*сек.*$/i, "").replace(/\s*sec.*$/i, "").trim();
 
   const eqKey = equipmentMessageKey(exercise.equipment);
   const eqLabel = tr(eqKey);
@@ -70,16 +72,43 @@ export function ExerciseCard({
       <h3>
         {index + 1}. {exercise.name}
       </h3>
-      <p className="sets-summary">
-        {tr("sets_count", { sets: exercise.sets })} · {tr("rest_seconds", { seconds: exercise.restSeconds })}
-      </p>
-      <ul className="set-rep-plan">
-        {repPlan.map((target, setIndex) => (
-          <li key={setIndex}>
-            {tr("set_rep_line", { set: setIndex + 1, reps: target })}
-          </li>
-        ))}
-      </ul>
+      {gymMode && exercise.weightKg != null ? (
+        <p className="gym-scheme">
+          {tr("gym_exercise_scheme", {
+            sets: exercise.sets,
+            weight: exercise.weightKg,
+            reps: exercise.reps.replace(/[^\d]/g, "") || exercise.reps,
+          })}
+        </p>
+      ) : (
+        <>
+          <p className="home-scheme">
+            {isTimed
+              ? tr("home_exercise_scheme_time", {
+                  sets: exercise.sets,
+                  seconds: repsLabel,
+                })
+              : tr("home_exercise_scheme", {
+                  sets: exercise.sets,
+                  reps: repsLabel,
+                })}
+          </p>
+          <p className="sets-summary muted">
+            {tr("rest_seconds", { seconds: exercise.restSeconds })}
+          </p>
+          {exercise.sets > 1 ? (
+            <ul className="set-rep-plan">
+              {repPlan.map((target, setIndex) => (
+                <li key={setIndex}>
+                  {isTimed
+                    ? tr("set_time_line", { set: setIndex + 1, seconds: target })
+                    : tr("set_rep_line", { set: setIndex + 1, reps: target })}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
+      )}
       {!gymMode ? (
         <p>
           {tr("equipment")}: {eqLabel}

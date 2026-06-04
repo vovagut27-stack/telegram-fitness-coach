@@ -7,6 +7,8 @@ export interface WorkoutExercise {
   restSeconds: number;
   instructions: string;
   equipment: string;
+  /** Рабочий вес на подход (кг), для зала. */
+  weightKg?: number;
   demoUrl?: string;
   /** Second image URL if demoUrl fails to load (e.g. wger). */
   imageFallback?: string;
@@ -22,6 +24,7 @@ export interface WorkoutPlan {
   splitDay?: string;
   scheduleDate?: string;
   gymDayKey?: string;
+  homeDayKey?: string;
 }
 
 export interface GymProgramDay {

@@ -70,9 +70,11 @@ export function WorkoutPlayer({
     const targets = repTargetsPerSet(current.reps, current.sets);
     setRepsInput(String(targets[0] ?? 10));
     setLoggedReps([]);
-    setWeightInput("");
+    setWeightInput(
+      gymMode && current.weightKg != null ? String(current.weightKg) : "",
+    );
     setSetDone(0);
-  }, [exerciseIndex, current]);
+  }, [exerciseIndex, current, gymMode]);
 
   useEffect(() => {
     if (!current || repPlan.length === 0) {

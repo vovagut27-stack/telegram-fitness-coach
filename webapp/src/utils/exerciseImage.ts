@@ -7,6 +7,10 @@ import { isLocalExerciseIllustration } from "./exerciseIllustration";
 const GENERIC_PHOTO =
   "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=640&q=80&auto=format&fit=crop";
 
+function isBundledExercisePhoto(url: string): boolean {
+  return url.startsWith("/exercises/photos/");
+}
+
 function exercisePhotoProxyUrl(
   name: string,
   gender?: Gender | null,
@@ -34,12 +38,16 @@ export function exerciseImageCandidates(
     }
   };
 
-  add(
-    exercisePhotoProxyUrl(exercise.name, gender ?? null, exercise.equipment),
-  );
-
   const exactPhoto = lookupExercisePhoto(exercise.name);
-  add(exactPhoto);
+
+  if (exactPhoto && isBundledExercisePhoto(exactPhoto)) {
+    add(exactPhoto);
+  } else {
+    add(
+      exercisePhotoProxyUrl(exercise.name, gender ?? null, exercise.equipment),
+    );
+    add(exactPhoto);
+  }
 
   const demo = exercise.demoUrl;
   if (demo && !isLocalExerciseIllustration(demo) && demo !== exactPhoto) {

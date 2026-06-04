@@ -80,13 +80,13 @@ function buildRequest(
 
 async function generatePlan(
   user: UserProfile,
-  recent: WorkoutPlan[],
+  _recent: WorkoutPlan[],
   weeklyCount: number,
   targetMuscles: string[],
+  workoutDate: string,
 ): Promise<WorkoutPlan> {
-  const request = buildRequest(user, recent, weeklyCount, targetMuscles);
-  // Главная: домашние тренировки без инвентаря — шаблоны по сплиту (ноги/спина/грудь)
-  return buildTemplateWorkout(request);
+  const request = buildRequest(user, _recent, weeklyCount, targetMuscles);
+  return buildTemplateWorkout(request, workoutDate);
 }
 
 export async function getOrCreateWorkoutForDate(
@@ -136,7 +136,7 @@ export async function getOrCreateWorkoutForDate(
   }
 
   const split = getSplitForDate(workoutDate, user.language);
-  let plan = await generatePlan(user, recent, weeklyCount, split.muscles);
+  let plan = await generatePlan(user, recent, weeklyCount, split.muscles, workoutDate);
   plan = attachScheduleMeta(plan, workoutDate, user.language);
   plan = {
     ...plan,
@@ -234,7 +234,7 @@ export async function getWeekPlanForBot(
 function peekDayPreviewExercises(user: UserProfile, workoutDate: string): string[] {
   const split = getSplitForDate(workoutDate, user.language);
   const request = buildRequest(user, [], 0, split.muscles);
-  const plan = buildTemplateWorkout(request);
+  const plan = buildTemplateWorkout(request, workoutDate);
   return plan.exercises.slice(0, 3).map((e) => e.name);
 }
 

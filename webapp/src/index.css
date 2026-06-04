@@ -337,6 +337,20 @@ button:disabled {
   font-weight: 600;
 }
 
+.home-scheme {
+  margin: 0.35rem 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent, #5eead4);
+}
+
+.gym-scheme {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent, #5eead4);
+}
+
 .set-rep-plan {
   list-style: none;
   margin: 0 0 0.65rem;

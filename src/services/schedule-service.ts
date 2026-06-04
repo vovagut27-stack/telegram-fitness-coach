@@ -9,24 +9,19 @@ export interface DaySplit {
 
 export const DAY_SPLITS: DaySplit[] = [
   {
-    titleRu: "День ног",
-    titleEn: "Leg day",
+    titleRu: "Дом · Тренировка A",
+    titleEn: "Home · Workout A",
+    muscles: ["full body", "cardio", "strength"],
+  },
+  {
+    titleRu: "Дом · Тренировка B",
+    titleEn: "Home · Workout B",
     muscles: ["legs", "glutes", "core"],
   },
   {
-    titleRu: "Спина и плечи",
-    titleEn: "Back & shoulders",
-    muscles: ["back", "biceps", "shoulders"],
-  },
-  {
-    titleRu: "Грудь и трицепс",
-    titleEn: "Chest & triceps",
-    muscles: ["chest", "triceps", "shoulders"],
-  },
-  {
-    titleRu: "Ноги и пресс",
-    titleEn: "Legs & core",
-    muscles: ["legs", "core", "glutes"],
+    titleRu: "Дом · Тренировка C",
+    titleEn: "Home · Workout C",
+    muscles: ["core", "abs", "stability"],
   },
 ];
 
@@ -82,12 +77,16 @@ export function attachScheduleMeta(
   locale: Locale,
 ): WorkoutPlan {
   const split = getSplitForDate(isoDate, locale);
+  const dateLabel = formatDayLabel(isoDate, locale);
+  const title = plan.splitDay ?? split.title;
   return {
     ...plan,
-    targetMuscles: split.muscles,
+    targetMuscles: plan.targetMuscles?.length ? plan.targetMuscles : split.muscles,
     programType: plan.programType ?? "daily",
-    splitDay: split.title,
-    notes: `${formatDayLabel(isoDate, locale)} · ${split.title}${plan.notes ? ` — ${plan.notes}` : ""}`,
+    splitDay: `${dateLabel} · ${title}`,
+    notes: plan.notes
+      ? `${dateLabel} · ${title} — ${plan.notes}`
+      : `${dateLabel} · ${title}`,
   };
 }
 

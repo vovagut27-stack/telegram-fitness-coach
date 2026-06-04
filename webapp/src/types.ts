@@ -9,6 +9,7 @@ export interface WorkoutExercise {
   restSeconds: number;
   instructions: string;
   equipment: string;
+  weightKg?: number;
   demoUrl?: string;
   imageFallback?: string;
 }
@@ -23,6 +24,7 @@ export interface WorkoutPlan {
   splitDay?: string;
   scheduleDate?: string;
   gymDayKey?: string;
+  homeDayKey?: string;
 }
 
 export interface GymProgramDay {
