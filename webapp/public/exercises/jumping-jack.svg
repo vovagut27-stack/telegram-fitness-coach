@@ -1,29 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Jumping jack">
-  <rect width="320" height="200" fill="#ffffff"/>
-  <g transform="translate(8,0)">
-  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
-    <ellipse cx="72" cy="35" rx="11" ry="13"/>
-      <path d="M72 48 L72 85"/>
-      <path d="M72 55 L55 62 M72 55 L89 62"/>
-      <path d="M55 62 L38 48 M89 62 L106 48"/>
-      <path d="M72 85 L62 125 L58 148"/>
-      <path d="M72 85 L82 125 L86 148"/>
-  </g>
-  <g fill="#e53935" opacity="0.9"><path d="M38 48 L28 38" stroke="#e53935" stroke-width="5" fill="none"/>
-      <path d="M106 48 L116 38" stroke="#e53935" stroke-width="5" fill="none"/></g>
-  <g fill="rgba(229,57,53,0.35)"><path d="M38 48 L28 38" stroke="#e53935" stroke-width="5" fill="none"/>
-      <path d="M106 48 L116 38" stroke="#e53935" stroke-width="5" fill="none"/></g></g><g transform="translate(168,0)">
-  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
-    <ellipse cx="72" cy="35" rx="11" ry="13"/>
-      <path d="M72 48 L72 85"/>
-      <path d="M72 55 L48 42 M72 55 L96 42"/>
-      <path d="M48 42 L22 35 M96 42 L122 35"/>
-      <path d="M72 85 L58 125 L52 148"/>
-      <path d="M72 85 L86 125 L92 148"/>
-  </g>
-  <g fill="#e53935" opacity="0.9"><path d="M22 35 L12 28" stroke="#e53935" stroke-width="5" fill="none"/>
-      <path d="M122 35 L132 28" stroke="#e53935" stroke-width="5" fill="none"/></g>
-  <g fill="rgba(229,57,53,0.35)"><path d="M22 35 L12 28" stroke="#e53935" stroke-width="5" fill="none"/>
-      <path d="M122 35 L132 28" stroke="#e53935" stroke-width="5" fill="none"/></g></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 220" role="img" aria-label="Jumping jack">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eef2f7"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d1d9e6"/>
+      <stop offset="100%" stop-color="#a8b4c4"/>
+    </linearGradient>
+    <linearGradient id="muscle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff7043"/>
+      <stop offset="100%" stop-color="#d32f2f"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#94a3b8" flood-opacity="0.35"/>
+    </filter>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="360" height="220" fill="url(#bg)"/>
+  <line x1="180" y1="12" x2="180" y2="208" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 4"/>
+  
+  <text x="90" y="18" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#64748b">старт</text>
+  <text x="270" y="18" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#64748b">финиш</text>
+  <path d="M 160 112 L 194 112" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow)"/><g transform="translate(8, 24)" filter="url(#soft)">
+    <line x1="8" y1="168" x2="152" y2="168" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+    <line x1="74" y1="52" x2="62" y2="62" stroke="#5d6b7a" stroke-width="7" stroke-linecap="round"/><line x1="86" y1="52" x2="98" y2="62" stroke="#5d6b7a" stroke-width="7" stroke-linecap="round"/><line x1="62" y1="62" x2="48" y2="52" stroke="#5d6b7a" stroke-width="6" stroke-linecap="round"/><line x1="98" y1="62" x2="112" y2="52" stroke="#5d6b7a" stroke-width="6" stroke-linecap="round"/><line x1="74" y1="78" x2="68" y2="128" stroke="#5d6b7a" stroke-width="9" stroke-linecap="round"/><line x1="86" y1="78" x2="92" y2="128" stroke="#5d6b7a" stroke-width="9" stroke-linecap="round"/><line x1="68" y1="128" x2="65" y2="165" stroke="#5d6b7a" stroke-width="8" stroke-linecap="round"/><line x1="92" y1="128" x2="95" y2="165" stroke="#5d6b7a" stroke-width="8" stroke-linecap="round"/>
+    <path d="M70 48 L74 78 L86 78 L90 48 Z" fill="url(#skin)" stroke="#5d6b7a"/>
+    <circle cx="80" cy="38" r="10" fill="url(#skin)" stroke="#5d6b7a" stroke-width="1.5"/>
+    <ellipse cx="52" cy="58" rx="8" ry="12" fill="url(#muscle)" transform="rotate(-30 52 58)"/><ellipse cx="108" cy="58" rx="8" ry="12" fill="url(#muscle)" transform="rotate(30 108 58)"/></g><g transform="translate(188, 24)" filter="url(#soft)">
+    <line x1="8" y1="168" x2="152" y2="168" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+    <line x1="74" y1="52" x2="48" y2="42" stroke="#5d6b7a" stroke-width="7" stroke-linecap="round"/><line x1="86" y1="52" x2="112" y2="42" stroke="#5d6b7a" stroke-width="7" stroke-linecap="round"/><line x1="74" y1="78" x2="62" y2="128" stroke="#5d6b7a" stroke-width="9" stroke-linecap="round"/><line x1="86" y1="78" x2="98" y2="128" stroke="#5d6b7a" stroke-width="9" stroke-linecap="round"/><line x1="62" y1="128" x2="55" y2="165" stroke="#5d6b7a" stroke-width="8" stroke-linecap="round"/><line x1="98" y1="128" x2="105" y2="165" stroke="#5d6b7a" stroke-width="8" stroke-linecap="round"/>
+    <path d="M70 48 L74 78 L86 78 L90 48 Z" fill="url(#skin)" stroke="#5d6b7a"/>
+    <circle cx="80" cy="38" r="10" fill="url(#skin)" stroke="#5d6b7a" stroke-width="1.5"/>
+    <ellipse cx="42" cy="48" rx="9" ry="14" fill="url(#muscle)" transform="rotate(-40 42 48)"/><ellipse cx="118" cy="48" rx="9" ry="14" fill="url(#muscle)" transform="rotate(40 118 48)"/><ellipse cx="80" cy="58" rx="16" ry="10" fill="url(#muscle)" transform="rotate(0 80 58)"/></g>
 </svg>
