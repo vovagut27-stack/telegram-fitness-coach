@@ -9,19 +9,24 @@ export interface DaySplit {
 
 export const DAY_SPLITS: DaySplit[] = [
   {
-    titleRu: "Дом · Тренировка A",
-    titleEn: "Home · Workout A",
-    muscles: ["full body", "cardio", "strength"],
-  },
-  {
-    titleRu: "Дом · Тренировка B",
-    titleEn: "Home · Workout B",
+    titleRu: "День ног",
+    titleEn: "Leg day",
     muscles: ["legs", "glutes", "core"],
   },
   {
-    titleRu: "Дом · Тренировка C",
-    titleEn: "Home · Workout C",
-    muscles: ["core", "abs", "stability"],
+    titleRu: "Спина и бицепс",
+    titleEn: "Back & biceps",
+    muscles: ["back", "biceps"],
+  },
+  {
+    titleRu: "Грудь и трицепс",
+    titleEn: "Chest & triceps",
+    muscles: ["chest", "triceps", "shoulders"],
+  },
+  {
+    titleRu: "Ноги и пресс",
+    titleEn: "Legs & core",
+    muscles: ["legs", "core", "glutes"],
   },
 ];
 

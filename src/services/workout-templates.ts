@@ -1,34 +1,34 @@
 import type { Locale } from "../types/locale.js";
 import type { Gender } from "../types/profile.js";
 import type { FitnessLevel, WorkoutExercise, WorkoutPlan, WorkoutRequest } from "../types/workout.js";
-import { isoDateOnly } from "./schedule-service.js";
+import { targetMusclesToTags } from "./exercise-catalog.js";
+import { getSplitForDate, isoDateOnly } from "./schedule-service.js";
 import { enrichExerciseImage, enrichWorkoutExercises } from "./exercise-images.js";
-import {
-  getHomeReadyDay,
-  homeWorkoutIndexForDate,
-  HOME_READY_SPLITS,
-} from "./home-ready-splits.js";
+import { getHomeReadyDay } from "./home-ready-splits.js";
 
-export function muscleFocusFromTargets(targetMuscles?: string[]): string {
-  return (targetMuscles ?? []).join(" ");
+function targetsOverlap(planTargets: string[], splitTargets: string[]): boolean {
+  const planTags = new Set(targetMusclesToTags(planTargets));
+  const splitTags = targetMusclesToTags(splitTargets);
+  return splitTags.some((t) => planTags.has(t));
 }
 
-/** План в БД соответствует дню готовой домашней тренировки? */
+/** План соответствует фокусу дня в расписании (ноги / грудь / спина …). */
 export function planMatchesDaySplit(
   plan: WorkoutPlan,
   isoDate: string,
-  _locale: Locale,
+  locale: Locale,
 ): boolean {
   if (plan.programType === "gym") {
     return false;
   }
-  const expected = HOME_READY_SPLITS[homeWorkoutIndexForDate(isoDate)]?.dayKey;
-  if (plan.homeDayKey && expected) {
-    return plan.homeDayKey === expected;
+  const split = getSplitForDate(isoDate, locale);
+  if (!plan.targetMuscles?.length) {
+    return false;
   }
-  return false;
+  return targetsOverlap(plan.targetMuscles, split.muscles);
 }
 
+/** Фиксированная тренировка A/B/C — запас, если AI недоступен. */
 export function buildTemplateWorkout(
   request: WorkoutRequest,
   workoutDate: string = isoDateOnly(),
@@ -59,7 +59,7 @@ export function normalizeWorkoutPlan(plan: WorkoutPlan, request: WorkoutRequest)
     return {
       ...plan,
       exercises: enrichWorkoutExercises(
-        exercises,
+        exercises.slice(0, 12),
         request.gender as Gender | null | undefined,
         request.fitnessLevel,
       ),

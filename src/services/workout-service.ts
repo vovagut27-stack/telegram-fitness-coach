@@ -10,7 +10,9 @@ import {
   saveWorkoutPlan,
 } from "../database/workouts-repo.js";
 import { FitnessLevel, WorkoutPlan, WorkoutRequest } from "../types/workout.js";
+import { AIWorkoutService } from "./ai-service.js";
 import { buildTemplateWorkout, planMatchesDaySplit } from "./workout-templates.js";
+import { gymDayKeyToTargets } from "./exercise-catalog.js";
 import { isPremiumActive } from "./premium-service.js";
 import { getFreeTierStatus, type FreeTierStatus } from "./free-tier-service.js";
 import { enrichWorkoutExercises } from "./exercise-images.js";
@@ -60,10 +62,15 @@ function buildRequest(
   const bmi =
     user.weightKg && user.heightCm ? calcBmi(user.weightKg, user.heightCm) : null;
 
+  const mode = user.trainingMode === "gym" ? "gym" : "home";
+
   return {
     userId: String(user.telegramId),
     fitnessLevel: difficulty,
-    availableEquipment: ["bodyweight", "home", "none", "chair"],
+    availableEquipment:
+      mode === "gym"
+        ? ["barbell", "dumbbell", "machine", "cable", "bodyweight"]
+        : ["bodyweight", "home", "none", "chair"],
     timeMinutes: user.timePerSession,
     lastWorkouts: recent,
     targetMuscles,
@@ -73,20 +80,26 @@ function buildRequest(
     weightKg: user.weightKg,
     heightCm: user.heightCm,
     bmi,
-    trainingMode: "home",
+    trainingMode: mode,
     goals: user.goals,
   };
 }
 
 async function generatePlan(
   user: UserProfile,
-  _recent: WorkoutPlan[],
+  recent: WorkoutPlan[],
   weeklyCount: number,
   targetMuscles: string[],
   workoutDate: string,
 ): Promise<WorkoutPlan> {
-  const request = buildRequest(user, _recent, weeklyCount, targetMuscles);
-  return buildTemplateWorkout(request, workoutDate);
+  const request = buildRequest(user, recent, weeklyCount, targetMuscles);
+  const split = getSplitForDate(workoutDate, user.language);
+  const ai = new AIWorkoutService();
+  return ai.generateWorkout(request, {
+    workoutDate,
+    splitTitle: split.title,
+    dayKey: `home_${workoutDate}`,
+  });
 }
 
 export async function getOrCreateWorkoutForDate(
@@ -287,12 +300,16 @@ export async function getOrCreateGymWorkoutForDate(
     throw new Error("PREMIUM_REQUIRED");
   }
 
-  const { getGymDayPlanForDate, gymDayIndexForDate, buildGymProgram } = await import(
+  const { gymDayIndexForDate, buildGymProgram, attachGymScheduleMeta } = await import(
     "./gym-program-service.js"
   );
 
+  const program = buildGymProgram(user);
+  const idx = gymDayIndexForDate(workoutDate);
+  const slot = program.days[idx] ?? program.days[0];
+  const expectedKey = slot.dayKey;
+
   let existing = await getWorkoutByDate(telegramId, workoutDate);
-  const expectedKey = buildGymProgram(user).days[gymDayIndexForDate(workoutDate)]?.dayKey;
 
   if (
     existing &&
@@ -317,11 +334,34 @@ export async function getOrCreateGymWorkoutForDate(
     };
   }
 
-  const plan = getGymDayPlanForDate(user, workoutDate);
+  const [recent, weeklyCount] = await Promise.all([
+    getRecentWorkouts(telegramId, 2),
+    countCompletedThisWeek(telegramId),
+  ]);
+  const targetMuscles = gymDayKeyToTargets(slot.dayKey);
+  const request = buildRequest(user, recent, weeklyCount, targetMuscles);
+  request.trainingMode = "gym";
+
+  const ai = new AIWorkoutService();
+  let plan = await ai.generateWorkout(request, {
+    workoutDate,
+    splitTitle: slot.dayLabel,
+    dayKey: slot.dayKey,
+  });
+  plan = attachGymScheduleMeta(
+    plan,
+    workoutDate,
+    user.language,
+    slot.dayLabel,
+    slot.focus,
+    slot.dayKey,
+  );
   const enriched = {
     ...plan,
     exercises: enrichWorkoutExercises(plan.exercises, user.gender, user.fitnessLevel),
     difficultyLevel: user.fitnessLevel,
+    programType: "gym" as const,
+    gymDayKey: slot.dayKey,
   };
   await saveWorkoutPlan(telegramId, workoutDate, enriched);
   return enriched;
