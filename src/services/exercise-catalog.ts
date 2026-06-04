@@ -1,6 +1,7 @@
 import type { Locale } from "../types/locale.js";
 import type { WorkoutExercise } from "../types/workout.js";
 import { normalizeExerciseName } from "./exercise-image-catalog.js";
+import { GYM_BACK_POOL, HOME_BACK_POOL } from "./back-exercise-pool.js";
 import { GYM_READY_SPLITS } from "./gym-ready-splits.js";
 import { HOME_READY_SPLITS, type LocalizedExercise } from "./home-ready-splits.js";
 
@@ -49,9 +50,35 @@ const MUSCLE_TAGS: Record<string, MuscleTag[]> = {
   "попеременные косые скручивания": ["core"],
   "негативный флаг дракона": ["core"],
   "тяга супермена": ["back", "core"],
+  "супермен": ["back", "core"],
+  "superman hold": ["back", "core"],
+  "птица-собака": ["back", "core"],
+  "bird-dog": ["back", "core"],
+  "австралийские подтягивания под столом": ["back", "biceps"],
+  "inverted table rows": ["back", "biceps"],
+  "тяга полотенца к поясу": ["back", "biceps"],
+  "towel door rows": ["back", "biceps"],
+  "тяга в наклоне с рюкзаком": ["back", "biceps"],
+  "backpack bent-over rows": ["back", "biceps"],
+  "обратная планка": ["back", "core"],
+  "reverse plank": ["back", "core"],
+  "сгибание рук с полотенцем": ["biceps"],
+  "towel biceps curls": ["biceps"],
   "планка «медведь»": ["core"],
   "боковая планка": ["core"],
   // Зал
+  "подтягивания": ["back", "biceps"],
+  "pull-ups": ["back", "biceps"],
+  "тяга верхнего блока": ["back", "biceps"],
+  "lat pulldown": ["back", "biceps"],
+  "тяга гантели в наклоне": ["back", "biceps"],
+  "single-arm dumbbell row": ["back", "biceps"],
+  "тяга горизонтальная": ["back", "biceps"],
+  "seated cable row": ["back", "biceps"],
+  "сгибание штанги": ["biceps"],
+  "barbell curl": ["biceps"],
+  "молотковые сгибания": ["biceps"],
+  "hammer curls": ["biceps"],
   "жим штанги лежа": ["chest", "triceps"],
   "жим гантелей на наклонной скамье": ["chest", "shoulders"],
   "сведения рук в тренажере бабочка": ["chest"],
@@ -105,6 +132,8 @@ function buildCatalog(): CatalogExercise[] {
   for (const day of GYM_READY_SPLITS) {
     addFromSplit(map, day.exercises, "gym");
   }
+  addFromSplit(map, HOME_BACK_POOL, "home");
+  addFromSplit(map, GYM_BACK_POOL, "gym");
   return [...map.values()];
 }
 
