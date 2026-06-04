@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 248" role="img" aria-label="Barbell curl">
+  <defs>
+    <linearGradient id="barbell-curl-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="45%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <linearGradient id="barbell-curl-card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="barbell-curl-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <radialGradient id="barbell-curl-muscle" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </radialGradient>
+    <filter id="barbell-curl-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#64748b" flood-opacity="0.25"/>
+    </filter>
+    <filter id="barbell-curl-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="barbell-curl-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#10b981"/>
+    </marker>
+  </defs>
+  <rect width="400" height="248" fill="url(#barbell-curl-bg)" rx="16"/>
+  <circle cx="48" cy="42" r="52" fill="#93c5fd" opacity="0.12"/>
+  <circle cx="360" cy="218" r="64" fill="#6ee7b7" opacity="0.14"/>
+  <text x="200" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#0f172a">Barbell curl</text>
+  
+  <g transform="translate(116, 48)">
+    <rect x="0" y="0" width="168" height="178" rx="14" fill="url(#barbell-curl-card)" filter="url(#barbell-curl-shadow)" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <line x1="12" y1="168" x2="156" y2="168" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/><line x1="48" y1="72" x2="120" y2="72" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+    <line x1="78" y1="58" x2="52" y2="72" stroke="url(#barbell-curl-body)" stroke-width="8" stroke-linecap="round"/><circle cx="78" cy="58" r="4.5" fill="#475569"/><circle cx="52" cy="72" r="4.5" fill="#475569"/><line x1="90" y1="58" x2="116" y2="72" stroke="url(#barbell-curl-body)" stroke-width="8" stroke-linecap="round"/><circle cx="90" cy="58" r="4.5" fill="#475569"/><circle cx="116" cy="72" r="4.5" fill="#475569"/><line x1="78" y1="108" x2="72" y2="158" stroke="url(#barbell-curl-body)" stroke-width="9" stroke-linecap="round"/><circle cx="78" cy="108" r="4.5" fill="#475569"/><circle cx="72" cy="158" r="4.5" fill="#475569"/><line x1="90" y1="108" x2="96" y2="158" stroke="url(#barbell-curl-body)" stroke-width="9" stroke-linecap="round"/><circle cx="90" cy="108" r="4.5" fill="#475569"/><circle cx="96" cy="158" r="4.5" fill="#475569"/>
+    <path d="M74 52 L78 108 L90 108 L94 52 Z" fill="url(#barbell-curl-body)"/>
+    <circle cx="84" cy="42" r="11" fill="url(#barbell-curl-body)" stroke="#64748b" stroke-width="1"/>
+    <ellipse cx="52" cy="78" rx="10" ry="14" fill="url(#barbell-curl-muscle)" opacity="0.88" filter="url(#barbell-curl-glow)" transform="rotate(-15 52 78)"/><ellipse cx="116" cy="78" rx="10" ry="14" fill="url(#barbell-curl-muscle)" opacity="0.88" filter="url(#barbell-curl-glow)" transform="rotate(15 116 78)"/>
+  </g>
+</svg>

@@ -207,7 +207,9 @@ function applyMobileLayout(tg: TelegramWebApp): void {
 
   tg.expand?.();
 
-  if (typeof tg.disableVerticalSwipes === "function") {
+  // Only on phones: lets the page scroll inside the Mini App instead of closing it.
+  // On Desktop (mouse wheel) this API is unnecessary and can interfere with scrolling.
+  if (isTelegramMobile() && typeof tg.disableVerticalSwipes === "function") {
     try {
       tg.disableVerticalSwipes();
     } catch {

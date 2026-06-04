@@ -25,11 +25,12 @@ import {
   ensureLanguageChosen,
   LANG_PICK_EN,
   LANG_PICK_RU,
+  SHOW_LANGUAGE,
   languageCommand,
   languagePickAction,
 } from "./commands/language.js";
 import { setupReportHandlers } from "./commands/report.js";
-import { setupTelegramMenuButton } from "./telegram-mini-app-setup.js";
+import { setupBotCommands, setupTelegramMenuButton } from "./telegram-mini-app-setup.js";
 import { ensureDefaultUser } from "../services/workout-service.js";
 import { isPremiumActive } from "../services/premium-service.js";
 
@@ -76,7 +77,12 @@ bot.command("stats", statsCommand);
 
 bot.command("settings", settingsCommand);
 
-bot.command("language", languageCommand);
+bot.command(["language", "lang"], languageCommand);
+
+bot.action(SHOW_LANGUAGE, async (ctx) => {
+  await ctx.answerCbQuery().catch(() => undefined);
+  await languageCommand(ctx);
+});
 
 bot.action(LANG_PICK_RU, async (ctx) => {
   await languagePickAction(ctx, "ru");
@@ -244,6 +250,7 @@ export async function setupWebhook(): Promise<void> {
       console.log(`Telegram webhook set: ${webhookUrl}`);
     }
     await setupTelegramMenuButton(bot);
+    await setupBotCommands(bot);
   } catch (err) {
     console.error("Webhook setup failed (non-fatal):", err);
   }

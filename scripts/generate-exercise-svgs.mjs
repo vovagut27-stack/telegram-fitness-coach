@@ -1,594 +1,731 @@
 import fs from "node:fs";
 import path from "node:path";
+import { buildExtraExercises } from "./exercise-svg-extra.mjs";
 
 const outDir = path.join("webapp", "public", "exercises");
 fs.mkdirSync(outDir, { recursive: true });
 
-const W = 360;
-const H = 220;
+const W = 400;
+const H = 248;
 
-function svgWrap(title, body) {
+function svgWrap(slug, title, body) {
+  const p = slug.replace(/[^a-z0-9-]/g, "");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f8fafc"/>
-      <stop offset="100%" stop-color="#eef2f7"/>
+    <linearGradient id="${p}-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="45%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
     </linearGradient>
-    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#d1d9e6"/>
-      <stop offset="100%" stop-color="#a8b4c4"/>
+    <linearGradient id="${p}-card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
     </linearGradient>
-    <linearGradient id="muscle" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ff7043"/>
-      <stop offset="100%" stop-color="#d32f2f"/>
+    <linearGradient id="${p}-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
     </linearGradient>
-    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#94a3b8" flood-opacity="0.35"/>
+    <radialGradient id="${p}-muscle" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </radialGradient>
+    <filter id="${p}-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#64748b" flood-opacity="0.25"/>
     </filter>
-    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/>
+    <filter id="${p}-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="${p}-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#10b981"/>
     </marker>
   </defs>
-  <rect width="${W}" height="${H}" fill="url(#bg)"/>
-  <line x1="${W / 2}" y1="12" x2="${W / 2}" y2="${H - 12}" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 4"/>
+  <rect width="${W}" height="${H}" fill="url(#${p}-bg)" rx="16"/>
+  <circle cx="48" cy="42" r="52" fill="#93c5fd" opacity="0.12"/>
+  <circle cx="${W - 40}" cy="${H - 30}" r="64" fill="#6ee7b7" opacity="0.14"/>
+  <text x="${W / 2}" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#0f172a">${title}</text>
   ${body}
 </svg>`;
 }
 
-function frame(labels = ["старт", "финиш"]) {
+function frame(labels = ["1", "2"]) {
   return `
-  <text x="90" y="18" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#64748b">${labels[0]}</text>
-  <text x="270" y="18" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#64748b">${labels[1]}</text>
-  <path d="M ${W / 2 - 20} 112 L ${W / 2 + 14} 112" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow)"/>`;
+  <text x="100" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748b">${labels[0]}</text>
+  <text x="300" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748b">${labels[1]}</text>
+  <path d="M ${W / 2 - 28} 128 L ${W / 2 + 18} 128" stroke="#10b981" stroke-width="3" marker-end="url(#arrow-fix)"/>
+  <path d="M ${W / 2 - 28} 128 L ${W / 2 + 18} 128" stroke="#10b981" stroke-width="3"/>`;
 }
 
-function panel(x, inner) {
-  return `<g transform="translate(${x}, 24)" filter="url(#soft)">${inner}</g>`;
+function card(x, inner, slug) {
+  const p = slug.replace(/[^a-z0-9-]/g, "");
+  return `
+  <g transform="translate(${x}, 48)">
+    <rect x="0" y="0" width="168" height="178" rx="14" fill="url(#${p}-card)" filter="url(#${p}-shadow)" stroke="#e2e8f0" stroke-width="1"/>
+    ${inner}
+  </g>`;
 }
 
 function floor(y = 168) {
-  return `<line x1="8" y1="${y}" x2="152" y2="${y}" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>`;
+  return `<line x1="12" y1="${y}" x2="156" y2="${y}" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>`;
 }
 
-/** Anatomical stick figure builder (coords relative to panel origin 0,0; panel width ~160) */
-function fig(parts) {
-  const { head, torso, limbs = [], muscles = [], extras = "" } = parts;
-  const limbPaths = limbs
-    .map(
-      (l) =>
-        `<line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="#5d6b7a" stroke-width="${l.w ?? 8}" stroke-linecap="round"/>`,
-    )
+function joint(x, y) {
+  return `<circle cx="${x}" cy="${y}" r="4.5" fill="#475569"/>`;
+}
+
+function limb(x1, y1, x2, y2, w = 9) {
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="url(#body-fix)" stroke-width="${w}" stroke-linecap="round"/>`;
+}
+
+/** Build figure inside a card (origin 0,0; center ~84) */
+function fig(parts, slug) {
+  const p = slug.replace(/[^a-z0-9-]/g, "");
+  const limbs = (parts.limbs ?? [])
+    .map((l) => {
+      const j1 = joint(l.x1, l.y1);
+      const j2 = joint(l.x2, l.y2);
+      return `<line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="url(#${p}-body)" stroke-width="${l.w ?? 9}" stroke-linecap="round"/>${j1}${j2}`;
+    })
     .join("");
-  const musclePaths = muscles
+  const muscles = (parts.muscles ?? [])
     .map(
       (m) =>
-        `<ellipse cx="${m.cx}" cy="${m.cy}" rx="${m.rx}" ry="${m.ry}" fill="url(#muscle)" transform="rotate(${m.rot ?? 0} ${m.cx} ${m.cy})"/>`,
+        `<ellipse cx="${m.cx}" cy="${m.cy}" rx="${m.rx}" ry="${m.ry}" fill="url(#${p}-muscle)" opacity="0.88" filter="url(#${p}-glow)" transform="rotate(${m.rot ?? 0} ${m.cx} ${m.cy})"/>`,
     )
     .join("");
   return `
-    ${extras}
-    ${limbPaths}
-    ${torso ?? ""}
-    <circle cx="${head.cx}" cy="${head.cy}" r="${head.r ?? 10}" fill="url(#skin)" stroke="#5d6b7a" stroke-width="1.5"/>
-    ${musclePaths}`;
+    ${parts.extras ?? ""}
+    ${limbs}
+    ${parts.torso ?? ""}
+    <circle cx="${parts.head.cx}" cy="${parts.head.cy}" r="${parts.head.r ?? 11}" fill="url(#${p}-body)" stroke="#64748b" stroke-width="1"/>
+    ${muscles}`;
 }
 
-function dual(left, right, labels) {
-  return frame(labels) + panel(8, left) + panel(188, right);
+function dual(slug, left, right, labels) {
+  const p = slug.replace(/[^a-z0-9-]/g, "");
+  const lbl = labels ?? ["старт", "финиш"];
+  return `
+  <text x="100" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748b">${lbl[0]}</text>
+  <text x="300" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748b">${lbl[1]}</text>
+  <path d="M 188 132 L 212 132" stroke="#10b981" stroke-width="3" marker-end="url(#${p}-arrow)"/>
+  ${card(16, left, slug)}
+  ${card(216, right, slug)}`;
+}
+
+function single(slug, inner) {
+  return card(116, inner, slug);
 }
 
 const exercises = {
-  "push-up": () =>
+  "push-up": (slug) =>
     svgWrap(
-      "Push-up",
+      slug,
+      "Push-up / Отжимания",
       dual(
-        fig({
-          head: { cx: 80, cy: 42 },
-          torso: `<path d="M68 52 L72 78 L88 78 L92 52 Z" fill="url(#skin)" stroke="#5d6b7a" stroke-width="1.2"/>`,
-          limbs: [
-            { x1: 68, y1: 58, x2: 38, y2: 78, w: 7 },
-            { x1: 92, y1: 58, x2: 122, y2: 78, w: 7 },
-            { x1: 72, y1: 78, x2: 55, y2: 118, w: 9 },
-            { x1: 88, y1: 78, x2: 105, y2: 118, w: 9 },
-            { x1: 55, y1: 118, x2: 42, y2: 155, w: 8 },
-            { x1: 105, y1: 118, x2: 118, y2: 155, w: 8 },
-          ],
-          muscles: [
-            { cx: 80, cy: 68, rx: 22, ry: 10 },
-            { cx: 48, cy: 82, rx: 8, ry: 14, rot: -25 },
-            { cx: 112, cy: 82, rx: 8, ry: 14, rot: 25 },
-          ],
-        }),
-        fig({
-          head: { cx: 80, cy: 58 },
-          torso: `<path d="M68 68 L72 94 L88 94 L92 68 Z" fill="url(#skin)" stroke="#5d6b7a" stroke-width="1.2"/>`,
-          limbs: [
-            { x1: 68, y1: 74, x2: 38, y2: 94, w: 7 },
-            { x1: 92, y1: 74, x2: 122, y2: 94, w: 7 },
-            { x1: 72, y1: 94, x2: 55, y2: 134, w: 9 },
-            { x1: 88, y1: 94, x2: 105, y2: 134, w: 9 },
-            { x1: 55, y1: 134, x2: 42, y2: 158, w: 8 },
-            { x1: 105, y1: 134, x2: 118, y2: 158, w: 8 },
-          ],
-          muscles: [
-            { cx: 80, cy: 84, rx: 24, ry: 11 },
-            { cx: 48, cy: 98, rx: 9, ry: 15, rot: -20 },
-            { cx: 112, cy: 98, rx: 9, ry: 15, rot: 20 },
-          ],
-        }),
+        slug,
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 52 },
+            torso: `<path d="M72 64 L76 92 L92 92 L96 64 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 72, y1: 70, x2: 42, y2: 92, w: 8 },
+              { x1: 96, y1: 70, x2: 126, y2: 92, w: 8 },
+              { x1: 76, y1: 92, x2: 58, y2: 132, w: 10 },
+              { x1: 92, y1: 92, x2: 110, y2: 132, w: 10 },
+              { x1: 58, y1: 132, x2: 44, y2: 168, w: 9 },
+              { x1: 110, y1: 132, x2: 124, y2: 168, w: 9 },
+            ],
+            muscles: [
+              { cx: 84, cy: 78, rx: 24, ry: 11 },
+              { cx: 50, cy: 95, rx: 9, ry: 15, rot: -22 },
+              { cx: 118, cy: 95, rx: 9, ry: 15, rot: 22 },
+            ],
+          },
+          slug,
+        ),
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 68 },
+            torso: `<path d="M72 80 L76 108 L92 108 L96 80 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 72, y1: 86, x2: 42, y2: 108, w: 8 },
+              { x1: 96, y1: 86, x2: 126, y2: 108, w: 8 },
+              { x1: 76, y1: 108, x2: 58, y2: 148, w: 10 },
+              { x1: 92, y1: 108, x2: 110, y2: 148, w: 10 },
+              { x1: 58, y1: 148, x2: 44, y2: 168, w: 9 },
+              { x1: 110, y1: 148, x2: 124, y2: 168, w: 9 },
+            ],
+            muscles: [
+              { cx: 84, cy: 94, rx: 26, ry: 12 },
+              { cx: 50, cy: 112, rx: 10, ry: 16, rot: -18 },
+              { cx: 118, cy: 112, rx: 10, ry: 16, rot: 18 },
+            ],
+          },
+          slug,
+        ),
       ),
     ),
 
-  "knee-push-up": () =>
+  "knee-push-up": (slug) =>
     svgWrap(
-      "Knee push-up",
-      panel(
-        100,
-        fig({
-          extras: `${floor(150)}<text x="80" y="24" text-anchor="middle" font-size="10" fill="#64748b">колени на полу</text>`,
-          head: { cx: 80, cy: 72 },
-          torso: `<path d="M68 82 L72 108 L88 108 L92 82 Z" fill="url(#skin)" stroke="#5d6b7a" stroke-width="1.2"/>`,
-          limbs: [
-            { x1: 68, y1: 88, x2: 40, y2: 108, w: 7 },
-            { x1: 92, y1: 88, x2: 120, y2: 108, w: 7 },
-            { x1: 72, y1: 108, x2: 58, y2: 128, w: 9 },
-            { x1: 88, y1: 108, x2: 102, y2: 128, w: 9 },
-            { x1: 58, y1: 128, x2: 48, y2: 148, w: 8 },
-            { x1: 102, y1: 128, x2: 112, y2: 148, w: 8 },
-          ],
-          muscles: [
-            { cx: 80, cy: 98, rx: 20, ry: 10 },
-            { cx: 46, cy: 112, rx: 8, ry: 12, rot: -15 },
-            { cx: 114, cy: 112, rx: 8, ry: 12, rot: 15 },
-          ],
-        }),
+      slug,
+      "Knee push-up / С колен",
+      single(
+        slug,
+        fig(
+          {
+            extras: `${floor(168)}<text x="84" y="28" text-anchor="middle" font-size="9" fill="#64748b">колени · knees</text>`,
+            head: { cx: 84, cy: 78 },
+            torso: `<path d="M72 90 L76 118 L92 118 L96 90 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 72, y1: 96, x2: 42, y2: 118, w: 8 },
+              { x1: 96, y1: 96, x2: 126, y2: 118, w: 8 },
+              { x1: 76, y1: 118, x2: 60, y2: 138, w: 10 },
+              { x1: 92, y1: 118, x2: 108, y2: 138, w: 10 },
+              { x1: 60, y1: 138, x2: 50, y2: 168, w: 9 },
+              { x1: 108, y1: 138, x2: 118, y2: 168, w: 9 },
+            ],
+            muscles: [
+              { cx: 84, cy: 106, rx: 22, ry: 10 },
+              { cx: 48, cy: 120, rx: 9, ry: 14, rot: -15 },
+              { cx: 120, cy: 120, rx: 9, ry: 14, rot: 15 },
+            ],
+          },
+          slug,
+        ),
       ),
     ),
 
-  plank: () =>
+  plank: (slug) =>
     svgWrap(
-      "Plank",
-      panel(
-        30,
-        fig({
-          extras: floor(130),
-          head: { cx: 28, cy: 108 },
-          torso: `<path d="M28 118 L120 118 L120 132 L28 132 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 28, y1: 108, x2: 18, y2: 125, w: 7 },
-            { x1: 120, y1: 125, x2: 145, y2: 128, w: 9 },
-            { x1: 120, y1: 125, x2: 145, y2: 155, w: 9 },
-          ],
-          muscles: [{ cx: 75, cy: 125, rx: 38, ry: 12 }],
-        }),
+      slug,
+      "Plank / Планка",
+      single(
+        slug,
+        fig(
+          {
+            extras: floor(138),
+            head: { cx: 32, cy: 118 },
+            torso: `<path d="M32 128 L130 128 L130 144 L32 144 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 32, y1: 118, x2: 22, y2: 136, w: 8 },
+              { x1: 130, y1: 136, x2: 152, y2: 140, w: 10 },
+              { x1: 130, y1: 136, x2: 152, y2: 168, w: 10 },
+            ],
+            muscles: [{ cx: 82, cy: 136, rx: 42, ry: 14 }],
+          },
+          slug,
+        ),
       ),
     ),
 
-  "side-plank": () =>
+  "side-plank": (slug) =>
     svgWrap(
-      "Side plank",
-      panel(
-        90,
-        fig({
-          extras: floor(155),
-          head: { cx: 100, cy: 58 },
-          torso: `<path d="M96 68 L96 115 L104 115 L104 68 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 96, y1: 75, x2: 70, y2: 95, w: 8 },
-            { x1: 100, y1: 115, x2: 130, y2: 140, w: 9 },
-            { x1: 100, y1: 115, x2: 95, y2: 155, w: 8 },
-          ],
-          muscles: [{ cx: 98, cy: 92, rx: 10, ry: 28, rot: 0 }],
-        }),
+      slug,
+      "Side plank / Боковая",
+      single(
+        slug,
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 100, cy: 62 },
+            torso: `<path d="M94 74 L94 128 L106 128 L106 74 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 94, y1: 82, x2: 68, y2: 102, w: 9 },
+              { x1: 100, y1: 128, x2: 132, y2: 152, w: 10 },
+              { x1: 100, y1: 128, x2: 96, y2: 168, w: 9 },
+            ],
+            muscles: [{ cx: 100, cy: 102, rx: 12, ry: 30 }],
+          },
+          slug,
+        ),
       ),
     ),
 
-  squat: () =>
+  squat: (slug) =>
     svgWrap(
-      "Squat",
+      slug,
+      "Squat / Присед",
       dual(
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 32 },
-          torso: `<path d="M68 42 L72 72 L88 72 L92 42 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 68, y1: 48, x2: 52, y2: 58, w: 7 },
-            { x1: 92, y1: 48, x2: 108, y2: 58, w: 7 },
-            { x1: 72, y1: 72, x2: 62, y2: 118, w: 10 },
-            { x1: 88, y1: 72, x2: 98, y2: 118, w: 10 },
-            { x1: 62, y1: 118, x2: 58, y2: 165, w: 9 },
-            { x1: 98, y1: 118, x2: 102, y2: 165, w: 9 },
-          ],
-          muscles: [
-            { cx: 80, cy: 58, rx: 16, ry: 14 },
-            { cx: 64, cy: 105, rx: 12, ry: 18, rot: -8 },
-            { cx: 96, cy: 105, rx: 12, ry: 18, rot: 8 },
-          ],
-        }),
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 48 },
-          torso: `<path d="M68 58 L70 88 L90 88 L92 58 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 68, y1: 64, x2: 50, y2: 78, w: 7 },
-            { x1: 92, y1: 64, x2: 110, y2: 78, w: 7 },
-            { x1: 70, y1: 88, x2: 55, y2: 128, w: 10 },
-            { x1: 90, y1: 88, x2: 105, y2: 128, w: 10 },
-            { x1: 55, y1: 128, x2: 52, y2: 165, w: 9 },
-            { x1: 105, y1: 128, x2: 108, y2: 165, w: 9 },
-          ],
-          muscles: [
-            { cx: 80, cy: 78, rx: 20, ry: 16 },
-            { cx: 58, cy: 118, rx: 14, ry: 16, rot: -5 },
-            { cx: 102, cy: 118, rx: 14, ry: 16, rot: 5 },
-          ],
-        }),
+        slug,
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 38 },
+            torso: `<path d="M72 50 L76 82 L92 82 L96 50 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 72, y1: 56, x2: 54, y2: 68, w: 8 },
+              { x1: 96, y1: 56, x2: 114, y2: 68, w: 8 },
+              { x1: 76, y1: 82, x2: 64, y2: 128, w: 11 },
+              { x1: 92, y1: 82, x2: 104, y2: 128, w: 11 },
+              { x1: 64, y1: 128, x2: 60, y2: 168, w: 10 },
+              { x1: 104, y1: 128, x2: 108, y2: 168, w: 10 },
+            ],
+            muscles: [
+              { cx: 84, cy: 66, rx: 18, ry: 14 },
+              { cx: 66, cy: 112, rx: 13, ry: 18, rot: -6 },
+              { cx: 102, cy: 112, rx: 13, ry: 18, rot: 6 },
+            ],
+          },
+          slug,
+        ),
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 52 },
+            torso: `<path d="M70 64 L72 98 L94 98 L96 64 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 70, y1: 70, x2: 50, y2: 84, w: 8 },
+              { x1: 96, y1: 70, x2: 118, y2: 84, w: 8 },
+              { x1: 72, y1: 98, x2: 56, y2: 138, w: 11 },
+              { x1: 94, y1: 98, x2: 112, y2: 138, w: 11 },
+              { x1: 56, y1: 138, x2: 52, y2: 168, w: 10 },
+              { x1: 112, y1: 138, x2: 116, y2: 168, w: 10 },
+            ],
+            muscles: [
+              { cx: 84, cy: 82, rx: 22, ry: 16 },
+              { cx: 58, cy: 128, rx: 15, ry: 18 },
+              { cx: 110, cy: 128, rx: 15, ry: 18 },
+            ],
+          },
+          slug,
+        ),
+        ["вверх", "вниз"],
       ),
     ),
 
-  lunge: () =>
+  lunge: (slug) =>
     svgWrap(
-      "Lunge",
+      slug,
+      "Lunge / Выпад",
       dual(
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 28 },
-          torso: `<path d="M70 38 L74 72 L86 72 L90 38 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 70, y1: 44, x2: 54, y2: 54, w: 7 },
-            { x1: 90, y1: 44, x2: 106, y2: 54, w: 7 },
-            { x1: 74, y1: 72, x2: 58, y2: 118, w: 10 },
-            { x1: 86, y1: 72, x2: 108, y2: 145, w: 10 },
-            { x1: 58, y1: 118, x2: 55, y2: 165, w: 9 },
-            { x1: 108, y1: 145, x2: 115, y2: 165, w: 9 },
-          ],
-          muscles: [
-            { cx: 100, cy: 115, rx: 14, ry: 20 },
-            { cx: 62, cy: 130, rx: 11, ry: 16 },
-          ],
-        }),
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 28 },
-          torso: `<path d="M70 38 L74 72 L86 72 L90 38 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 70, y1: 44, x2: 54, y2: 54, w: 7 },
-            { x1: 90, y1: 44, x2: 106, y2: 54, w: 7 },
-            { x1: 74, y1: 72, x2: 52, y2: 145, w: 10 },
-            { x1: 86, y1: 72, x2: 102, y2: 118, w: 10 },
-            { x1: 52, y1: 145, x2: 48, y2: 165, w: 9 },
-            { x1: 102, y1: 118, x2: 98, y2: 165, w: 9 },
-          ],
-          muscles: [
-            { cx: 58, cy: 115, rx: 14, ry: 20 },
-            { cx: 100, cy: 130, rx: 11, ry: 16 },
-          ],
-        }),
+        slug,
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 32 },
+            torso: `<path d="M74 44 L78 78 L90 78 L94 44 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 74, y1: 50, x2: 56, y2: 62, w: 8 },
+              { x1: 94, y1: 50, x2: 112, y2: 62, w: 8 },
+              { x1: 78, y1: 78, x2: 62, y2: 128, w: 10 },
+              { x1: 90, y1: 78, x2: 112, y2: 148, w: 10 },
+              { x1: 62, y1: 128, x2: 58, y2: 168, w: 9 },
+              { x1: 112, y1: 148, x2: 118, y2: 168, w: 9 },
+            ],
+            muscles: [
+              { cx: 104, cy: 118, rx: 15, ry: 22 },
+              { cx: 64, cy: 135, rx: 12, ry: 17 },
+            ],
+          },
+          slug,
+        ),
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 32 },
+            torso: `<path d="M74 44 L78 78 L90 78 L94 44 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 74, y1: 50, x2: 56, y2: 62, w: 8 },
+              { x1: 94, y1: 50, x2: 112, y2: 62, w: 8 },
+              { x1: 78, y1: 78, x2: 56, y2: 148, w: 10 },
+              { x1: 90, y1: 78, x2: 106, y2: 128, w: 10 },
+              { x1: 56, y1: 148, x2: 52, y2: 168, w: 9 },
+              { x1: 106, y1: 128, x2: 102, y2: 168, w: 9 },
+            ],
+            muscles: [
+              { cx: 58, cy: 118, rx: 15, ry: 22 },
+              { cx: 104, cy: 135, rx: 12, ry: 17 },
+            ],
+          },
+          slug,
+        ),
+        ["право", "лево"],
       ),
     ),
 
-  burpee: () =>
+  burpee: (slug) =>
     svgWrap(
-      "Burpee",
+      slug,
+      "Burpee / Бёрпи",
       dual(
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 95 },
-          torso: `<path d="M70 105 L74 130 L86 130 L90 105 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 70, y1: 100, x2: 80, y2: 55, w: 8 },
-            { x1: 90, y1: 100, x2: 80, y2: 55, w: 8 },
-            { x1: 74, y1: 130, x2: 62, y2: 165, w: 9 },
-            { x1: 86, y1: 130, x2: 98, y2: 165, w: 9 },
-          ],
-          muscles: [{ cx: 80, cy: 72, rx: 14, ry: 12 }],
-        }),
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 38 },
-          torso: `<path d="M70 48 L74 78 L86 78 L90 48 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 70, y1: 54, x2: 52, y2: 68, w: 7 },
-            { x1: 90, y1: 54, x2: 108, y2: 68, w: 7 },
-            { x1: 74, y1: 78, x2: 62, y2: 128, w: 10 },
-            { x1: 86, y1: 78, x2: 98, y2: 128, w: 10 },
-            { x1: 62, y1: 128, x2: 58, y2: 165, w: 9 },
-            { x1: 98, y1: 128, x2: 102, y2: 165, w: 9 },
-          ],
-          muscles: [
-            { cx: 80, cy: 65, rx: 18, ry: 12 },
-            { cx: 64, cy: 110, rx: 12, ry: 16 },
-            { cx: 96, cy: 110, rx: 12, ry: 16 },
-          ],
-        }),
+        slug,
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 102 },
+            torso: `<path d="M74 112 L78 138 L90 138 L94 112 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 74, y1: 108, x2: 84, y2: 58, w: 9 },
+              { x1: 94, y1: 108, x2: 84, y2: 58, w: 9 },
+              { x1: 78, y1: 138, x2: 64, y2: 168, w: 10 },
+              { x1: 90, y1: 138, x2: 104, y2: 168, w: 10 },
+            ],
+            muscles: [{ cx: 84, cy: 75, rx: 16, ry: 12 }],
+          },
+          slug,
+        ),
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 42 },
+            torso: `<path d="M74 54 L78 86 L90 86 L94 54 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 74, y1: 60, x2: 54, y2: 74, w: 8 },
+              { x1: 94, y1: 60, x2: 114, y2: 74, w: 8 },
+              { x1: 78, y1: 86, x2: 64, y2: 136, w: 10 },
+              { x1: 90, y1: 86, x2: 104, y2: 136, w: 10 },
+              { x1: 64, y1: 136, x2: 60, y2: 168, w: 9 },
+              { x1: 104, y1: 136, x2: 108, y2: 168, w: 9 },
+            ],
+            muscles: [
+              { cx: 84, cy: 70, rx: 20, ry: 12 },
+              { cx: 66, cy: 118, rx: 13, ry: 17 },
+              { cx: 102, cy: 118, rx: 13, ry: 17 },
+            ],
+          },
+          slug,
+        ),
         ["присед", "прыжок"],
       ),
     ),
 
-  "jumping-jack": () =>
+  "jumping-jack": (slug) =>
     svgWrap(
+      slug,
       "Jumping jack",
       dual(
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 38 },
-          torso: `<path d="M70 48 L74 78 L86 78 L90 48 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 74, y1: 52, x2: 62, y2: 62, w: 7 },
-            { x1: 86, y1: 52, x2: 98, y2: 62, w: 7 },
-            { x1: 62, y1: 62, x2: 48, y2: 52, w: 6 },
-            { x1: 98, y1: 62, x2: 112, y2: 52, w: 6 },
-            { x1: 74, y1: 78, x2: 68, y2: 128, w: 9 },
-            { x1: 86, y1: 78, x2: 92, y2: 128, w: 9 },
-            { x1: 68, y1: 128, x2: 65, y2: 165, w: 8 },
-            { x1: 92, y1: 128, x2: 95, y2: 165, w: 8 },
-          ],
-          muscles: [
-            { cx: 52, cy: 58, rx: 8, ry: 12, rot: -30 },
-            { cx: 108, cy: 58, rx: 8, ry: 12, rot: 30 },
-          ],
-        }),
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 38 },
-          torso: `<path d="M70 48 L74 78 L86 78 L90 48 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 74, y1: 52, x2: 48, y2: 42, w: 7 },
-            { x1: 86, y1: 52, x2: 112, y2: 42, w: 7 },
-            { x1: 74, y1: 78, x2: 62, y2: 128, w: 9 },
-            { x1: 86, y1: 78, x2: 98, y2: 128, w: 9 },
-            { x1: 62, y1: 128, x2: 55, y2: 165, w: 8 },
-            { x1: 98, y1: 128, x2: 105, y2: 165, w: 8 },
-          ],
-          muscles: [
-            { cx: 42, cy: 48, rx: 9, ry: 14, rot: -40 },
-            { cx: 118, cy: 48, rx: 9, ry: 14, rot: 40 },
-            { cx: 80, cy: 58, rx: 16, ry: 10 },
-          ],
-        }),
+        slug,
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 42 },
+            torso: `<path d="M74 54 L78 88 L90 88 L94 54 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 78, y1: 58, x2: 66, y2: 70, w: 7 },
+              { x1: 90, y1: 58, x2: 102, y2: 70, w: 7 },
+              { x1: 66, y1: 70, x2: 52, y2: 58, w: 6 },
+              { x1: 102, y1: 70, x2: 116, y2: 58, w: 6 },
+              { x1: 78, y1: 88, x2: 72, y2: 138, w: 9 },
+              { x1: 90, y1: 88, x2: 96, y2: 138, w: 9 },
+              { x1: 72, y1: 138, x2: 68, y2: 168, w: 8 },
+              { x1: 96, y1: 138, x2: 100, y2: 168, w: 8 },
+            ],
+            muscles: [
+              { cx: 50, cy: 64, rx: 9, ry: 13, rot: -28 },
+              { cx: 118, cy: 64, rx: 9, ry: 13, rot: 28 },
+            ],
+          },
+          slug,
+        ),
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 42 },
+            torso: `<path d="M74 54 L78 88 L90 88 L94 54 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 78, y1: 58, x2: 46, y2: 36, w: 8 },
+              { x1: 90, y1: 58, x2: 122, y2: 36, w: 8 },
+              { x1: 78, y1: 88, x2: 64, y2: 138, w: 9 },
+              { x1: 90, y1: 88, x2: 104, y2: 138, w: 9 },
+              { x1: 64, y1: 138, x2: 58, y2: 168, w: 8 },
+              { x1: 104, y1: 138, x2: 110, y2: 168, w: 8 },
+            ],
+            muscles: [
+              { cx: 40, cy: 42, rx: 10, ry: 15, rot: -38 },
+              { cx: 128, cy: 42, rx: 10, ry: 15, rot: 38 },
+              { cx: 84, cy: 64, rx: 18, ry: 10 },
+            ],
+          },
+          slug,
+        ),
       ),
     ),
 
-  "high-knees": () =>
+  "high-knees": (slug) =>
     svgWrap(
+      slug,
       "High knees",
       dual(
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 42 },
-          torso: `<path d="M70 52 L74 88 L86 88 L90 52 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 74, y1: 58, x2: 58, y2: 68, w: 7 },
-            { x1: 86, y1: 58, x2: 102, y2: 68, w: 7 },
-            { x1: 74, y1: 88, x2: 68, y2: 135, w: 9 },
-            { x1: 86, y1: 88, x2: 105, y2: 72, w: 9 },
-            { x1: 68, y1: 135, x2: 65, y2: 165, w: 8 },
-            { x1: 105, y1: 72, x2: 108, y2: 95, w: 8 },
-          ],
-          muscles: [{ cx: 108, cy: 78, rx: 10, ry: 16, rot: 15 }],
-        }),
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 42 },
-          torso: `<path d="M70 52 L74 88 L86 88 L90 52 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 74, y1: 58, x2: 58, y2: 68, w: 7 },
-            { x1: 86, y1: 58, x2: 102, y2: 68, w: 7 },
-            { x1: 86, y1: 88, x2: 92, y2: 135, w: 9 },
-            { x1: 74, y1: 88, x2: 55, y2: 72, w: 9 },
-            { x1: 92, y1: 135, x2: 95, y2: 165, w: 8 },
-            { x1: 55, y1: 72, x2: 52, y2: 95, w: 8 },
-          ],
-          muscles: [{ cx: 52, cy: 78, rx: 10, ry: 16, rot: -15 }],
-        }),
+        slug,
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 46 },
+            torso: `<path d="M74 58 L78 96 L90 96 L94 58 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 78, y1: 64, x2: 60, y2: 76, w: 7 },
+              { x1: 90, y1: 64, x2: 108, y2: 76, w: 7 },
+              { x1: 78, y1: 96, x2: 72, y2: 142, w: 9 },
+              { x1: 90, y1: 96, x2: 110, y2: 72, w: 9 },
+              { x1: 72, y1: 142, x2: 68, y2: 168, w: 8 },
+              { x1: 110, y1: 72, x2: 114, y2: 98, w: 8 },
+            ],
+            muscles: [{ cx: 112, cy: 80, rx: 11, ry: 17, rot: 12 }],
+          },
+          slug,
+        ),
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 46 },
+            torso: `<path d="M74 58 L78 96 L90 96 L94 58 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 78, y1: 64, x2: 60, y2: 76, w: 7 },
+              { x1: 90, y1: 64, x2: 108, y2: 76, w: 7 },
+              { x1: 90, y1: 96, x2: 96, y2: 142, w: 9 },
+              { x1: 78, y1: 96, x2: 58, y2: 72, w: 9 },
+              { x1: 96, y1: 142, x2: 100, y2: 168, w: 8 },
+              { x1: 58, y1: 72, x2: 54, y2: 98, w: 8 },
+            ],
+            muscles: [{ cx: 52, cy: 80, rx: 11, ry: 17, rot: -12 }],
+          },
+          slug,
+        ),
       ),
     ),
 
-  "shoulder-rotation": () =>
+  "shoulder-rotation": (slug) =>
     svgWrap(
-      "Shoulder rotation",
-      panel(
-        100,
-        fig({
-          extras: `${floor(168)}<path d="M40 75 Q80 45 120 75" fill="none" stroke="#ff7043" stroke-width="2" stroke-dasharray="5 4"/>`,
-          head: { cx: 80, cy: 48 },
-          torso: `<path d="M70 58 L74 108 L86 108 L90 58 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 74, y1: 64, x2: 48, y2: 78, w: 7 },
-            { x1: 86, y1: 64, x2: 112, y2: 78, w: 7 },
-            { x1: 74, y1: 108, x2: 68, y2: 155, w: 9 },
-            { x1: 86, y1: 108, x2: 92, y2: 155, w: 9 },
-            { x1: 68, y1: 155, x2: 65, y2: 165, w: 8 },
-            { x1: 92, y1: 155, x2: 95, y2: 165, w: 8 },
-          ],
-          muscles: [{ cx: 80, cy: 72, rx: 24, ry: 10 }],
-        }),
+      slug,
+      "Shoulder circles",
+      single(
+        slug,
+        `${floor(168)}<path d="M36 88 Q84 48 132 88" fill="none" stroke="#10b981" stroke-width="2.5" stroke-dasharray="6 5"/>` +
+          fig(
+            {
+              head: { cx: 84, cy: 52 },
+              torso: `<path d="M74 64 L78 118 L90 118 L94 64 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+              limbs: [
+                { x1: 78, y1: 70, x2: 50, y2: 86, w: 8 },
+                { x1: 90, y1: 70, x2: 118, y2: 86, w: 8 },
+                { x1: 78, y1: 118, x2: 72, y2: 162, w: 9 },
+                { x1: 90, y1: 118, x2: 96, y2: 162, w: 9 },
+              ],
+              muscles: [{ cx: 84, cy: 78, rx: 26, ry: 11 }],
+            },
+            slug,
+          ),
       ),
     ),
 
-  "arm-raise": () =>
+  "arm-raise": (slug) =>
     svgWrap(
+      slug,
       "Arm raise",
       dual(
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 42 },
-          torso: `<path d="M70 52 L74 95 L86 95 L90 52 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 74, y1: 58, x2: 62, y2: 72, w: 7 },
-            { x1: 86, y1: 58, x2: 98, y2: 72, w: 7 },
-            { x1: 62, y1: 72, x2: 58, y2: 105, w: 6 },
-            { x1: 98, y1: 72, x2: 102, y2: 105, w: 6 },
-            { x1: 74, y1: 95, x2: 68, y2: 155, w: 9 },
-            { x1: 86, y1: 95, x2: 92, y2: 155, w: 9 },
-          ],
-          muscles: [
-            { cx: 58, cy: 95, rx: 8, ry: 14, rot: -10 },
-            { cx: 102, cy: 95, rx: 8, ry: 14, rot: 10 },
-          ],
-        }),
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 42 },
-          torso: `<path d="M70 52 L74 95 L86 95 L90 52 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 74, y1: 58, x2: 48, y2: 38, w: 7 },
-            { x1: 86, y1: 58, x2: 112, y2: 38, w: 7 },
-            { x1: 74, y1: 95, x2: 68, y2: 155, w: 9 },
-            { x1: 86, y1: 95, x2: 92, y2: 155, w: 9 },
-          ],
-          muscles: [
-            { cx: 45, cy: 42, rx: 9, ry: 14, rot: -35 },
-            { cx: 115, cy: 42, rx: 9, ry: 14, rot: 35 },
-            { cx: 80, cy: 68, rx: 20, ry: 10 },
-          ],
-        }),
+        slug,
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 46 },
+            torso: `<path d="M74 58 L78 102 L90 102 L94 58 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 78, y1: 64, x2: 64, y2: 78, w: 7 },
+              { x1: 90, y1: 64, x2: 104, y2: 78, w: 7 },
+              { x1: 64, y1: 78, x2: 60, y2: 112, w: 6 },
+              { x1: 104, y1: 78, x2: 108, y2: 112, w: 6 },
+              { x1: 78, y1: 102, x2: 72, y2: 162, w: 9 },
+              { x1: 90, y1: 102, x2: 96, y2: 162, w: 9 },
+            ],
+            muscles: [
+              { cx: 58, cy: 102, rx: 9, ry: 15, rot: -8 },
+              { cx: 110, cy: 102, rx: 9, ry: 15, rot: 8 },
+            ],
+          },
+          slug,
+        ),
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 46 },
+            torso: `<path d="M74 58 L78 102 L90 102 L94 58 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 78, y1: 64, x2: 46, y2: 40, w: 8 },
+              { x1: 90, y1: 64, x2: 122, y2: 40, w: 8 },
+              { x1: 78, y1: 102, x2: 72, y2: 162, w: 9 },
+              { x1: 90, y1: 102, x2: 96, y2: 162, w: 9 },
+            ],
+            muscles: [
+              { cx: 42, cy: 44, rx: 10, ry: 15, rot: -32 },
+              { cx: 126, cy: 44, rx: 10, ry: 15, rot: 32 },
+              { cx: 84, cy: 74, rx: 22, ry: 10 },
+            ],
+          },
+          slug,
+        ),
         ["вниз", "вверх"],
       ),
     ),
 
-  stretch: () =>
+  stretch: (slug) =>
     svgWrap(
+      slug,
       "Stretch",
-      panel(
-        100,
-        fig({
-          extras: floor(168),
-          head: { cx: 80, cy: 55 },
-          torso: `<path d="M72 65 L74 115 L86 115 L88 65 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 74, y1: 70, x2: 55, y2: 88, w: 7 },
-            { x1: 86, y1: 70, x2: 105, y2: 88, w: 7 },
-            { x1: 74, y1: 115, x2: 72, y2: 155, w: 9 },
-            { x1: 86, y1: 115, x2: 88, y2: 155, w: 9 },
-          ],
-          muscles: [{ cx: 80, cy: 105, rx: 26, ry: 10 }],
-        }),
+      single(
+        slug,
+        fig(
+          {
+            extras: floor(168),
+            head: { cx: 84, cy: 62 },
+            torso: `<path d="M76 74 L78 128 L90 128 L92 74 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 78, y1: 80, x2: 56, y2: 100, w: 7 },
+              { x1: 90, y1: 80, x2: 112, y2: 100, w: 7 },
+              { x1: 78, y1: 128, x2: 76, y2: 162, w: 9 },
+              { x1: 90, y1: 128, x2: 92, y2: 162, w: 9 },
+            ],
+            muscles: [{ cx: 84, cy: 118, rx: 28, ry: 11 }],
+          },
+          slug,
+        ),
       ),
     ),
 
-  "cat-cow": () =>
+  "cat-cow": (slug) =>
     svgWrap(
+      slug,
       "Cat-cow",
       dual(
-        fig({
-          extras: floor(130),
-          head: { cx: 28, cy: 95 },
-          torso: `<path d="M28 105 L115 108 L115 122 L28 118 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 115, y1: 115, x2: 138, y2: 128, w: 8 },
-            { x1: 115, y1: 115, x2: 138, y2: 148, w: 8 },
-          ],
-          muscles: [
-            {
-              cx: 72,
-              cy: 108,
-              rx: 35,
-              ry: 8,
-            },
-          ],
-        }),
-        fig({
-          extras: floor(125),
-          head: { cx: 28, cy: 88 },
-          torso: `<path d="M28 98 L115 112 L115 126 L28 110 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 115, y1: 118, x2: 138, y2: 132, w: 8 },
-            { x1: 115, y1: 118, x2: 138, y2: 152, w: 8 },
-          ],
-          muscles: [{ cx: 72, cy: 118, rx: 35, ry: 8 }],
-        }),
+        slug,
+        fig(
+          {
+            extras: floor(138),
+            head: { cx: 32, cy: 108 },
+            torso: `<path d="M32 118 L122 120 L122 136 L32 132 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 122, y1: 128, x2: 148, y2: 142, w: 8 },
+              { x1: 122, y1: 128, x2: 148, y2: 162, w: 8 },
+            ],
+            muscles: [{ cx: 78, cy: 122, rx: 38, ry: 9 }],
+          },
+          slug,
+        ),
+        fig(
+          {
+            extras: floor(132),
+            head: { cx: 32, cy: 100 },
+            torso: `<path d="M32 110 L122 126 L122 142 L32 124 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 122, y1: 134, x2: 148, y2: 148, w: 8 },
+              { x1: 122, y1: 134, x2: 148, y2: 168, w: 8 },
+            ],
+            muscles: [{ cx: 78, cy: 132, rx: 38, ry: 9 }],
+          },
+          slug,
+        ),
         ["корова", "кошка"],
       ),
     ),
 
-  "bird-dog": () =>
+  "bird-dog": (slug) =>
     svgWrap(
+      slug,
       "Bird-dog",
-      panel(
-        90,
-        fig({
-          extras: floor(130),
-          head: { cx: 28, cy: 100 },
-          torso: `<path d="M28 110 L115 112 L115 126 L28 122 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 115, y1: 118, x2: 138, y2: 132, w: 8 },
-            { x1: 115, y1: 118, x2: 138, y2: 152, w: 8 },
-            { x1: 115, y1: 115, x2: 145, y2: 75, w: 7 },
-            { x1: 115, y1: 115, x2: 48, y2: 82, w: 7 },
-          ],
-          muscles: [
-            { cx: 148, cy: 78, rx: 10, ry: 14, rot: 25 },
-            { cx: 45, cy: 85, rx: 10, ry: 14, rot: -25 },
-          ],
-        }),
+      single(
+        slug,
+        fig(
+          {
+            extras: floor(138),
+            head: { cx: 32, cy: 112 },
+            torso: `<path d="M32 122 L122 124 L122 140 L32 136 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 122, y1: 132, x2: 148, y2: 146, w: 8 },
+              { x1: 122, y1: 132, x2: 148, y2: 166, w: 8 },
+              { x1: 122, y1: 128, x2: 152, y2: 82, w: 7 },
+              { x1: 122, y1: 128, x2: 48, y2: 90, w: 7 },
+            ],
+            muscles: [
+              { cx: 156, cy: 84, rx: 11, ry: 15, rot: 22 },
+              { cx: 44, cy: 92, rx: 11, ry: 15, rot: -22 },
+            ],
+          },
+          slug,
+        ),
       ),
     ),
 
-  "glute-bridge": () =>
+  "glute-bridge": (slug) =>
     svgWrap(
+      slug,
       "Glute bridge",
       dual(
-        fig({
-          extras: floor(145),
-          head: { cx: 28, cy: 115 },
-          torso: `<path d="M28 125 L100 128 L100 142 L28 138 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 100, y1: 135, x2: 125, y2: 145, w: 9 },
-            { x1: 100, y1: 135, x2: 125, y2: 158, w: 9 },
-          ],
-          muscles: [{ cx: 65, cy: 132, rx: 12, ry: 8 }],
-        }),
-        fig({
-          extras: floor(145),
-          head: { cx: 28, cy: 108 },
-          torso: `<path d="M28 118 L100 105 L100 119 L28 128 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 100, y1: 112, x2: 125, y2: 138, w: 9 },
-            { x1: 100, y1: 112, x2: 125, y2: 155, w: 9 },
-          ],
-          muscles: [
-            { cx: 72, cy: 118, rx: 28, ry: 14 },
-            { cx: 118, cy: 142, rx: 10, ry: 10 },
-          ],
-        }),
-        ["лёжа", "мост"],
+        slug,
+        fig(
+          {
+            extras: floor(148),
+            head: { cx: 32, cy: 122 },
+            torso: `<path d="M32 132 L108 134 L108 148 L32 144 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 108, y1: 140, x2: 134, y2: 152, w: 9 },
+              { x1: 108, y1: 140, x2: 134, y2: 168, w: 9 },
+            ],
+            muscles: [{ cx: 72, cy: 138, rx: 14, ry: 9 }],
+          },
+          slug,
+        ),
+        fig(
+          {
+            extras: floor(148),
+            head: { cx: 32, cy: 114 },
+            torso: `<path d="M32 124 L108 108 L108 122 L32 136 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 108, y1: 115, x2: 134, y2: 142, w: 9 },
+              { x1: 108, y1: 115, x2: 134, y2: 168, w: 9 },
+            ],
+            muscles: [
+              { cx: 76, cy: 122, rx: 30, ry: 15 },
+              { cx: 126, cy: 148, rx: 11, ry: 11 },
+            ],
+          },
+          slug,
+        ),
+        ["низ", "мост"],
       ),
     ),
 
-  superman: () =>
+  superman: (slug) =>
     svgWrap(
+      slug,
       "Superman",
-      panel(
-        90,
-        fig({
-          extras: floor(155),
-          head: { cx: 80, cy: 95 },
-          torso: `<path d="M70 105 L74 125 L86 125 L90 105 Z" fill="url(#skin)" stroke="#5d6b7a"/>`,
-          limbs: [
-            { x1: 74, y1: 100, x2: 74, y2: 55, w: 8 },
-            { x1: 74, y1: 108, x2: 48, y2: 125, w: 7 },
-            { x1: 86, y1: 108, x2: 112, y2: 125, w: 7 },
-            { x1: 48, y1: 125, x2: 38, y2: 148, w: 6 },
-            { x1: 112, y1: 125, x2: 122, y2: 148, w: 6 },
-            { x1: 74, y1: 125, x2: 68, y2: 158, w: 9 },
-            { x1: 86, y1: 125, x2: 92, y2: 158, w: 9 },
-          ],
-          muscles: [
-            { cx: 80, cy: 78, rx: 16, ry: 10 },
-            { cx: 42, cy: 55, rx: 8, ry: 12, rot: -25 },
-            { cx: 118, cy: 55, rx: 8, ry: 12, rot: 25 },
-            { cx: 40, cy: 148, rx: 9, ry: 12 },
-            { cx: 120, cy: 148, rx: 9, ry: 12 },
-          ],
-        }),
+      single(
+        slug,
+        fig(
+          {
+            extras: floor(162),
+            head: { cx: 84, cy: 102 },
+            torso: `<path d="M74 112 L78 132 L90 132 L94 112 Z" fill="url(#${slug.replace(/[^a-z0-9-]/g, "")}-body)"/>`,
+            limbs: [
+              { x1: 78, y1: 108, x2: 78, y2: 58, w: 9 },
+              { x1: 78, y1: 116, x2: 48, y2: 132, w: 8 },
+              { x1: 90, y1: 116, x2: 120, y2: 132, w: 8 },
+              { x1: 48, y1: 132, x2: 36, y2: 156, w: 7 },
+              { x1: 120, y1: 132, x2: 132, y2: 156, w: 7 },
+              { x1: 78, y1: 132, x2: 72, y2: 162, w: 9 },
+              { x1: 90, y1: 132, x2: 96, y2: 162, w: 9 },
+            ],
+            muscles: [
+              { cx: 84, cy: 82, rx: 18, ry: 11 },
+              { cx: 38, cy: 58, rx: 9, ry: 13, rot: -24 },
+              { cx: 130, cy: 58, rx: 9, ry: 13, rot: 24 },
+              { cx: 36, cy: 156, rx: 10, ry: 13 },
+              { cx: 132, cy: 156, rx: 10, ry: 13 },
+            ],
+          },
+          slug,
+        ),
       ),
     ),
 };
 
-for (const [slug, build] of Object.entries(exercises)) {
+const ctx = { svgWrap, dual, single, fig, floor, card };
+const allExercises = { ...exercises, ...buildExtraExercises(ctx) };
+
+for (const [slug, build] of Object.entries(allExercises)) {
   const file = path.join(outDir, `${slug}.svg`);
-  fs.writeFileSync(file, build());
+  fs.writeFileSync(file, build(slug));
   console.log("wrote", file);
 }

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 248" role="img" aria-label="Dumbbell row">
+  <defs>
+    <linearGradient id="dumbbell-row-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="45%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <linearGradient id="dumbbell-row-card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="dumbbell-row-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <radialGradient id="dumbbell-row-muscle" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </radialGradient>
+    <filter id="dumbbell-row-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#64748b" flood-opacity="0.25"/>
+    </filter>
+    <filter id="dumbbell-row-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="dumbbell-row-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#10b981"/>
+    </marker>
+  </defs>
+  <rect width="400" height="248" fill="url(#dumbbell-row-bg)" rx="16"/>
+  <circle cx="48" cy="42" r="52" fill="#93c5fd" opacity="0.12"/>
+  <circle cx="360" cy="218" r="64" fill="#6ee7b7" opacity="0.14"/>
+  <text x="200" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#0f172a">Dumbbell row</text>
+  
+  <g transform="translate(116, 48)">
+    <rect x="0" y="0" width="168" height="178" rx="14" fill="url(#dumbbell-row-card)" filter="url(#dumbbell-row-shadow)" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <rect x="14" y="132" width="140" height="10" rx="3" fill="#94a3b8"/><rect x="18" y="142" width="8" height="28" fill="#64748b"/><rect x="146" y="142" width="8" height="28" fill="#64748b"/><ellipse cx="128" cy="108" rx="10" ry="6" fill="#64748b"/>
+    <line x1="100" y1="122" x2="128" y2="108" stroke="url(#dumbbell-row-body)" stroke-width="8" stroke-linecap="round"/><circle cx="100" cy="122" r="4.5" fill="#475569"/><circle cx="128" cy="108" r="4.5" fill="#475569"/><line x1="100" y1="122" x2="128" y2="138" stroke="url(#dumbbell-row-body)" stroke-width="8" stroke-linecap="round"/><circle cx="100" cy="122" r="4.5" fill="#475569"/><circle cx="128" cy="138" r="4.5" fill="#475569"/>
+    <path d="M32 118 L100 115 L100 131 L32 128 Z" fill="url(#dumbbell-row-body)"/>
+    <circle cx="32" cy="108" r="11" fill="url(#dumbbell-row-body)" stroke="#64748b" stroke-width="1"/>
+    <ellipse cx="72" cy="120" rx="32" ry="11" fill="url(#dumbbell-row-muscle)" opacity="0.88" filter="url(#dumbbell-row-glow)" transform="rotate(0 72 120)"/>
+  </g>
+</svg>

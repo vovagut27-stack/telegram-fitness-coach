@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 248" role="img" aria-label="Wall sit">
+  <defs>
+    <linearGradient id="wall-sit-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="45%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <linearGradient id="wall-sit-card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="wall-sit-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <radialGradient id="wall-sit-muscle" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </radialGradient>
+    <filter id="wall-sit-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#64748b" flood-opacity="0.25"/>
+    </filter>
+    <filter id="wall-sit-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="wall-sit-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#10b981"/>
+    </marker>
+  </defs>
+  <rect width="400" height="248" fill="url(#wall-sit-bg)" rx="16"/>
+  <circle cx="48" cy="42" r="52" fill="#93c5fd" opacity="0.12"/>
+  <circle cx="360" cy="218" r="64" fill="#6ee7b7" opacity="0.14"/>
+  <text x="200" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#0f172a">Wall sit</text>
+  
+  <g transform="translate(116, 48)">
+    <rect x="0" y="0" width="168" height="178" rx="14" fill="url(#wall-sit-card)" filter="url(#wall-sit-shadow)" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <rect x="8" y="40" width="10" height="128" fill="#cbd5e1" rx="2"/><line x1="12" y1="168" x2="156" y2="168" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+    <line x1="76" y1="74" x2="58" y2="88" stroke="url(#wall-sit-body)" stroke-width="7" stroke-linecap="round"/><circle cx="76" cy="74" r="4.5" fill="#475569"/><circle cx="58" cy="88" r="4.5" fill="#475569"/><line x1="92" y1="74" x2="110" y2="88" stroke="url(#wall-sit-body)" stroke-width="7" stroke-linecap="round"/><circle cx="92" cy="74" r="4.5" fill="#475569"/><circle cx="110" cy="88" r="4.5" fill="#475569"/><line x1="76" y1="108" x2="68" y2="148" stroke="url(#wall-sit-body)" stroke-width="10" stroke-linecap="round"/><circle cx="76" cy="108" r="4.5" fill="#475569"/><circle cx="68" cy="148" r="4.5" fill="#475569"/><line x1="92" y1="108" x2="100" y2="148" stroke="url(#wall-sit-body)" stroke-width="10" stroke-linecap="round"/><circle cx="92" cy="108" r="4.5" fill="#475569"/><circle cx="100" cy="148" r="4.5" fill="#475569"/><line x1="68" y1="148" x2="66" y2="168" stroke="url(#wall-sit-body)" stroke-width="9" stroke-linecap="round"/><circle cx="68" cy="148" r="4.5" fill="#475569"/><circle cx="66" cy="168" r="4.5" fill="#475569"/><line x1="100" y1="148" x2="102" y2="168" stroke="url(#wall-sit-body)" stroke-width="9" stroke-linecap="round"/><circle cx="100" cy="148" r="4.5" fill="#475569"/><circle cx="102" cy="168" r="4.5" fill="#475569"/>
+    <path d="M72 68 L76 108 L92 108 L96 68 Z" fill="url(#wall-sit-body)"/>
+    <circle cx="84" cy="58" r="11" fill="url(#wall-sit-body)" stroke="#64748b" stroke-width="1"/>
+    <ellipse cx="84" cy="88" rx="18" ry="14" fill="url(#wall-sit-muscle)" opacity="0.88" filter="url(#wall-sit-glow)" transform="rotate(0 84 88)"/><ellipse cx="70" cy="132" rx="14" ry="18" fill="url(#wall-sit-muscle)" opacity="0.88" filter="url(#wall-sit-glow)" transform="rotate(0 70 132)"/><ellipse cx="98" cy="132" rx="14" ry="18" fill="url(#wall-sit-muscle)" opacity="0.88" filter="url(#wall-sit-glow)" transform="rotate(0 98 132)"/>
+  </g>
+</svg>

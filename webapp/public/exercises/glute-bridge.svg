@@ -1,39 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 220" role="img" aria-label="Glute bridge">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 248" role="img" aria-label="Glute bridge">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f8fafc"/>
-      <stop offset="100%" stop-color="#eef2f7"/>
+    <linearGradient id="glute-bridge-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="45%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
     </linearGradient>
-    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#d1d9e6"/>
-      <stop offset="100%" stop-color="#a8b4c4"/>
+    <linearGradient id="glute-bridge-card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
     </linearGradient>
-    <linearGradient id="muscle" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ff7043"/>
-      <stop offset="100%" stop-color="#d32f2f"/>
+    <linearGradient id="glute-bridge-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
     </linearGradient>
-    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#94a3b8" flood-opacity="0.35"/>
+    <radialGradient id="glute-bridge-muscle" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </radialGradient>
+    <filter id="glute-bridge-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#64748b" flood-opacity="0.25"/>
     </filter>
-    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/>
+    <filter id="glute-bridge-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="glute-bridge-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#10b981"/>
     </marker>
   </defs>
-  <rect width="360" height="220" fill="url(#bg)"/>
-  <line x1="180" y1="12" x2="180" y2="208" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 4"/>
+  <rect width="400" height="248" fill="url(#glute-bridge-bg)" rx="16"/>
+  <circle cx="48" cy="42" r="52" fill="#93c5fd" opacity="0.12"/>
+  <circle cx="360" cy="218" r="64" fill="#6ee7b7" opacity="0.14"/>
+  <text x="200" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#0f172a">Glute bridge</text>
   
-  <text x="90" y="18" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#64748b">лёжа</text>
-  <text x="270" y="18" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#64748b">мост</text>
-  <path d="M 160 112 L 194 112" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow)"/><g transform="translate(8, 24)" filter="url(#soft)">
-    <line x1="8" y1="145" x2="152" y2="145" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-    <line x1="100" y1="135" x2="125" y2="145" stroke="#5d6b7a" stroke-width="9" stroke-linecap="round"/><line x1="100" y1="135" x2="125" y2="158" stroke="#5d6b7a" stroke-width="9" stroke-linecap="round"/>
-    <path d="M28 125 L100 128 L100 142 L28 138 Z" fill="url(#skin)" stroke="#5d6b7a"/>
-    <circle cx="28" cy="115" r="10" fill="url(#skin)" stroke="#5d6b7a" stroke-width="1.5"/>
-    <ellipse cx="65" cy="132" rx="12" ry="8" fill="url(#muscle)" transform="rotate(0 65 132)"/></g><g transform="translate(188, 24)" filter="url(#soft)">
-    <line x1="8" y1="145" x2="152" y2="145" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-    <line x1="100" y1="112" x2="125" y2="138" stroke="#5d6b7a" stroke-width="9" stroke-linecap="round"/><line x1="100" y1="112" x2="125" y2="155" stroke="#5d6b7a" stroke-width="9" stroke-linecap="round"/>
-    <path d="M28 118 L100 105 L100 119 L28 128 Z" fill="url(#skin)" stroke="#5d6b7a"/>
-    <circle cx="28" cy="108" r="10" fill="url(#skin)" stroke="#5d6b7a" stroke-width="1.5"/>
-    <ellipse cx="72" cy="118" rx="28" ry="14" fill="url(#muscle)" transform="rotate(0 72 118)"/><ellipse cx="118" cy="142" rx="10" ry="10" fill="url(#muscle)" transform="rotate(0 118 142)"/></g>
+  <text x="100" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748b">низ</text>
+  <text x="300" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748b">мост</text>
+  <path d="M 188 132 L 212 132" stroke="#10b981" stroke-width="3" marker-end="url(#glute-bridge-arrow)"/>
+  
+  <g transform="translate(16, 48)">
+    <rect x="0" y="0" width="168" height="178" rx="14" fill="url(#glute-bridge-card)" filter="url(#glute-bridge-shadow)" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <line x1="12" y1="148" x2="156" y2="148" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+    <line x1="108" y1="140" x2="134" y2="152" stroke="url(#glute-bridge-body)" stroke-width="9" stroke-linecap="round"/><circle cx="108" cy="140" r="4.5" fill="#475569"/><circle cx="134" cy="152" r="4.5" fill="#475569"/><line x1="108" y1="140" x2="134" y2="168" stroke="url(#glute-bridge-body)" stroke-width="9" stroke-linecap="round"/><circle cx="108" cy="140" r="4.5" fill="#475569"/><circle cx="134" cy="168" r="4.5" fill="#475569"/>
+    <path d="M32 132 L108 134 L108 148 L32 144 Z" fill="url(#glute-bridge-body)"/>
+    <circle cx="32" cy="122" r="11" fill="url(#glute-bridge-body)" stroke="#64748b" stroke-width="1"/>
+    <ellipse cx="72" cy="138" rx="14" ry="9" fill="url(#glute-bridge-muscle)" opacity="0.88" filter="url(#glute-bridge-glow)" transform="rotate(0 72 138)"/>
+  </g>
+  
+  <g transform="translate(216, 48)">
+    <rect x="0" y="0" width="168" height="178" rx="14" fill="url(#glute-bridge-card)" filter="url(#glute-bridge-shadow)" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <line x1="12" y1="148" x2="156" y2="148" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+    <line x1="108" y1="115" x2="134" y2="142" stroke="url(#glute-bridge-body)" stroke-width="9" stroke-linecap="round"/><circle cx="108" cy="115" r="4.5" fill="#475569"/><circle cx="134" cy="142" r="4.5" fill="#475569"/><line x1="108" y1="115" x2="134" y2="168" stroke="url(#glute-bridge-body)" stroke-width="9" stroke-linecap="round"/><circle cx="108" cy="115" r="4.5" fill="#475569"/><circle cx="134" cy="168" r="4.5" fill="#475569"/>
+    <path d="M32 124 L108 108 L108 122 L32 136 Z" fill="url(#glute-bridge-body)"/>
+    <circle cx="32" cy="114" r="11" fill="url(#glute-bridge-body)" stroke="#64748b" stroke-width="1"/>
+    <ellipse cx="76" cy="122" rx="30" ry="15" fill="url(#glute-bridge-muscle)" opacity="0.88" filter="url(#glute-bridge-glow)" transform="rotate(0 76 122)"/><ellipse cx="126" cy="148" rx="11" ry="11" fill="url(#glute-bridge-muscle)" opacity="0.88" filter="url(#glute-bridge-glow)" transform="rotate(0 126 148)"/>
+  </g>
 </svg>

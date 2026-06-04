@@ -4,6 +4,8 @@ export const en = {
   btn_open_app: "🏋️ Open app",
   btn_plan: "📅 Weekly plan",
   btn_premium: "⭐ Premium",
+  btn_language: "🌐 Language",
+  cmd_language_desc: "Change bot and app language",
   bot_plan_header: "📅 7-day plan",
   bot_plan_footer_app: "👇 Tap a day below to open that workout",
   bot_plan_footer_no_app: "⚠️ Set WEBAPP_URL on Vercel (https Mini App URL)",
@@ -45,7 +47,7 @@ export const en = {
   bot_settings_reminders_on: "Reminders: on · {hour}:00",
   bot_settings_reminders_off: "Reminders: off",
   bot_settings_hint: "Turn on reminders and pick an hour in the Mini App profile.",
-  bot_settings_language_hint: "Language: /language",
+  bot_settings_language_hint: "Language: 🌐 button or /language",
   bot_language_saved: "✅ Language saved. Open the app — the UI will update.",
   bot_language_change: "Choose your language:",
   report_prompt:

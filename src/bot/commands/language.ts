@@ -9,6 +9,7 @@ import { getUserLocale } from "./start.js";
 
 export const LANG_PICK_RU = "lang_pick_ru";
 export const LANG_PICK_EN = "lang_pick_en";
+export const SHOW_LANGUAGE = "show_language";
 
 export function buildLanguageKeyboard() {
   return Markup.inlineKeyboard([

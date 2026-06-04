@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 248" role="img" aria-label="Crunch">
+  <defs>
+    <linearGradient id="crunch-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="45%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <linearGradient id="crunch-card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="crunch-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <radialGradient id="crunch-muscle" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </radialGradient>
+    <filter id="crunch-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#64748b" flood-opacity="0.25"/>
+    </filter>
+    <filter id="crunch-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="crunch-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#10b981"/>
+    </marker>
+  </defs>
+  <rect width="400" height="248" fill="url(#crunch-bg)" rx="16"/>
+  <circle cx="48" cy="42" r="52" fill="#93c5fd" opacity="0.12"/>
+  <circle cx="360" cy="218" r="64" fill="#6ee7b7" opacity="0.14"/>
+  <text x="200" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#0f172a">Crunch</text>
+  
+  <g transform="translate(116, 48)">
+    <rect x="0" y="0" width="168" height="178" rx="14" fill="url(#crunch-card)" filter="url(#crunch-shadow)" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <line x1="12" y1="155" x2="156" y2="155" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/><rect x="14" y="148" width="140" height="10" rx="3" fill="#94a3b8"/><rect x="18" y="158" width="8" height="28" fill="#64748b"/><rect x="146" y="158" width="8" height="28" fill="#64748b"/>
+    <line x1="108" y1="128" x2="88" y2="148" stroke="url(#crunch-body)" stroke-width="9" stroke-linecap="round"/><circle cx="108" cy="128" r="4.5" fill="#475569"/><circle cx="88" cy="148" r="4.5" fill="#475569"/><line x1="118" y1="128" x2="138" y2="148" stroke="url(#crunch-body)" stroke-width="9" stroke-linecap="round"/><circle cx="118" cy="128" r="4.5" fill="#475569"/><circle cx="138" cy="148" r="4.5" fill="#475569"/><line x1="95" y1="118" x2="72" y2="128" stroke="url(#crunch-body)" stroke-width="8" stroke-linecap="round"/><circle cx="95" cy="118" r="4.5" fill="#475569"/><circle cx="72" cy="128" r="4.5" fill="#475569"/>
+    <path d="M95 118 L118 95 L130 108 L108 128 Z" fill="url(#crunch-body)"/>
+    <circle cx="118" cy="108" r="11" fill="url(#crunch-body)" stroke="#64748b" stroke-width="1"/>
+    <ellipse cx="108" cy="112" rx="22" ry="14" fill="url(#crunch-muscle)" opacity="0.88" filter="url(#crunch-glow)" transform="rotate(0 108 112)"/>
+  </g>
+</svg>

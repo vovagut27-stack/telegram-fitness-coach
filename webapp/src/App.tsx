@@ -27,6 +27,7 @@ import {
 import type { ExerciseLog, GymProgram, TabId, UserProfile, WorkoutPlan } from "./types";
 import { useI18n } from "./i18n/context";
 import { levelLabel } from "./i18n/levels";
+import { LanguageSwitcher } from "./components/LanguageSwitcher";
 
 function App() {
   const { tr, locale } = useI18n();
@@ -266,7 +267,10 @@ function App() {
           <h1>{tr("app_title")}</h1>
           <p className="tagline">{tr("app_tagline")}</p>
         </div>
-        {profile?.isPremium ? <span className="pill gold">PRO</span> : null}
+        <div className="top-bar-actions">
+          <LanguageSwitcher />
+          {profile?.isPremium ? <span className="pill gold">PRO</span> : null}
+        </div>
       </header>
 
       {loading ? <p className="muted center">{tr("loading")}</p> : null}

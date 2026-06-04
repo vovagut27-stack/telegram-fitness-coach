@@ -31,7 +31,10 @@ export function buildMainKeyboard(locale: Locale) {
     rows.push([Markup.button.webApp(t(locale, "btn_open_app"), appUrl)]);
   }
   rows.push([Markup.button.callback(t(locale, "btn_plan"), "show_plan")]);
-  rows.push([Markup.button.callback(t(locale, "btn_premium"), "buy_premium")]);
+  rows.push([
+    Markup.button.callback(t(locale, "btn_language"), "show_language"),
+    Markup.button.callback(t(locale, "btn_premium"), "buy_premium"),
+  ]);
   return Markup.inlineKeyboard(rows);
 }
 
