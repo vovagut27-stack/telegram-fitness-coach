@@ -4,7 +4,11 @@ export const ru = {
   btn_open_app: "🏋️ Открыть приложение",
   btn_plan: "📅 План на неделю",
   btn_premium: "⭐ Premium",
+  btn_support_creator: "☕ Поддержать создателя",
   btn_language: "🌐 Язык",
+  cmd_support_desc: "Поддержать создателя (Donatty)",
+  bot_support_message:
+    "☕ <b>Поддержка создателя</b>\n\nСпасибо, что пользуешься FitBot! Добровольный перевод — на Donatty по кнопке ниже.\n\nКоманда: /support",
   cmd_language_desc: "Сменить язык бота и приложения",
   bot_plan_header: "📅 План на 7 дней",
   bot_plan_footer_app: "👇 Нажми день в кнопках — откроется тренировка",

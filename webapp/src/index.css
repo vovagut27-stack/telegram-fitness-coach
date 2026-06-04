@@ -242,6 +242,15 @@ html.telegram-mobile .tab-bar button {
   background: linear-gradient(135deg, #422006, var(--surface));
 }
 
+.link-card.support-card div {
+  flex: 1;
+  min-width: 0;
+}
+
+.link-card.support-card .small {
+  margin: 0.2rem 0 0;
+}
+
 .btn-primary,
 .btn-gold {
   width: 100%;

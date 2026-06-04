@@ -64,6 +64,8 @@ export const ru = {
   home_today: "Тренировка на сегодня",
   home_gym: "Программа зала 4 дня",
   home_premium: "Premium",
+  home_support_creator: "Поддержать создателя",
+  home_support_sub: "Добровольный перевод на Donatty — спасибо за FitBot ☕",
   premium_title: "FitBot Premium",
   premium_sub: "Разблокируй зал, аналитику и снимай лимиты — тренируйся без потолка.",
   premium_bullets:

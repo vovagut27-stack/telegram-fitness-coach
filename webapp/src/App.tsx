@@ -4,9 +4,11 @@ import { FreeLimitBanner } from "./components/FreeLimitBanner";
 import { PremiumInsightsCard } from "./components/PremiumInsightsCard";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
 import { getApiBase, probeApiHealth } from "./config";
+import { CREATOR_DONATE_URL } from "./constants/creator-donate";
 import {
   getCachedTelegramUserId,
   getWorkoutDateFromUrl,
+  openExternalLink,
   requireTelegramUserId,
   waitForTelegramUserId,
 } from "./services/telegram";
@@ -353,6 +355,17 @@ function App() {
                   <strong>{tr("home_gym")}</strong>
                 </button>
               )}
+              <button
+                type="button"
+                className="card link-card support-card"
+                onClick={() => openExternalLink(CREATOR_DONATE_URL)}
+              >
+                <span>☕</span>
+                <div>
+                  <strong>{tr("home_support_creator")}</strong>
+                  <p className="muted small">{tr("home_support_sub")}</p>
+                </div>
+              </button>
             </section>
             <FreeLimitBanner profile={profile} onUpgrade={() => setTab("premium")} />
             {profile.isPremium ? <PremiumInsightsCard /> : null}

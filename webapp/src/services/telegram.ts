@@ -8,6 +8,7 @@ export interface TelegramWebApp {
     header_bg_color?: string;
   };
   openInvoice?: (url: string, callback?: (status: string) => void) => void;
+  openLink?: (url: string, options?: { try_instant_view?: boolean }) => void;
   ready: () => void;
   expand: () => void;
   close: () => void;
@@ -275,6 +276,15 @@ export function openStarsInvoice(url: string, onDone?: (paid: boolean) => void):
   }
   window.open(url, "_blank");
   onDone?.(false);
+}
+
+export function openExternalLink(url: string): void {
+  const tg = getTelegramWebApp();
+  if (tg?.openLink) {
+    tg.openLink(url);
+    return;
+  }
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 export function reloadMiniApp(): void {

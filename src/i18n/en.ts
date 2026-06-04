@@ -4,7 +4,11 @@ export const en = {
   btn_open_app: "🏋️ Open app",
   btn_plan: "📅 Weekly plan",
   btn_premium: "⭐ Premium",
+  btn_support_creator: "☕ Support the creator",
   btn_language: "🌐 Language",
+  cmd_support_desc: "Support the creator (Donatty)",
+  bot_support_message:
+    "☕ <b>Support the creator</b>\n\nThanks for using FitBot! Voluntary tips via Donatty — tap the button below.\n\nCommand: /support",
   cmd_language_desc: "Change bot and app language",
   bot_plan_header: "📅 7-day plan",
   bot_plan_footer_app: "👇 Tap a day below to open that workout",

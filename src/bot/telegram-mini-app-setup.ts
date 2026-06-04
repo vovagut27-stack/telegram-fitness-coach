@@ -51,6 +51,7 @@ export async function setupBotCommands(bot: Telegraf): Promise<void> {
     { command: "settings", description: "Настройки" },
     { command: "stats", description: "Статистика" },
     { command: "premium", description: "Premium" },
+    { command: "support", description: "Поддержать создателя" },
     { command: "report", description: "Сообщить об ошибке" },
   ];
   const en = [
@@ -62,6 +63,7 @@ export async function setupBotCommands(bot: Telegraf): Promise<void> {
     { command: "settings", description: "Settings" },
     { command: "stats", description: "Stats" },
     { command: "premium", description: "Premium" },
+    { command: "support", description: "Support the creator" },
     { command: "report", description: "Report a bug" },
   ];
 

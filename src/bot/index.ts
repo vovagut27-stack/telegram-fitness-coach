@@ -31,6 +31,7 @@ import {
 } from "./commands/language.js";
 import { setupReportHandlers } from "./commands/report.js";
 import { appssVerifyCommand } from "./commands/appss-verify.js";
+import { supportCommand } from "./commands/support.js";
 import { setupBotCommands, setupTelegramMenuButton } from "./telegram-mini-app-setup.js";
 import { ensureDefaultUser } from "../services/workout-service.js";
 import { isPremiumActive } from "../services/premium-service.js";
@@ -80,6 +81,8 @@ bot.command("today", todayCommand);
 bot.command("stats", statsCommand);
 
 bot.command("settings", settingsCommand);
+
+bot.command(["support", "donate"], supportCommand);
 
 bot.command(["language", "lang"], languageCommand);
 

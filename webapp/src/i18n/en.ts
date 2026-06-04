@@ -64,6 +64,8 @@ export const en = {
   home_today: "Start today's workout",
   home_gym: "4-day gym split",
   home_premium: "Go Premium",
+  home_support_creator: "Support the creator",
+  home_support_sub: "Voluntary tip on Donatty — thanks for FitBot ☕",
   premium_title: "FitBot Premium",
   premium_sub: "Unlock gym, analytics, and higher limits — train without a ceiling.",
   premium_bullets:

@@ -1,4 +1,5 @@
 import { Markup } from "telegraf";
+import { CREATOR_DONATE_URL } from "../../config/creator-donate.js";
 import { env } from "../../config/env.js";
 import { t } from "../../i18n/index.js";
 import type { Locale } from "../../types/locale.js";
@@ -35,6 +36,7 @@ export function buildMainKeyboard(locale: Locale) {
     Markup.button.callback(t(locale, "btn_language"), "show_language"),
     Markup.button.callback(t(locale, "btn_premium"), "buy_premium"),
   ]);
+  rows.push([Markup.button.url(t(locale, "btn_support_creator"), CREATOR_DONATE_URL)]);
   return Markup.inlineKeyboard(rows);
 }
 
