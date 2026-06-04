@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Lunge">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(8,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="32" rx="11" ry="13"/>
+      <path d="M72 45 L72 75"/>
+      <path d="M72 50 L55 58 M72 50 L89 58"/>
+      <path d="M72 75 L55 118 L48 145"/>
+      <path d="M72 75 L105 105 L118 135"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="88" cy="108" rx="14" ry="18"/>
+      <ellipse cx="58" cy="125" rx="10" ry="14"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="88" cy="108" rx="14" ry="18"/>
+      <ellipse cx="58" cy="125" rx="10" ry="14"/></g></g><g transform="translate(168,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="32" rx="11" ry="13"/>
+      <path d="M72 45 L72 75"/>
+      <path d="M72 50 L55 58 M72 50 L89 58"/>
+      <path d="M72 75 L48 118 L42 145"/>
+      <path d="M72 75 L108 108 L120 138"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="52" cy="115" rx="14" ry="18"/>
+      <ellipse cx="105" cy="118" rx="10" ry="14"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="52" cy="115" rx="14" ry="18"/>
+      <ellipse cx="105" cy="118" rx="10" ry="14"/></g></g>
+</svg>

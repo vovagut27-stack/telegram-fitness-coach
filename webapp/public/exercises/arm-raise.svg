@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Arm raise">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(8,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="38" rx="11" ry="13"/>
+      <path d="M72 51 L72 95"/>
+      <path d="M72 58 L58 65 M72 58 L86 65"/>
+      <path d="M58 65 L52 95 M86 65 L92 95"/>
+      <path d="M72 95 L62 135 L82 135 L72 95"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><path d="M52 95 L48 115" stroke="#e53935" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M92 95 L96 115" stroke="#e53935" stroke-width="6" fill="none" stroke-linecap="round"/></g>
+  <g fill="rgba(229,57,53,0.35)"><path d="M52 95 L48 115" stroke="#e53935" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M92 95 L96 115" stroke="#e53935" stroke-width="6" fill="none" stroke-linecap="round"/></g></g><g transform="translate(168,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="38" rx="11" ry="13"/>
+      <path d="M72 51 L72 95"/>
+      <path d="M72 58 L58 65 M72 58 L86 65"/>
+      <path d="M58 65 L45 42 M86 65 L99 42"/>
+      <path d="M72 95 L62 135 L82 135 L72 95"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><path d="M45 42 L38 32" stroke="#e53935" stroke-width="6" fill="none"/>
+      <path d="M99 42 L106 32" stroke="#e53935" stroke-width="6" fill="none"/>
+      <ellipse cx="72" cy="62" rx="18" ry="8"/></g>
+  <g fill="rgba(229,57,53,0.35)"><path d="M45 42 L38 32" stroke="#e53935" stroke-width="6" fill="none"/>
+      <path d="M99 42 L106 32" stroke="#e53935" stroke-width="6" fill="none"/>
+      <ellipse cx="72" cy="62" rx="18" ry="8"/></g></g>
+</svg>

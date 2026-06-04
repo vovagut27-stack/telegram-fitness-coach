@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Plank">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(20,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="200" cy="95" rx="12" ry="14"/>
+      <path d="M180 100 L140 108 L95 112"/>
+      <path d="M188 102 L188 118 L204 118 L204 102"/>
+      <path d="M188 118 L175 128 L215 128 L202 118"/>
+      <path d="M95 112 L55 118 L25 120"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="155" cy="108" rx="28" ry="10"/>
+      <rect x="130" y="100" width="50" height="14" rx="6"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="155" cy="108" rx="28" ry="10"/>
+      <rect x="130" y="100" width="50" height="14" rx="6"/></g></g>
+</svg>

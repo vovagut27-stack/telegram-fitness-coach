@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Bird-dog">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(30,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="200" cy="92" rx="11" ry="13"/>
+      <path d="M180 98 L140 105 L95 110"/>
+      <path d="M188 100 L188 115 L204 115"/>
+      <path d="M95 110 L55 118 L25 120"/>
+      <path d="M188 100 L215 75"/>
+      <path d="M95 110 L68 85"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><path d="M215 75 L235 62" stroke="#e53935" stroke-width="5" fill="none"/>
+      <path d="M68 85 L48 72" stroke="#e53935" stroke-width="5" fill="none"/></g>
+  <g fill="rgba(229,57,53,0.35)"><path d="M215 75 L235 62" stroke="#e53935" stroke-width="5" fill="none"/>
+      <path d="M68 85 L48 72" stroke="#e53935" stroke-width="5" fill="none"/></g></g>
+</svg>

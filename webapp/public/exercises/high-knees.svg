@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="High knees">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(8,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="40" rx="11" ry="13"/>
+      <path d="M72 53 L72 90"/>
+      <path d="M72 60 L55 68 M72 60 L89 68"/>
+      <path d="M72 90 L65 125 L62 148"/>
+      <path d="M72 90 L95 72 L102 58"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="98" cy="62" rx="10" ry="14"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="98" cy="62" rx="10" ry="14"/></g></g><g transform="translate(168,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="40" rx="11" ry="13"/>
+      <path d="M72 53 L72 90"/>
+      <path d="M72 60 L55 68 M72 60 L89 68"/>
+      <path d="M72 90 L95 125 L102 148"/>
+      <path d="M72 90 L58 72 L52 58"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="55" cy="62" rx="10" ry="14"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="55" cy="62" rx="10" ry="14"/></g></g>
+</svg>

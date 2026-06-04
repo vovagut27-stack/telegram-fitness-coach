@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Glute bridge">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(8,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="200" cy="105" rx="11" ry="13"/>
+      <path d="M180 110 L140 118 L95 122"/>
+      <path d="M95 122 L55 128 L25 130"/>
+      <path d="M188 112 L188 128 L204 128"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="130" cy="118" rx="12" ry="8"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="130" cy="118" rx="12" ry="8"/></g></g><g transform="translate(168,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="200" cy="95" rx="11" ry="13"/>
+      <path d="M180 100 L140 108 L95 112"/>
+      <path d="M95 112 L55 105 L25 98"/>
+      <path d="M188 102 L188 118 L204 118"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="130" cy="102" rx="28" ry="14"/>
+      <ellipse cx="55" cy="100" rx="10" ry="8"/>
+      <ellipse cx="185" cy="100" rx="10" ry="8"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="130" cy="102" rx="28" ry="14"/>
+      <ellipse cx="55" cy="100" rx="10" ry="8"/>
+      <ellipse cx="185" cy="100" rx="10" ry="8"/></g></g>
+</svg>

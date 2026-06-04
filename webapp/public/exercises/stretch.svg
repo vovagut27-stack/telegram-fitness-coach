@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Stretch">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(50,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="120" cy="42" rx="12" ry="14"/>
+      <path d="M120 56 L120 95"/>
+      <path d="M120 65 L95 72 M120 65 L145 72"/>
+      <path d="M120 95 L105 130 L135 130 L120 95"/>
+      <path d="M105 130 L95 155 L135 155 L125 130"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><path d="M95 72 L75 88" stroke="#e53935" stroke-width="5" fill="none"/>
+      <ellipse cx="115" cy="108" rx="24" ry="8" opacity="0.5"/></g>
+  <g fill="rgba(229,57,53,0.35)"><path d="M95 72 L75 88" stroke="#e53935" stroke-width="5" fill="none"/>
+      <ellipse cx="115" cy="108" rx="24" ry="8" opacity="0.5"/></g></g>
+</svg>

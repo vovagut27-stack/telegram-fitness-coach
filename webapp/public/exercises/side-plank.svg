@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Side plank">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(30,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="120" cy="55" rx="11" ry="13"/>
+      <path d="M120 68 L120 110"/>
+      <path d="M120 75 L85 95 L55 108"/>
+      <path d="M120 110 L155 125 L175 132"/>
+      <path d="M120 68 L155 78"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="118" cy="88" rx="8" ry="22"/>
+      <path d="M95 95 L70 108" stroke="#e53935" stroke-width="6" fill="none" stroke-linecap="round"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="118" cy="88" rx="8" ry="22"/>
+      <path d="M95 95 L70 108" stroke="#e53935" stroke-width="6" fill="none" stroke-linecap="round"/></g></g>
+</svg>

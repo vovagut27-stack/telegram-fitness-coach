@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Jumping jack">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(8,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="35" rx="11" ry="13"/>
+      <path d="M72 48 L72 85"/>
+      <path d="M72 55 L55 62 M72 55 L89 62"/>
+      <path d="M55 62 L38 48 M89 62 L106 48"/>
+      <path d="M72 85 L62 125 L58 148"/>
+      <path d="M72 85 L82 125 L86 148"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><path d="M38 48 L28 38" stroke="#e53935" stroke-width="5" fill="none"/>
+      <path d="M106 48 L116 38" stroke="#e53935" stroke-width="5" fill="none"/></g>
+  <g fill="rgba(229,57,53,0.35)"><path d="M38 48 L28 38" stroke="#e53935" stroke-width="5" fill="none"/>
+      <path d="M106 48 L116 38" stroke="#e53935" stroke-width="5" fill="none"/></g></g><g transform="translate(168,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="35" rx="11" ry="13"/>
+      <path d="M72 48 L72 85"/>
+      <path d="M72 55 L48 42 M72 55 L96 42"/>
+      <path d="M48 42 L22 35 M96 42 L122 35"/>
+      <path d="M72 85 L58 125 L52 148"/>
+      <path d="M72 85 L86 125 L92 148"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><path d="M22 35 L12 28" stroke="#e53935" stroke-width="5" fill="none"/>
+      <path d="M122 35 L132 28" stroke="#e53935" stroke-width="5" fill="none"/></g>
+  <g fill="rgba(229,57,53,0.35)"><path d="M22 35 L12 28" stroke="#e53935" stroke-width="5" fill="none"/>
+      <path d="M122 35 L132 28" stroke="#e53935" stroke-width="5" fill="none"/></g></g>
+</svg>

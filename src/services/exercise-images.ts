@@ -1,22 +1,19 @@
 import type { Gender } from "../types/profile.js";
 import type { FitnessLevel, WorkoutExercise } from "../types/workout.js";
 import { applyExerciseRest } from "./exercise-rest.js";
-import { lookupExercisePhoto } from "./exercise-image-catalog.js";
+import { illustrationAssetPath } from "./exercise-illustrations.js";
 import {
   resolveExerciseVisualUrl,
   resolveMovementFallbackUrl,
 } from "./exercise-visual-catalog.js";
 
-/** Primary image for Mini App — Unsplash/catalog (wger often blocked in Telegram WebView). */
+/** Primary image — local SVG on webapp origin (works in Telegram WebView). */
 export function resolveExerciseImageUrl(
   name: string,
-  gender?: Gender | null,
-  equipment?: string,
+  _gender?: Gender | null,
+  _equipment?: string,
 ): string {
-  return (
-    lookupExercisePhoto(name) ??
-    resolveMovementFallbackUrl(name, gender, equipment)
-  );
+  return illustrationAssetPath(name);
 }
 
 /** Optional second URL (wger / pexels) if primary fails in client. */

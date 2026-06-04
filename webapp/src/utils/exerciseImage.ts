@@ -1,5 +1,9 @@
 import type { Gender, WorkoutExercise } from "../types";
 import { lookupExercisePhoto } from "./exercisePhotoCatalog";
+import {
+  isLocalExerciseIllustration,
+  resolveLocalExerciseAsset,
+} from "./exerciseIllustration";
 
 type MovementKey =
   | "push"
@@ -100,8 +104,14 @@ export function exerciseImageCandidates(
       urls.push(url);
     }
   };
+  const demo = exercise.demoUrl;
+  if (demo && isLocalExerciseIllustration(demo)) {
+    add(resolveLocalExerciseAsset(demo));
+  }
   add(lookupExercisePhoto(exercise.name));
-  add(exercise.demoUrl);
+  if (demo && !isLocalExerciseIllustration(demo)) {
+    add(demo);
+  }
   add(exercise.imageFallback);
   add(movementFallback(gender, key));
   add(FALLBACK_MALE.default);

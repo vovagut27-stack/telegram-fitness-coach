@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Cat-cow">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(8,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="200" cy="88" rx="11" ry="13"/>
+      <path d="M180 95 L140 102 L95 108"/>
+      <path d="M188 97 L188 112 L204 112"/>
+      <path d="M95 108 L55 118 L25 122"/>
+      <path d="M25 122 L15 128" stroke="#757575" fill="none"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><path d="M95 108 Q140 95 185 102" stroke="#e53935" stroke-width="4" fill="none"/></g>
+  <g fill="rgba(229,57,53,0.35)"><path d="M95 108 Q140 95 185 102" stroke="#e53935" stroke-width="4" fill="none"/></g></g><g transform="translate(168,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="200" cy="78" rx="11" ry="13"/>
+      <path d="M180 85 L140 95 L95 105"/>
+      <path d="M188 87 L188 102 L204 102"/>
+      <path d="M95 105 L55 112 L25 115"/>
+      <path d="M25 115 L12 108" stroke="#757575" fill="none"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><path d="M95 105 Q140 118 185 95" stroke="#e53935" stroke-width="4" fill="none"/></g>
+  <g fill="rgba(229,57,53,0.35)"><path d="M95 105 Q140 118 185 95" stroke="#e53935" stroke-width="4" fill="none"/></g></g>
+</svg>

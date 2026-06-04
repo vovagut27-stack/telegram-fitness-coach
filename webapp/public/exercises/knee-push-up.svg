@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Knee push-up">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(40,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="120" cy="70" rx="12" ry="14"/>
+      <path d="M100 82 L70 95 L55 108 M140 82 L170 95 L185 108"/>
+      <path d="M108 84 L112 108 L128 108 L132 84"/>
+      <path d="M112 108 L95 125 L145 125 L128 108"/>
+      <path d="M95 125 L75 135 L145 135 L125 125"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="120" cy="95" rx="20" ry="9"/>
+      <path d="M88 102 L62 108" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M152 102 L178 108" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="120" cy="95" rx="20" ry="9"/>
+      <path d="M88 102 L62 108" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M152 102 L178 108" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/></g></g>
+</svg>

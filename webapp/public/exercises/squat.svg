@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Squat">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(8,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="28" rx="11" ry="13"/>
+      <path d="M72 41 L72 70"/>
+      <path d="M72 48 L52 55 M72 48 L92 55"/>
+      <path d="M72 70 L58 105 L52 135"/>
+      <path d="M72 70 L86 105 L92 135"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="72" cy="88" rx="16" ry="14"/>
+      <ellipse cx="58" cy="118" rx="10" ry="16"/>
+      <ellipse cx="86" cy="118" rx="10" ry="16"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="72" cy="88" rx="16" ry="14"/>
+      <ellipse cx="58" cy="118" rx="10" ry="16"/>
+      <ellipse cx="86" cy="118" rx="10" ry="16"/></g></g><g transform="translate(168,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="38" rx="11" ry="13"/>
+      <path d="M72 51 L72 78"/>
+      <path d="M72 58 L50 68 M72 58 L94 68"/>
+      <path d="M72 78 L52 108 L45 128"/>
+      <path d="M72 78 L92 108 L99 128"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="72" cy="95" rx="18" ry="16"/>
+      <ellipse cx="54" cy="115" rx="12" ry="14"/>
+      <ellipse cx="90" cy="115" rx="12" ry="14"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="72" cy="95" rx="18" ry="16"/>
+      <ellipse cx="54" cy="115" rx="12" ry="14"/>
+      <ellipse cx="90" cy="115" rx="12" ry="14"/></g></g>
+</svg>

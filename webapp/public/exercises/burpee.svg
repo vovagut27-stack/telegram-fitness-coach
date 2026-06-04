@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Burpee">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(8,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="100" rx="11" ry="13"/>
+      <path d="M72 85 L72 55"/>
+      <path d="M72 55 L55 45 M72 55 L89 45"/>
+      <path d="M72 113 L55 135 L48 155"/>
+      <path d="M72 113 L89 135 L96 155"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="72" cy="68" rx="14" ry="10"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="72" cy="68" rx="14" ry="10"/></g></g><g transform="translate(168,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="35" rx="11" ry="13"/>
+      <path d="M72 48 L72 75"/>
+      <path d="M72 55 L52 70 M72 55 L92 70"/>
+      <path d="M72 75 L58 118 L52 145"/>
+      <path d="M72 75 L86 118 L92 145"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="72" cy="95" rx="20" ry="10"/>
+      <ellipse cx="58" cy="118" rx="10" ry="14"/>
+      <ellipse cx="86" cy="118" rx="10" ry="14"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="72" cy="95" rx="20" ry="10"/>
+      <ellipse cx="58" cy="118" rx="10" ry="14"/>
+      <ellipse cx="86" cy="118" rx="10" ry="14"/></g></g>
+</svg>

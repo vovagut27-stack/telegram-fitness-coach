@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Push-up">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g transform="translate(8,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="38" rx="11" ry="13"/>
+      <path d="M55 48 L28 72 L18 88 M89 48 L116 72 L126 88"/>
+      <path d="M64 50 L68 78 L76 78 L80 50"/>
+      <path d="M68 78 L52 98 L92 98 L76 78"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="72" cy="58" rx="18" ry="8"/>
+      <path d="M42 66 L18 74" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M102 66 L126 74" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="72" cy="58" rx="18" ry="8"/>
+      <path d="M42 66 L18 74" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M102 66 L126 74" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/></g></g><g transform="translate(168,0)">
+  <g fill="#bdbdbd" stroke="#757575" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="72" cy="52" rx="11" ry="13"/>
+      <path d="M55 62 L28 86 L18 102 M89 62 L116 86 L126 102"/>
+      <path d="M64 64 L68 92 L76 92 L80 64"/>
+      <path d="M68 92 L52 112 L92 112 L76 92"/>
+  </g>
+  <g fill="#e53935" opacity="0.9"><ellipse cx="72" cy="72" rx="18" ry="8"/>
+      <path d="M42 80 L18 88" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M102 80 L126 88" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/></g>
+  <g fill="rgba(229,57,53,0.35)"><ellipse cx="72" cy="72" rx="18" ry="8"/>
+      <path d="M42 80 L18 88" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M102 80 L126 88" stroke="#e53935" stroke-width="5" fill="none" stroke-linecap="round"/></g></g>
+</svg>
