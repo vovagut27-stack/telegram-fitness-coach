@@ -1,6 +1,10 @@
 import type { Gender, WorkoutExercise } from "../types";
 import { getApiBase } from "../config";
 import { lookupExercisePhoto } from "./exercisePhotoCatalog";
+import {
+  illustrationAssetPath,
+  illustrationSlugForExercise,
+} from "@shared/exercise-illustrations";
 import { resolveExerciseVisualUrl } from "@shared/exercise-visual-catalog";
 import { isLocalExerciseIllustration } from "./exerciseIllustration";
 
@@ -26,7 +30,11 @@ function exercisePhotoProxyUrl(
   return `${getApiBase()}/media/exercise-photo?${params.toString()}`;
 }
 
-/** Фото → запасное фото по движению → SVG. */
+function hasAccurateIllustration(name: string): boolean {
+  return illustrationSlugForExercise(name) !== "generic-workout";
+}
+
+/** Локальное фото (зал) → SVG по упражнению → Unsplash. */
 export function exerciseImageCandidates(
   exercise: WorkoutExercise,
   gender?: Gender | null,
@@ -39,9 +47,13 @@ export function exerciseImageCandidates(
   };
 
   const exactPhoto = lookupExercisePhoto(exercise.name);
+  const illustration = illustrationAssetPath(exercise.name);
+  const useIllustrationFirst = hasAccurateIllustration(exercise.name);
 
   if (exactPhoto && isBundledExercisePhoto(exactPhoto)) {
     add(exactPhoto);
+  } else if (useIllustrationFirst) {
+    add(illustration);
   } else {
     add(
       exercisePhotoProxyUrl(exercise.name, gender ?? null, exercise.equipment),
@@ -50,11 +62,23 @@ export function exerciseImageCandidates(
   }
 
   const demo = exercise.demoUrl;
-  if (demo && !isLocalExerciseIllustration(demo) && demo !== exactPhoto) {
+  if (
+    demo &&
+    !isLocalExerciseIllustration(demo) &&
+    demo !== exactPhoto &&
+    !(useIllustrationFirst && demo.includes("unsplash.com"))
+  ) {
     add(demo);
   }
 
-  add(resolveExerciseVisualUrl(exercise.name, gender ?? null, exercise.equipment));
+  if (!useIllustrationFirst) {
+    add(illustration);
+  }
+
+  if (!useIllustrationFirst) {
+    add(resolveExerciseVisualUrl(exercise.name, gender ?? null, exercise.equipment));
+  }
+
   add(GENERIC_PHOTO);
 
   return urls;
