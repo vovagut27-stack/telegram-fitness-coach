@@ -4,16 +4,22 @@ import { useI18n } from "../i18n/context";
 
 interface ScheduleListProps {
   days: ScheduleDayItem[];
+  title?: string;
   selectedDate: string | null;
   onSelect: (date: string) => void;
 }
 
-export function ScheduleList({ days, selectedDate, onSelect }: ScheduleListProps): ReactElement {
+export function ScheduleList({
+  days,
+  title,
+  selectedDate,
+  onSelect,
+}: ScheduleListProps): ReactElement {
   const { tr } = useI18n();
 
   return (
     <section className="schedule-list">
-      <h2>{tr("schedule_title")}</h2>
+      <h2>{title ?? tr("schedule_title")}</h2>
       <p className="muted">{tr("schedule_hint")}</p>
       {days.map((day) => (
         <button

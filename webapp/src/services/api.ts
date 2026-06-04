@@ -81,13 +81,86 @@ export async function saveProfile(
   return res.json() as Promise<UserProfile>;
 }
 
-export async function fetchSchedule(telegramId: number, days = 7): Promise<ScheduleDayItem[]> {
+export async function saveUserSettings(
+  telegramId: number,
+  settings: {
+    remindersEnabled?: boolean;
+    reminderHour?: number;
+    timezoneOffsetMinutes?: number;
+    restPreset?: "short" | "normal" | "long";
+  },
+): Promise<UserProfile> {
+  const body = JSON.stringify({ telegramId, ...settings });
+  const headers = { "Content-Type": "application/json" };
+  let res = await apiFetch("/user/settings", {
+    method: "PATCH",
+    headers,
+    body,
+  });
+  if (!res.ok && (res.status === 405 || res.status === 404)) {
+    res = await apiFetch("/user/settings", {
+      method: "POST",
+      headers,
+      body,
+    });
+  }
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return res.json() as Promise<UserProfile>;
+}
+
+export async function fetchSchedule(
+  telegramId: number,
+  days = 7,
+): Promise<{ days: ScheduleDayItem[]; maxDays: number }> {
   const res = await apiFetch(`/workout/schedule?telegramId=${telegramId}&days=${days}`);
   if (!res.ok) {
     throw await parseError(res);
   }
-  const data = (await res.json()) as { days: ScheduleDayItem[] };
-  return data.days;
+  return res.json() as Promise<{ days: ScheduleDayItem[]; maxDays: number }>;
+}
+
+export interface PersonalRecord {
+  exerciseName: string;
+  bestWeightKg: number | null;
+  bestReps: number | null;
+  bestVolumeKg: number;
+  achievedDate: string;
+}
+
+export interface PremiumInsights {
+  currentStreak: number;
+  volumeThisWeekKg: number;
+  volumeLastWeekKg: number;
+  volumeChangePercent: number | null;
+  workoutsThisWeek: number;
+  workoutsLastWeek: number;
+  personalRecordsCount: number;
+  topFocus: string | null;
+  weeklyVolume: Array<{
+    weekStart: string;
+    totalSets: number;
+    totalVolumeKg: number;
+    workoutsCompleted: number;
+  }>;
+}
+
+export async function fetchPremiumInsights(telegramId: number): Promise<PremiumInsights> {
+  const res = await apiFetch(`/user/premium-insights?telegramId=${telegramId}`);
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return res.json() as Promise<PremiumInsights>;
+}
+
+export async function fetchPersonalRecords(telegramId: number): Promise<PersonalRecord[]> {
+  const res = await apiFetch(`/workout/personal-records?telegramId=${telegramId}`);
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  const data = (await res.json()) as { records: PersonalRecord[] };
+  return data.records;
 }
 
 export async function fetchWorkoutByDate(

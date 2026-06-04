@@ -4,6 +4,9 @@ import type { FitnessLevel, WorkoutExercise } from "../types";
 export function effectiveRestSeconds(
   exercise: WorkoutExercise,
   _planLevel: FitnessLevel = "beginner",
+  restPreset: "short" | "normal" | "long" = "normal",
 ): number {
-  return Math.min(120, Math.max(35, exercise.restSeconds || 60));
+  const mult = restPreset === "short" ? 0.85 : restPreset === "long" ? 1.2 : 1;
+  const base = exercise.restSeconds || 60;
+  return Math.min(120, Math.max(30, Math.round(base * mult)));
 }

@@ -19,7 +19,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@shared/exercise-image-catalog": ["../src/services/exercise-image-catalog.ts"]
+    }
   },
   "include": ["src"]
 }

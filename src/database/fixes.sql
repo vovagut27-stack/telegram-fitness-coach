@@ -33,3 +33,8 @@ CREATE TABLE IF NOT EXISTS weight_logs (
 
 CREATE INDEX IF NOT EXISTS weight_logs_telegram_id_log_date_idx
   ON weight_logs (telegram_id, log_date DESC);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reminders_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reminder_hour SMALLINT NOT NULL DEFAULT 9;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone_offset_minutes INTEGER NOT NULL DEFAULT 180;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS rest_preset VARCHAR(10) NOT NULL DEFAULT 'normal';

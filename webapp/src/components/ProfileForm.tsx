@@ -6,6 +6,8 @@ import { getApiBase } from "../config";
 import { saveProfile } from "../services/api";
 import { requireTelegramUserId } from "../services/telegram";
 import { WeightTracker } from "./WeightTracker";
+import { ReminderSettings } from "./ReminderSettings";
+import { RestTimerSettings } from "./RestTimerSettings";
 
 interface ProfileFormProps {
   profile: UserProfile;
@@ -159,6 +161,10 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps): ReactElemen
       ) : (
         <p className="ok">✓ {tr("profile_complete_ok")}</p>
       )}
+
+      <ReminderSettings profile={form} onSaved={onSaved} />
+
+      <RestTimerSettings profile={form} onSaved={onSaved} />
 
       <WeightTracker />
 

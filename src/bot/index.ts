@@ -20,6 +20,7 @@ import {
 } from "./commands/resetdata.js";
 import { todayCommand } from "./commands/today.js";
 import { statsCommand } from "./commands/stats.js";
+import { settingsCommand } from "./commands/settings.js";
 import { ensureDefaultUser } from "../services/workout-service.js";
 import { isPremiumActive } from "../services/premium-service.js";
 
@@ -63,6 +64,8 @@ bot.command("app", startCommand);
 bot.command("today", todayCommand);
 
 bot.command("stats", statsCommand);
+
+bot.command("settings", settingsCommand);
 
 bot.command("plan", async (ctx) => {
   const telegramId = ctx.from?.id;

@@ -40,4 +40,9 @@ export const en = {
   bot_stats_weight: "Weight: {kg} kg · {trend}",
   bot_stats_weight_none: "Weight: log entries in profile",
   bot_stats_footer: "More in the Results tab in the app.",
+  reminder_message: "⏰ Time to train! Today: {title}",
+  bot_settings_header: "⚙️ Settings",
+  bot_settings_reminders_on: "Reminders: on · {hour}:00",
+  bot_settings_reminders_off: "Reminders: off",
+  bot_settings_hint: "Turn on reminders and pick an hour in the Mini App profile.",
 } as const;

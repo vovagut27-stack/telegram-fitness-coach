@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import type { ExerciseLog, Gender, WorkoutPlan } from "../types";
 import { ExerciseCard } from "./ExerciseCard";
@@ -11,8 +11,10 @@ interface WorkoutPlayerProps {
   workout: WorkoutPlan;
   gender?: Gender | null;
   gymMode?: boolean;
+  restPreset?: "short" | "normal" | "long";
   onBack?: () => void;
   onComplete: (logs: ExerciseLog[]) => Promise<void>;
+  onGoHome?: () => void;
 }
 
 function defaultReps(reps: string): number {
@@ -32,8 +34,10 @@ export function WorkoutPlayer({
   workout,
   gender,
   gymMode = false,
+  restPreset = "normal",
   onBack,
   onComplete,
+  onGoHome,
 }: WorkoutPlayerProps): ReactElement {
   const { locale, tr } = useI18n();
   const [exerciseIndex, setExerciseIndex] = useState(0);
@@ -46,7 +50,7 @@ export function WorkoutPlayer({
   const autoSaveStarted = useRef(false);
 
   const current = workout.exercises[exerciseIndex];
-  const restSeconds = effectiveRestSeconds(current, workout.difficultyLevel);
+  const restSeconds = effectiveRestSeconds(current, workout.difficultyLevel, restPreset);
   const isLastExercise = exerciseIndex === workout.exercises.length - 1;
   const completed = useMemo(
     () => exerciseIndex >= workout.exercises.length,
@@ -59,24 +63,28 @@ export function WorkoutPlayer({
     setSetDone(0);
   }, [exerciseIndex, current.reps]);
 
-  const finalLogs = logs.length > 0 ? logs : buildLogsFromPlan(workout);
+  const finalLogs = useMemo(
+    () => (logs.length > 0 ? logs : buildLogsFromPlan(workout)),
+    [logs, workout],
+  );
+
+  const runSave = useCallback(() => {
+    setSaveState("saving");
+    return onComplete(finalLogs)
+      .then(() => setSaveState("done"))
+      .catch(() => setSaveState("error"));
+  }, [finalLogs, onComplete]);
 
   useEffect(() => {
     if (!completed || autoSaveStarted.current) {
       return;
     }
     autoSaveStarted.current = true;
-    setSaveState("saving");
-    void onComplete(finalLogs)
-      .then(() => setSaveState("done"))
-      .catch(() => setSaveState("error"));
-  }, [completed, finalLogs, onComplete]);
+    void runSave();
+  }, [completed, runSave]);
 
   const retrySave = (): void => {
-    setSaveState("saving");
-    void onComplete(finalLogs)
-      .then(() => setSaveState("done"))
-      .catch(() => setSaveState("error"));
+    void runSave();
   };
 
   const finishExercise = (): void => {
@@ -128,6 +136,15 @@ export function WorkoutPlayer({
               {tr("save_session")}
             </button>
           </>
+        ) : null}
+        {saveState === "done" ? (
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => (onGoHome ? onGoHome() : onBack?.())}
+          >
+            {tr("tab_home")}
+          </button>
         ) : null}
         {saveState === "done" && gymMode && onBack ? (
           <button type="button" className="btn-secondary" onClick={onBack}>

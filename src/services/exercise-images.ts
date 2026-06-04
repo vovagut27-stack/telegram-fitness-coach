@@ -7,25 +7,36 @@ import {
   resolveMovementFallbackUrl,
 } from "./exercise-visual-catalog.js";
 
+/** Primary image for Mini App — Unsplash/catalog (wger often blocked in Telegram WebView). */
 export function resolveExerciseImageUrl(
   name: string,
   gender?: Gender | null,
   equipment?: string,
 ): string {
-  const visual = resolveExerciseVisualUrl(name, gender, equipment);
-  if (visual) {
-    return visual;
-  }
-  return lookupExercisePhoto(name) ?? resolveMovementFallbackUrl(name, gender);
+  return (
+    lookupExercisePhoto(name) ??
+    resolveMovementFallbackUrl(name, gender, equipment)
+  );
+}
+
+/** Optional second URL (wger / pexels) if primary fails in client. */
+export function resolveExerciseImageAltUrl(
+  name: string,
+  gender?: Gender | null,
+  equipment?: string,
+): string {
+  return resolveExerciseVisualUrl(name, gender, equipment);
 }
 
 export function enrichExerciseImage(
   exercise: WorkoutExercise,
   gender?: Gender | null,
 ): WorkoutExercise {
+  const equipment = exercise.equipment ?? "";
   return {
     ...exercise,
-    demoUrl: resolveExerciseImageUrl(exercise.name, gender, exercise.equipment ?? ""),
+    demoUrl: resolveExerciseImageUrl(exercise.name, gender, equipment),
+    imageFallback: resolveExerciseImageAltUrl(exercise.name, gender, equipment),
   };
 }
 

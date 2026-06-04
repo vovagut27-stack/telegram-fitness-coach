@@ -12,6 +12,7 @@ import {
 import { FitnessLevel, WorkoutPlan, WorkoutRequest } from "../types/workout.js";
 import { buildTemplateWorkout, planMatchesDaySplit } from "./workout-templates.js";
 import { isPremiumActive } from "./premium-service.js";
+import { getFreeTierStatus, type FreeTierStatus } from "./free-tier-service.js";
 import { enrichWorkoutExercises } from "./exercise-images.js";
 import {
   attachScheduleMeta,
@@ -41,6 +42,10 @@ export async function ensureDefaultUser(telegramId: number): Promise<void> {
     heightCm: null,
     trainingMode: "home",
     profileComplete: false,
+    remindersEnabled: false,
+    reminderHour: 9,
+    timezoneOffsetMinutes: 180,
+    restPreset: "normal",
   });
 }
 
@@ -232,6 +237,30 @@ function peekDayPreviewExercises(user: UserProfile, workoutDate: string): string
   return plan.exercises.slice(0, 3).map((e) => e.name);
 }
 
+/** Read-only preview for reminders (no DB write). */
+export async function getTodayWorkoutPreview(
+  telegramId: number,
+  workoutDate: string,
+): Promise<{ title: string; exerciseNames: string[] }> {
+  await ensureDefaultUser(telegramId);
+  const user = await getUser(telegramId);
+  if (!user) {
+    return { title: "Workout", exerciseNames: [] };
+  }
+  const row = await getWorkoutByDate(telegramId, workoutDate);
+  if (row?.plan.exercises?.length) {
+    return {
+      title: row.plan.splitDay ?? getSplitForDate(workoutDate, user.language).title,
+      exerciseNames: row.plan.exercises.slice(0, 3).map((e) => e.name),
+    };
+  }
+  const split = getSplitForDate(workoutDate, user.language);
+  return {
+    title: split.title,
+    exerciseNames: peekDayPreviewExercises(user, workoutDate),
+  };
+}
+
 export async function getGymProgramForUser(telegramId: number) {
   const user = await getUser(telegramId);
   if (!user) {
@@ -359,5 +388,39 @@ export function userToApiProfile(user: UserProfile) {
     timePerSession: user.timePerSession,
     isPremium: isPremiumActive(user),
     premiumUntil: user.premiumUntil,
+    remindersEnabled: user.remindersEnabled,
+    reminderHour: user.reminderHour,
+    timezoneOffsetMinutes: user.timezoneOffsetMinutes,
+    restPreset: user.restPreset,
+  };
+}
+
+export type ApiUserProfile = ReturnType<typeof userToApiProfile> & {
+  freeWeeklyLimit: number;
+  completedWorkoutsThisWeek: number;
+  canStartNewWorkout: boolean;
+  freeWorkoutsRemaining: number | null;
+};
+
+export async function buildApiUserProfile(user: UserProfile): Promise<ApiUserProfile> {
+  const free = await getFreeTierStatus(user.telegramId);
+  return {
+    ...userToApiProfile(user),
+    ...freeTierToApi(free),
+  };
+}
+
+export function freeTierToApi(free: FreeTierStatus): Pick<
+  ApiUserProfile,
+  | "freeWeeklyLimit"
+  | "completedWorkoutsThisWeek"
+  | "canStartNewWorkout"
+  | "freeWorkoutsRemaining"
+> {
+  return {
+    freeWeeklyLimit: free.weeklyLimit,
+    completedWorkoutsThisWeek: free.completedThisWeek,
+    canStartNewWorkout: free.canStartNewWorkout,
+    freeWorkoutsRemaining: free.isPremium ? null : free.remaining,
   };
 }

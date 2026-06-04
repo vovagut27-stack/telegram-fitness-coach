@@ -40,4 +40,9 @@ export const ru = {
   bot_stats_weight: "Вес: {kg} кг · {trend}",
   bot_stats_weight_none: "Вес: добавьте замеры в профиле",
   bot_stats_footer: "Подробнее — вкладка «Результаты» в приложении.",
+  reminder_message: "⏰ Пора тренироваться! Сегодня: {title}",
+  bot_settings_header: "⚙️ Настройки",
+  bot_settings_reminders_on: "Напоминания: вкл · {hour}:00",
+  bot_settings_reminders_off: "Напоминания: вык",
+  bot_settings_hint: "Включи напоминания и час в профиле Mini App.",
 } as const;

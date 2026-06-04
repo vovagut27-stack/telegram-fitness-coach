@@ -13,10 +13,19 @@ import {
   getOrCreateWorkoutForDate,
   getOrCreateTodayWorkout,
   getWorkoutSchedule,
+  buildApiUserProfile,
   userToApiProfile,
 } from "../services/workout-service.js";
+import { updateUserSettings } from "../database/users-repo.js";
 import { createPremiumInvoiceLink } from "../bot/payments.js";
 import { isoDateOnly } from "../services/schedule-service.js";
+import { env } from "../config/env.js";
+import {
+  assertPremiumActive,
+  isPremiumActive,
+  maxResultsHistoryDays,
+  maxScheduleDays,
+} from "../services/premium-service.js";
 import type { FitnessLevel } from "../types/workout.js";
 
 export const apiRouter = Router();
@@ -53,7 +62,7 @@ async function saveProfileHandler(
       timePerSession: body.timePerSession,
       goals: body.goals,
     });
-    res.json(userToApiProfile(user));
+    res.json(await buildApiUserProfile(user));
   } catch (err) {
     console.error("save profile failed:", err);
     const message = err instanceof Error ? err.message : "unknown error";
@@ -76,7 +85,7 @@ apiRouter.get("/user/profile", async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    return res.json(userToApiProfile(user));
+    return res.json(await buildApiUserProfile(user));
   } catch (err) {
     console.error("GET /user/profile failed:", err);
     return res.status(500).json({ error: "Failed to load profile" });
@@ -96,7 +105,69 @@ apiRouter.get("/user/settings", async (req, res) => {
   if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
-  return res.json(userToApiProfile(user));
+  return res.json(await buildApiUserProfile(user));
+});
+
+async function saveUserSettingsHandler(
+  body: {
+    telegramId: number;
+    remindersEnabled?: boolean;
+    reminderHour?: number;
+    timezoneOffsetMinutes?: number;
+    restPreset?: "short" | "normal" | "long";
+  },
+  res: import("express").Response,
+): Promise<void> {
+  const telegramId = parseTelegramId(body.telegramId);
+  if (!telegramId) {
+    res.status(400).json({ error: "telegramId is required" });
+    return;
+  }
+  try {
+    await ensureUserRow(telegramId);
+    if (body.restPreset != null && body.restPreset !== "normal") {
+      await assertPremiumActive(telegramId);
+    }
+    const user = await updateUserSettings(telegramId, {
+      remindersEnabled: body.remindersEnabled,
+      reminderHour: body.reminderHour,
+      timezoneOffsetMinutes: body.timezoneOffsetMinutes,
+      restPreset: body.restPreset,
+    });
+    res.json(await buildApiUserProfile(user));
+  } catch (err) {
+    if (err instanceof Error && err.message === "PREMIUM_REQUIRED") {
+      res.status(402).json({ error: "premium_required", code: "PREMIUM_REQUIRED" });
+      return;
+    }
+    console.error("save user settings failed:", err);
+    res.status(500).json({ error: "Failed to save settings" });
+  }
+}
+
+apiRouter.patch("/user/settings", (req, res) => void saveUserSettingsHandler(req.body, res));
+
+apiRouter.post("/user/settings", (req, res) => void saveUserSettingsHandler(req.body, res));
+
+apiRouter.get("/cron/reminders", async (req, res) => {
+  const secret = env.CRON_SECRET.trim();
+  if (!secret) {
+    return res.status(503).json({ error: "CRON_SECRET not configured" });
+  }
+  const auth = String(req.headers.authorization ?? "");
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : String(req.query.secret ?? "");
+  if (token !== secret) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  try {
+    const { bot } = await import("../bot/index.js");
+    const { sendDailyReminders } = await import("../services/reminder-service.js");
+    const result = await sendDailyReminders(bot);
+    return res.json({ ok: true, ...result });
+  } catch (err) {
+    console.error("GET /cron/reminders failed:", err);
+    return res.status(500).json({ error: "Reminder job failed" });
+  }
 });
 
 apiRouter.post("/user/language", async (req, res) => {
@@ -129,12 +200,16 @@ apiRouter.get("/premium/invoice-link", async (req, res) => {
 apiRouter.get("/workout/schedule", async (req, res) => {
   try {
     const telegramId = parseTelegramId(req.query.telegramId);
-    const days = Math.min(14, Math.max(1, Number(req.query.days) || 7));
     if (!telegramId) {
       return res.status(400).json({ error: "telegramId is required" });
     }
+    await ensureUserRow(telegramId);
+    const user = await getUser(telegramId);
+    const cap = maxScheduleDays(Boolean(user && isPremiumActive(user)));
+    const requested = Math.max(1, Number(req.query.days) || cap);
+    const days = Math.min(cap, requested);
     const schedule = await getWorkoutSchedule(telegramId, days);
-    return res.json({ days: schedule });
+    return res.json({ days, maxDays: cap });
   } catch (err) {
     console.error("GET /workout/schedule failed:", err);
     return res.status(500).json({ error: "Failed to load schedule" });
@@ -366,14 +441,54 @@ apiRouter.post("/user/weight", async (req, res) => {
   }
 });
 
+apiRouter.get("/user/premium-insights", async (req, res) => {
+  const telegramId = parseTelegramId(req.query.telegramId);
+  if (!telegramId) {
+    return res.status(400).json({ error: "telegramId is required" });
+  }
+  try {
+    await assertPremiumActive(telegramId);
+    const { getPremiumInsights } = await import("../services/premium-insights-service.js");
+    return res.json(await getPremiumInsights(telegramId));
+  } catch (err) {
+    if (err instanceof Error && err.message === "PREMIUM_REQUIRED") {
+      return res.status(402).json({ error: "premium_required", code: "PREMIUM_REQUIRED" });
+    }
+    console.error("GET /user/premium-insights failed:", err);
+    return res.status(500).json({ error: "Failed to load insights" });
+  }
+});
+
+apiRouter.get("/workout/personal-records", async (req, res) => {
+  const telegramId = parseTelegramId(req.query.telegramId);
+  if (!telegramId) {
+    return res.status(400).json({ error: "telegramId is required" });
+  }
+  try {
+    await assertPremiumActive(telegramId);
+    const { getPersonalRecords } = await import("../services/personal-records-service.js");
+    const records = await getPersonalRecords(telegramId, 15);
+    return res.json({ records });
+  } catch (err) {
+    if (err instanceof Error && err.message === "PREMIUM_REQUIRED") {
+      return res.status(402).json({ error: "premium_required", code: "PREMIUM_REQUIRED" });
+    }
+    console.error("GET /workout/personal-records failed:", err);
+    return res.status(500).json({ error: "Failed to load records" });
+  }
+});
+
 apiRouter.get("/workout/results", async (req, res) => {
   const telegramId = parseTelegramId(req.query.telegramId);
-  const days = Math.min(120, Math.max(7, Number(req.query.days) || 60));
   if (!telegramId) {
     return res.status(400).json({ error: "telegramId is required" });
   }
   try {
     await ensureUserRow(telegramId);
+    const user = await getUser(telegramId);
+    const cap = maxResultsHistoryDays(Boolean(user && isPremiumActive(user)));
+    const requested = Math.max(7, Number(req.query.days) || cap);
+    const days = Math.min(cap, requested);
     const { listWorkoutResults, getResultsComparison } = await import(
       "../services/results-service.js"
     );
@@ -381,7 +496,7 @@ apiRouter.get("/workout/results", async (req, res) => {
       listWorkoutResults(telegramId, days),
       getResultsComparison(telegramId),
     ]);
-    return res.json({ results, comparison });
+    return res.json({ results, comparison, maxHistoryDays: cap });
   } catch (err) {
     console.error("GET /workout/results failed:", err);
     return res.status(500).json({ error: "Failed to load results" });

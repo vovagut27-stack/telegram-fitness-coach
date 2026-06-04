@@ -10,6 +10,7 @@ export interface WorkoutExercise {
   instructions: string;
   equipment: string;
   demoUrl?: string;
+  imageFallback?: string;
 }
 
 export interface WorkoutPlan {
@@ -52,6 +53,14 @@ export interface UserProfile {
   timePerSession: number;
   isPremium: boolean;
   premiumUntil: string | null;
+  remindersEnabled?: boolean;
+  reminderHour?: number;
+  timezoneOffsetMinutes?: number;
+  freeWeeklyLimit?: number;
+  completedWorkoutsThisWeek?: number;
+  canStartNewWorkout?: boolean;
+  freeWorkoutsRemaining?: number | null;
+  restPreset?: "short" | "normal" | "long";
 }
 
 export interface ExerciseLog {

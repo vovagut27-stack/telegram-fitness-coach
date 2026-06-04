@@ -1,12 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import type { Gender, WorkoutExercise } from "../types";
 import { useI18n } from "../i18n/context";
 import { equipmentIcon, equipmentMessageKey } from "../utils/equipment";
-import {
-  resolveExerciseImageFallback,
-  resolveExerciseImageSrc,
-} from "../utils/exerciseImage";
+import { exerciseImageCandidates } from "../utils/exerciseImage";
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
@@ -22,15 +19,16 @@ export function ExerciseCard({
   gymMode = false,
 }: ExerciseCardProps): ReactElement {
   const { tr } = useI18n();
-  const primarySrc = resolveExerciseImageSrc(exercise, gender);
-  const movementFallback = resolveExerciseImageFallback(exercise, gender);
-  const [imgSrc, setImgSrc] = useState(primarySrc);
-  const [usedMovementFallback, setUsedMovementFallback] = useState(false);
+  const candidates = useMemo(
+    () => exerciseImageCandidates(exercise, gender),
+    [exercise.name, exercise.demoUrl, exercise.imageFallback, exercise.equipment, gender],
+  );
+  const [candidateIndex, setCandidateIndex] = useState(0);
+  const imgSrc = candidates[candidateIndex] ?? candidates[0];
 
   useEffect(() => {
-    setImgSrc(resolveExerciseImageSrc(exercise, gender));
-    setUsedMovementFallback(false);
-  }, [exercise.name, exercise.demoUrl, exercise.equipment, gender]);
+    setCandidateIndex(0);
+  }, [candidates]);
 
   const eqKey = equipmentMessageKey(exercise.equipment);
   const eqLabel = tr(eqKey);
@@ -43,13 +41,14 @@ export function ExerciseCard({
         src={imgSrc}
         alt={exercise.name}
         loading="lazy"
+        decoding="async"
         onError={() => {
-          if (!usedMovementFallback) {
-            setUsedMovementFallback(true);
-            setImgSrc(movementFallback);
-            return;
-          }
-          setImgSrc(movementFallback);
+          setCandidateIndex((i) => {
+            if (i + 1 < candidates.length) {
+              return i + 1;
+            }
+            return i;
+          });
         }}
       />
       {gymMode ? (

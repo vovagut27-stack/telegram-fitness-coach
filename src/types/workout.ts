@@ -8,6 +8,8 @@ export interface WorkoutExercise {
   instructions: string;
   equipment: string;
   demoUrl?: string;
+  /** Second image URL if demoUrl fails to load (e.g. wger). */
+  imageFallback?: string;
 }
 
 export interface WorkoutPlan {

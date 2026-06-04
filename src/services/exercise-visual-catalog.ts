@@ -90,7 +90,8 @@ const FALLBACK_FEMALE: Record<MovementKey, string> = {
 };
 
 const NAME_TO_MOVEMENT: Array<{ pattern: RegExp; key: MovementKey }> = [
-  { pattern: /push.?up|отжим|обратн.*отжим/i, key: "push" },
+  { pattern: /push.?up|отжим|обратн.*отжим|pike|стуль|chair/i, key: "push" },
+  { pattern: /полотенц|towel/i, key: "row" },
   { pattern: /dip|брусь/i, key: "triceps" },
   { pattern: /pull.?up|подтяг|chin/i, key: "pull" },
   { pattern: /plank|планк/i, key: "plank" },

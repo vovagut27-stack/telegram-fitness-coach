@@ -5,6 +5,18 @@ import { useI18n } from "../i18n/context";
 import { fetchPremiumInvoiceLink, fetchProfile } from "../services/api";
 import { getTelegramUserId, openStarsInvoice, requireTelegramUserId } from "../services/telegram";
 
+const FEATURE_KEYS = [
+  "premium_f_unlimited",
+  "premium_f_gym",
+  "premium_f_schedule",
+  "premium_f_history",
+  "premium_f_insights",
+  "premium_f_pr",
+  "premium_f_rest",
+  "premium_f_export",
+  "premium_f_reminders",
+] as const;
+
 interface PremiumPanelProps {
   profile: UserProfile;
   onPaid: () => void;
@@ -36,7 +48,11 @@ export function PremiumPanel({ profile, onPaid }: PremiumPanelProps): ReactEleme
         {profile.premiumUntil ? (
           <p>{tr("premium_until", { date: new Date(profile.premiumUntil).toLocaleDateString() })}</p>
         ) : null}
-        <p className="muted">{tr("premium_gym_hint")}</p>
+        <ul className="premium-features-list">
+          {FEATURE_KEYS.map((key) => (
+            <li key={key}>✓ {tr(key)}</li>
+          ))}
+        </ul>
       </section>
     );
   }
@@ -59,11 +75,16 @@ export function PremiumPanel({ profile, onPaid }: PremiumPanelProps): ReactEleme
   return (
     <section className="card premium">
       <h2>⭐ {tr("premium_title")}</h2>
-      <p>{tr("premium_bullets")}</p>
+      <p className="muted">{tr("premium_sub")}</p>
+      <ul className="premium-features-list gold">
+        {FEATURE_KEYS.map((key) => (
+          <li key={key}>{tr(key)}</li>
+        ))}
+      </ul>
       <button type="button" className="btn-gold" disabled={loading} onClick={() => void buy()}>
         {loading ? tr("loading") : tr("premium_cta")}
       </button>
-      <p className="muted">{tr("premium_dev_hint")}</p>
+      <p className="muted small">{tr("premium_dev_hint")}</p>
     </section>
   );
 }

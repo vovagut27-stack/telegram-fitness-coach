@@ -25,12 +25,17 @@ export interface UserProfile {
   heightCm: number | null;
   trainingMode: TrainingMode;
   profileComplete: boolean;
+  remindersEnabled: boolean;
+  reminderHour: number;
+  timezoneOffsetMinutes: number;
+  restPreset: "short" | "normal" | "long";
 }
 
 const USER_COLUMNS = `
   telegram_id, fitness_level, available_equipment, goals, time_per_session,
   is_premium, premium_until, language, gender, age, weight_kg, height_cm,
-  training_mode, profile_complete
+  training_mode, profile_complete, reminders_enabled, reminder_hour, timezone_offset_minutes,
+  rest_preset
 `;
 
 function mapRow(row: Record<string, unknown>): UserProfile {
@@ -49,7 +54,19 @@ function mapRow(row: Record<string, unknown>): UserProfile {
     heightCm: row.height_cm != null ? Number(row.height_cm) : null,
     trainingMode: parseTrainingMode(row.training_mode),
     profileComplete: Boolean(row.profile_complete),
+    remindersEnabled: Boolean(row.reminders_enabled ?? false),
+    reminderHour: Number(row.reminder_hour ?? 9),
+    timezoneOffsetMinutes: Number(row.timezone_offset_minutes ?? 180),
+    restPreset: parseRestPreset(row.rest_preset),
   };
+}
+
+function parseRestPreset(raw: unknown): "short" | "normal" | "long" {
+  const v = String(raw ?? "normal");
+  if (v === "short" || v === "long") {
+    return v;
+  }
+  return "normal";
 }
 
 export async function upsertUser(user: UserProfile): Promise<void> {
@@ -150,6 +167,10 @@ export async function updateUserProfile(
     heightCm: null,
     trainingMode: "home",
     profileComplete: false,
+    remindersEnabled: false,
+    reminderHour: 9,
+    timezoneOffsetMinutes: 180,
+    restPreset: "normal",
   };
 
   const bodyChanged =
@@ -263,6 +284,56 @@ export async function setUserLanguage(telegramId: number, language: Locale): Pro
   await updateUserProfile(telegramId, { language });
 }
 
+export async function updateUserSettings(
+  telegramId: number,
+  patch: {
+    remindersEnabled?: boolean;
+    reminderHour?: number;
+    timezoneOffsetMinutes?: number;
+    restPreset?: "short" | "normal" | "long";
+  },
+): Promise<UserProfile> {
+  await ensureUserRow(telegramId);
+  const hour =
+    patch.reminderHour != null
+      ? Math.min(23, Math.max(0, Math.round(patch.reminderHour)))
+      : null;
+  const offset =
+    patch.timezoneOffsetMinutes != null
+      ? Math.min(840, Math.max(-720, Math.round(patch.timezoneOffsetMinutes)))
+      : null;
+  const restPreset =
+    patch.restPreset === "short" || patch.restPreset === "long" || patch.restPreset === "normal"
+      ? patch.restPreset
+      : null;
+
+  await db.query(
+    `
+      UPDATE users
+      SET
+        reminders_enabled = COALESCE($2, reminders_enabled),
+        reminder_hour = COALESCE($3, reminder_hour),
+        timezone_offset_minutes = COALESCE($4, timezone_offset_minutes),
+        rest_preset = COALESCE($5, rest_preset)
+      WHERE telegram_id = $1::bigint
+    `,
+    [String(telegramId), patch.remindersEnabled ?? null, hour, offset, restPreset],
+  );
+
+  const user = await getUser(telegramId);
+  if (!user) {
+    throw new Error("User not found after settings update");
+  }
+  return user;
+}
+
+export async function listUsersWithReminders(): Promise<UserProfile[]> {
+  const result = await db.query(
+    `SELECT ${USER_COLUMNS} FROM users WHERE reminders_enabled = TRUE`,
+  );
+  return result.rows.map((row) => mapRow(row));
+}
+
 export async function upgradePremium(telegramId: number, days: number): Promise<void> {
   const updated = await db.query(
     `
@@ -288,6 +359,10 @@ export async function upgradePremium(telegramId: number, days: number): Promise<
       heightCm: null,
       trainingMode: "home",
       profileComplete: false,
+      remindersEnabled: false,
+      reminderHour: 9,
+      timezoneOffsetMinutes: 180,
+      restPreset: "normal",
     });
     await db.query(
       `

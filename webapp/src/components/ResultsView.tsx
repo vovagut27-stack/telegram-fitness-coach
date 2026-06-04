@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import type {
   ExerciseLog,
@@ -15,6 +15,9 @@ import {
   type ResultsComparison,
 } from "../services/api";
 import { requireTelegramUserId } from "../services/telegram";
+import { PersonalRecords } from "./PersonalRecords";
+import { PremiumTeaser } from "./PremiumTeaser";
+import { buildWeekSummaryText } from "../utils/weekSummary";
 
 interface ManualRow {
   exerciseName: string;
@@ -58,9 +61,16 @@ type ResultsFilter = "all" | "home" | "gym";
 interface ResultsViewProps {
   onSaved?: () => void;
   showGymFilter?: boolean;
+  isPremium?: boolean;
+  onUpgrade?: () => void;
 }
 
-export function ResultsView({ onSaved, showGymFilter = false }: ResultsViewProps): ReactElement {
+export function ResultsView({
+  onSaved,
+  showGymFilter = false,
+  isPremium = false,
+  onUpgrade,
+}: ResultsViewProps): ReactElement {
   const { tr, locale } = useI18n();
   const [results, setResults] = useState<WorkoutResultDay[]>([]);
   const [sourceFilter, setSourceFilter] = useState<ResultsFilter>("all");
@@ -74,6 +84,9 @@ export function ResultsView({ onSaved, showGymFilter = false }: ResultsViewProps
   const [rows, setRows] = useState<ManualRow[]>([]);
   const [saving, setSaving] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState(false);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
+  const [shareMsg, setShareMsg] = useState<string | null>(null);
+  const manualSectionRef = useRef<HTMLElement | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -93,19 +106,32 @@ export function ResultsView({ onSaved, showGymFilter = false }: ResultsViewProps
     void reload();
   }, [reload]);
 
-  const loadPlanForEntry = async (): Promise<void> => {
+  const loadPlanForEntry = async (dateOverride?: string): Promise<void> => {
+    const date = dateOverride ?? entryDate;
+    if (dateOverride) {
+      setEntryDate(date);
+    }
     setLoadingPlan(true);
     setError(null);
     try {
-      const { plan: loaded } = await fetchPlanForDate(requireTelegramUserId(), entryDate);
-      const existing = results.find((d) => d.workoutDate === entryDate);
+      const { plan: loaded } = await fetchPlanForDate(requireTelegramUserId(), date);
+      const existing = results.find((d) => d.workoutDate === date);
       setPlan(loaded);
       setRows(mergeWithExisting(loaded, existing));
+      setEditingDate(existing ? date : null);
     } catch (err) {
       setError(err instanceof Error ? err.message : tr("load_error"));
     } finally {
       setLoadingPlan(false);
     }
+  };
+
+  const startEditDay = (date: string): void => {
+    setExpandedDate(null);
+    setEditingDate(date);
+    void loadPlanForEntry(date).then(() => {
+      manualSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   const saveManual = async (): Promise<void> => {
@@ -133,6 +159,7 @@ export function ResultsView({ onSaved, showGymFilter = false }: ResultsViewProps
       onSaved?.();
       setPlan(null);
       setRows([]);
+      setEditingDate(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : tr("save_workout_error"));
     } finally {
@@ -199,10 +226,38 @@ export function ResultsView({ onSaved, showGymFilter = false }: ResultsViewProps
             </article>
           </div>
         ) : null}
+        {isPremium ? (
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => {
+              const text = buildWeekSummaryText(filteredResults, locale);
+              void navigator.clipboard.writeText(text).then(() => {
+                setShareMsg(tr("share_week_done"));
+                window.setTimeout(() => setShareMsg(null), 2500);
+              });
+            }}
+          >
+            {tr("share_week_btn")}
+          </button>
+        ) : onUpgrade ? (
+          <PremiumTeaser titleKey="share_teaser_title" onUpgrade={onUpgrade} />
+        ) : null}
+        {shareMsg ? <p className="ok">{shareMsg}</p> : null}
       </section>
 
       <section className="card">
-        <h3>{tr("results_manual_title")}</h3>
+        <h3>{tr("pr_title")}</h3>
+        <p className="muted small">{tr("pr_sub")}</p>
+        {isPremium ? (
+          <PersonalRecords />
+        ) : onUpgrade ? (
+          <PremiumTeaser titleKey="pr_teaser_title" onUpgrade={onUpgrade} />
+        ) : null}
+      </section>
+
+      <section className="card" ref={manualSectionRef}>
+        <h3>{editingDate ? tr("results_edit_title") : tr("results_manual_title")}</h3>
         <p className="muted">{tr("results_manual_hint")}</p>
         <label className="field">
           {tr("results_pick_date")}
@@ -351,20 +406,31 @@ export function ResultsView({ onSaved, showGymFilter = false }: ResultsViewProps
                   </span>
                 </button>
                 {open ? (
-                  <ul className="results-exercises">
-                    {day.exercises.map((ex: WorkoutResultExercise) => (
-                      <li key={ex.exerciseName}>
-                        <strong>{ex.exerciseName}</strong>
-                        <span className="muted">
-                          {ex.setsCompleted}×
-                          {ex.repsCompleted.length
-                            ? ex.repsCompleted.join("/")
-                            : "—"}
-                          {ex.weightUsed != null ? ` · ${ex.weightUsed} ${tr("kg_unit")}` : ""}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    <ul className="results-exercises">
+                      {day.exercises.map((ex: WorkoutResultExercise) => (
+                        <li key={ex.exerciseName}>
+                          <strong>{ex.exerciseName}</strong>
+                          <span className="muted">
+                            {ex.setsCompleted}×
+                            {ex.repsCompleted.length
+                              ? ex.repsCompleted.join("/")
+                              : "—"}
+                            {ex.weightUsed != null
+                              ? ` · ${ex.weightUsed} ${tr("kg_unit")}`
+                              : ""}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      type="button"
+                      className="btn-secondary results-edit-btn"
+                      onClick={() => startEditDay(day.workoutDate)}
+                    >
+                      {tr("results_edit_day")}
+                    </button>
+                  </>
                 ) : null}
               </li>
             );

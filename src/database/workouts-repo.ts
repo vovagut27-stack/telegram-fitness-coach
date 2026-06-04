@@ -77,6 +77,43 @@ export async function saveExerciseLog(input: {
   );
 }
 
+export async function saveExerciseLogsBatch(
+  workoutId: number,
+  entries: Array<{
+    exerciseName: string;
+    setsCompleted: number;
+    repsCompleted: number[];
+    weightUsed?: number;
+    durationSeconds?: number;
+  }>,
+): Promise<void> {
+  if (entries.length === 0) {
+    return;
+  }
+  const values: unknown[] = [workoutId];
+  const tuples: string[] = [];
+  let i = 2;
+  for (const entry of entries) {
+    tuples.push(`($1, $${i}, $${i + 1}, $${i + 2}, $${i + 3}, $${i + 4})`);
+    values.push(
+      entry.exerciseName,
+      entry.setsCompleted,
+      entry.repsCompleted,
+      entry.weightUsed ?? null,
+      entry.durationSeconds ?? null,
+    );
+    i += 5;
+  }
+  await db.query(
+    `
+      INSERT INTO exercise_logs
+      (workout_id, exercise_name, sets_completed, reps_completed, weight_used, duration_seconds)
+      VALUES ${tuples.join(", ")}
+    `,
+    values,
+  );
+}
+
 export async function getRecentWorkouts(
   telegramId: number,
   limit: number,

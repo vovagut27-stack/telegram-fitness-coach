@@ -5,6 +5,8 @@ import { GymProgramView } from "./components/GymProgramView";
 import { PremiumPanel } from "./components/PremiumPanel";
 import { ScheduleList } from "./components/ScheduleList";
 import { ResultsView } from "./components/ResultsView";
+import { FreeLimitBanner } from "./components/FreeLimitBanner";
+import { PremiumInsightsCard } from "./components/PremiumInsightsCard";
 import { getApiBase, probeApiHealth } from "./config";
 import {
   getWorkoutDateFromUrl,
@@ -50,10 +52,12 @@ function App() {
   }, []);
 
   const loadSchedule = useCallback(async () => {
-    const days = await fetchSchedule(requireTelegramUserId(), 7);
+    const id = requireTelegramUserId();
+    const premium = profile?.isPremium ?? false;
+    const { days } = await fetchSchedule(id, premium ? 14 : 7);
     setSchedule(days);
     return days;
-  }, []);
+  }, [profile?.isPremium]);
 
   const loadUserStats = useCallback(async () => {
     const stats = await fetchUserStats(requireTelegramUserId());
@@ -142,11 +146,26 @@ function App() {
   }, []);
 
   const refreshAfterWorkout = useCallback((): void => {
+    window.setTimeout(() => {
+      void loadSchedule();
+      void loadUserStats();
+      setResultsRefreshKey((k) => k + 1);
+    }, 0);
+    window.setTimeout(() => {
+      void loadProfile();
+      if (profile?.isPremium) {
+        void loadGymSchedule();
+      }
+    }, 400);
+  }, [loadProfile, loadSchedule, loadGymSchedule, loadUserStats, profile?.isPremium]);
+
+  const goHomeAfterWorkout = useCallback((): void => {
+    setWorkout(null);
+    setWorkoutDate(null);
+    setWorkoutCompleted(false);
+    setTab("home");
     void loadSchedule();
-    void loadGymSchedule();
-    void loadUserStats();
-    setResultsRefreshKey((k) => k + 1);
-  }, [loadSchedule, loadGymSchedule, loadUserStats]);
+  }, [loadSchedule]);
 
   const loadGym = async (): Promise<void> => {
     if (!profile?.isPremium) {
@@ -198,9 +217,6 @@ function App() {
     refreshAfterWorkout();
     if (!gymMode) {
       setWorkoutCompleted(true);
-      setTab("home");
-      setWorkout(null);
-      setWorkoutDate(null);
     }
   };
 
@@ -291,6 +307,8 @@ function App() {
                 </button>
               )}
             </section>
+            <FreeLimitBanner profile={profile} onUpgrade={() => setTab("premium")} />
+            {profile.isPremium ? <PremiumInsightsCard /> : null}
             {!profile.profileComplete ? (
               <section className="card onboarding-card">
                 <h2>{tr("onboarding_title")}</h2>
@@ -302,6 +320,9 @@ function App() {
             ) : null}
             <ScheduleList
               days={schedule}
+              title={tr("schedule_title_days", {
+                n: String(profile.isPremium ? 14 : 7),
+              })}
               selectedDate={workoutDate}
               onSelect={(date) => {
                 if (!profile.profileComplete) {
@@ -315,12 +336,22 @@ function App() {
           </>
         ) : null}
 
+        {tab === "workout" && !workout ? (
+          <section className="card">
+            <h2>{tr("workout_pick_day")}</h2>
+            <p className="muted">{tr("workout_pick_day_hint")}</p>
+            <button type="button" className="btn-primary" onClick={() => setTab("home")}>
+              {tr("tab_home")}
+            </button>
+          </section>
+        ) : null}
+
         {tab === "workout" && workout ? (
           workoutCompleted ? (
             <section className="card">
               <h2>✅ {tr("day_done")}</h2>
               <p className="muted">{workoutDate}</p>
-              <button type="button" onClick={() => setTab("home")}>
+              <button type="button" onClick={() => goHomeAfterWorkout()}>
                 {tr("tab_home")}
               </button>
             </section>
@@ -328,7 +359,9 @@ function App() {
             <WorkoutPlayer
               workout={workout}
               gender={profile?.gender}
+              restPreset={profile?.restPreset}
               onComplete={(logs) => handleCompleteSafe(logs)}
+              onGoHome={goHomeAfterWorkout}
             />
           )
         ) : null}
@@ -346,7 +379,9 @@ function App() {
         {tab === "results" ? (
           <ResultsView
             key={resultsRefreshKey}
+            isPremium={Boolean(profile?.isPremium)}
             showGymFilter={Boolean(profile?.isPremium)}
+            onUpgrade={() => setTab("premium")}
             onSaved={() => {
               refreshAfterWorkout();
               void loadProfile();
@@ -390,6 +425,11 @@ function App() {
               if (t.id === "gym" && !profile?.isPremium) {
                 setTab("premium");
                 setError(tr("premium_required"));
+                return;
+              }
+              if (t.id === "workout" && !workout) {
+                setTab("home");
+                void loadSchedule();
                 return;
               }
               setTab(t.id);

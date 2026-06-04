@@ -24,6 +24,8 @@ const envSchema = z.object({
   ADMIN_TELEGRAM_IDS: z.string().default(""),
   /** Secret word: /devpremium <secret> — test Premium without admin ID */
   DEV_PREMIUM_SECRET: z.string().default(""),
+  /** Bearer token for Vercel Cron → GET /api/cron/reminders */
+  CRON_SECRET: z.string().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);

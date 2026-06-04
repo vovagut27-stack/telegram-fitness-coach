@@ -2,7 +2,7 @@ import {
   clearExerciseLogs,
   getWorkoutByDate,
   markWorkoutCompleted,
-  saveExerciseLog,
+  saveExerciseLogsBatch,
   type ExerciseLogRow,
 } from "../database/workouts-repo.js";
 import { getOrCreateGymWorkoutForDate, getOrCreateWorkoutForDate } from "./workout-service.js";
@@ -73,16 +73,16 @@ export async function completeWorkoutWithLogs(
 
   const logs = normalizeLogs(exercises, row.plan);
   await clearExerciseLogs(row.id);
-  for (const entry of logs) {
-    await saveExerciseLog({
-      workoutId: row.id,
+  await saveExerciseLogsBatch(
+    row.id,
+    logs.map((entry) => ({
       exerciseName: entry.exerciseName,
       setsCompleted: entry.setsCompleted,
       repsCompleted: entry.repsCompleted,
       weightUsed: entry.weightUsed ?? undefined,
       durationSeconds: entry.durationSeconds ?? undefined,
-    });
-  }
+    })),
+  );
   await markWorkoutCompleted(row.id, completionNotes || (gymMode ? "Gym" : "Home"));
 
   return { date: workoutDate, exerciseCount: logs.length };
