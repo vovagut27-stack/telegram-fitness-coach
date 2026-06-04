@@ -1,4 +1,5 @@
 import { getApiBase } from "../config";
+import { abortSignalTimeout } from "../utils/fetch-timeout";
 import type {
   ExerciseLog,
   GymProgram,
@@ -23,7 +24,7 @@ async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   try {
     return await fetch(url, {
       ...init,
-      signal: init?.signal ?? AbortSignal.timeout(25_000),
+      signal: init?.signal ?? abortSignalTimeout(25_000),
     });
   } catch (err) {
     const base = getApiBase();

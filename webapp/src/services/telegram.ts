@@ -5,6 +5,10 @@ declare global {
         initData?: string;
         initDataUnsafe?: { user?: { id?: number | string }; start_param?: string };
         openInvoice?: (url: string, callback?: (status: string) => void) => void;
+        themeParams?: {
+          bg_color?: string;
+          secondary_bg_color?: string;
+        };
         ready: () => void;
         expand: () => void;
         close: () => void;
@@ -55,7 +59,7 @@ export function getTelegramUserId(): number | null {
 }
 
 /** Wait until Telegram WebApp SDK exposes the user (opens inside Telegram). */
-export function waitForTelegramUserId(timeoutMs = 4000): Promise<number | null> {
+export function waitForTelegramUserId(timeoutMs = 8000): Promise<number | null> {
   const immediate = getTelegramUserId();
   if (immediate) {
     return Promise.resolve(immediate);
@@ -102,8 +106,17 @@ export function getWorkoutDateFromUrl(): string | null {
 
 export function initTelegramWebApp(): void {
   const tg = window.Telegram?.WebApp;
-  tg?.ready?.();
-  tg?.expand?.();
+  if (!tg) {
+    return;
+  }
+  tg.ready?.();
+  tg.expand?.();
+  const params = tg.themeParams;
+  const bg = params?.bg_color ?? params?.secondary_bg_color;
+  if (bg) {
+    document.body.style.backgroundColor = bg;
+    document.documentElement.style.setProperty("--tg-bg", bg);
+  }
 }
 
 export function openStarsInvoice(url: string, onDone?: (paid: boolean) => void): void {

@@ -49,19 +49,25 @@ export function WorkoutPlayer({
   const [weightInput, setWeightInput] = useState("");
   const autoSaveStarted = useRef(false);
 
-  const current = workout.exercises[exerciseIndex];
-  const restSeconds = effectiveRestSeconds(current, workout.difficultyLevel, restPreset);
-  const isLastExercise = exerciseIndex === workout.exercises.length - 1;
+  const exercises = workout.exercises ?? [];
+  const current = exercises[exerciseIndex];
+  const restSeconds = current
+    ? effectiveRestSeconds(current, workout.difficultyLevel, restPreset)
+    : 60;
+  const isLastExercise = exerciseIndex === exercises.length - 1;
   const completed = useMemo(
-    () => exerciseIndex >= workout.exercises.length,
-    [exerciseIndex, workout.exercises.length],
+    () => exercises.length === 0 || exerciseIndex >= exercises.length,
+    [exerciseIndex, exercises.length],
   );
 
   useEffect(() => {
+    if (!current) {
+      return;
+    }
     setRepsInput(String(defaultReps(current.reps)));
     setWeightInput("");
     setSetDone(0);
-  }, [exerciseIndex, current.reps]);
+  }, [exerciseIndex, current]);
 
   const finalLogs = useMemo(
     () => (logs.length > 0 ? logs : buildLogsFromPlan(workout)),
@@ -88,6 +94,9 @@ export function WorkoutPlayer({
   };
 
   const finishExercise = (): void => {
+    if (!current) {
+      return;
+    }
     const reps = Math.max(1, Number(repsInput) || defaultReps(current.reps));
     const weight = weightInput.trim() ? Number(weightInput) : undefined;
     const entry: ExerciseLog = {
@@ -101,7 +110,7 @@ export function WorkoutPlayer({
     setLogs((prev) => [...prev, entry]);
 
     if (isLastExercise) {
-      setExerciseIndex(workout.exercises.length);
+      setExerciseIndex(exercises.length);
       return;
     }
 
@@ -110,6 +119,9 @@ export function WorkoutPlayer({
   };
 
   const markSetCompleted = (): void => {
+    if (!current) {
+      return;
+    }
     const nextSet = setDone + 1;
     if (nextSet < current.sets) {
       setSetDone(nextSet);
@@ -118,6 +130,29 @@ export function WorkoutPlayer({
     }
     finishExercise();
   };
+
+  if (exercises.length === 0) {
+    return (
+      <section className="card">
+        <h2>{tr("workout_empty")}</h2>
+        <p className="muted">{tr("workout_empty_hint")}</p>
+        <button type="button" className="btn-primary" onClick={() => onGoHome?.()}>
+          {tr("tab_home")}
+        </button>
+      </section>
+    );
+  }
+
+  if (!current) {
+    return (
+      <section className="card">
+        <p className="error">{tr("load_error")}</p>
+        <button type="button" onClick={() => onGoHome?.()}>
+          {tr("tab_home")}
+        </button>
+      </section>
+    );
+  }
 
   if (completed) {
     return (
@@ -165,7 +200,7 @@ export function WorkoutPlayer({
         ) : null}
         <h2>{workout.splitDay ?? (gymMode ? tr("gym_title") : tr("workout_player"))}</h2>
         <p>
-          {tr("focus")}: {workout.targetMuscles.join(", ")} · {tr("time_min")}:{" "}
+          {tr("focus")}: {(workout.targetMuscles ?? []).join(", ") || "—"} · {tr("time_min")}:{" "}
           {workout.totalMinutes} {tr("min")} · {levelLabel(locale, workout.difficultyLevel)}
         </p>
         {workout.notes ? <p className="muted">{workout.notes}</p> : null}

@@ -10,7 +10,6 @@ import { PremiumInsightsCard } from "./components/PremiumInsightsCard";
 import { getApiBase, probeApiHealth } from "./config";
 import {
   getWorkoutDateFromUrl,
-  initTelegramWebApp,
   requireTelegramUserId,
   waitForTelegramUserId,
 } from "./services/telegram";
@@ -66,7 +65,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    initTelegramWebApp();
     let cancelled = false;
 
     void waitForTelegramUserId().then((id) => {
@@ -81,7 +79,7 @@ function App() {
       }
       void probeApiHealth().then((ok) => {
         if (!ok && !cancelled) {
-          setError(`${tr("network_error")} (${getApiBase()})`);
+          setError(tr("network_error"));
         }
       });
       Promise.all([loadProfile(), loadSchedule(), loadUserStats()])
@@ -342,6 +340,28 @@ function App() {
             <p className="muted">{tr("workout_pick_day_hint")}</p>
             <button type="button" className="btn-primary" onClick={() => setTab("home")}>
               {tr("tab_home")}
+            </button>
+          </section>
+        ) : null}
+
+        {tab === "home" && !profile && !loading ? (
+          <section className="card">
+            <p className="muted">{tr("load_error")}</p>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                setLoading(true);
+                setError(null);
+                void loadProfile()
+                  .then(() => loadSchedule())
+                  .catch((err) => {
+                    setError(err instanceof Error ? err.message : tr("load_error"));
+                  })
+                  .finally(() => setLoading(false));
+              }}
+            >
+              {tr("retry")}
             </button>
           </section>
         ) : null}

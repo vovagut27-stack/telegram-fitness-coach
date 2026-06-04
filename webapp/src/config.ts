@@ -1,3 +1,5 @@
+import { abortSignalTimeout } from "./utils/fetch-timeout";
+
 const PRODUCTION_BACKEND = "https://telegram-fitness-coach.vercel.app/api";
 
 function normalizeApiBase(raw: string): string {
@@ -113,7 +115,7 @@ export async function probeApiHealth(): Promise<boolean> {
   try {
     const res = await fetch(`${getApiBase()}/health`, {
       cache: "no-store",
-      signal: AbortSignal.timeout(20_000),
+      signal: abortSignalTimeout(20_000),
     });
     if (!res.ok) {
       return false;
